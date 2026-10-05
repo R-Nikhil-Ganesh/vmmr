@@ -1,0 +1,617 @@
+[
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/01_audi.jpg",
+    "top1_make": "Honda",
+    "top1_confidence": 0.4183597266674042,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Honda",
+        "class_idx": 12,
+        "confidence": 0.4183597266674042
+      },
+      {
+        "rank": 2,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.23925670981407166
+      },
+      {
+        "rank": 3,
+        "make": "Subaru",
+        "class_idx": 30,
+        "confidence": 0.11820878088474274
+      },
+      {
+        "rank": 4,
+        "make": "Nissan",
+        "class_idx": 24,
+        "confidence": 0.0747242420911789
+      },
+      {
+        "rank": 5,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.04597357660531998
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/02_bmw.jpg",
+    "top1_make": "BMW",
+    "top1_confidence": 0.9999991655349731,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "BMW",
+        "class_idx": 3,
+        "confidence": 0.9999991655349731
+      },
+      {
+        "rank": 2,
+        "make": "Lincoln",
+        "class_idx": 20,
+        "confidence": 6.044795100024203e-07
+      },
+      {
+        "rank": 3,
+        "make": "Skoda",
+        "class_idx": 29,
+        "confidence": 7.620287334475506e-08
+      },
+      {
+        "rank": 4,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 6.309107192237207e-08
+      },
+      {
+        "rank": 5,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 1.4678593451833422e-08
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/03_chevrolet.jpg",
+    "top1_make": "Volkswagen",
+    "top1_confidence": 0.5724709630012512,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Volkswagen",
+        "class_idx": 33,
+        "confidence": 0.5724709630012512
+      },
+      {
+        "rank": 2,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 0.12639892101287842
+      },
+      {
+        "rank": 3,
+        "make": "Honda",
+        "class_idx": 12,
+        "confidence": 0.1004401221871376
+      },
+      {
+        "rank": 4,
+        "make": "Kia",
+        "class_idx": 17,
+        "confidence": 0.06494215130805969
+      },
+      {
+        "rank": 5,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.04578627645969391
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/04_ford.jpg",
+    "top1_make": "Kia",
+    "top1_confidence": 0.3473985195159912,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Kia",
+        "class_idx": 17,
+        "confidence": 0.3473985195159912
+      },
+      {
+        "rank": 2,
+        "make": "Subaru",
+        "class_idx": 30,
+        "confidence": 0.16506613790988922
+      },
+      {
+        "rank": 3,
+        "make": "Nissan",
+        "class_idx": 24,
+        "confidence": 0.1443159580230713
+      },
+      {
+        "rank": 4,
+        "make": "Mazda",
+        "class_idx": 22,
+        "confidence": 0.13389025628566742
+      },
+      {
+        "rank": 5,
+        "make": "Honda",
+        "class_idx": 12,
+        "confidence": 0.12316188216209412
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/05_gmc.jpg",
+    "top1_make": "GMC",
+    "top1_confidence": 0.9748197793960571,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "GMC",
+        "class_idx": 11,
+        "confidence": 0.9748197793960571
+      },
+      {
+        "rank": 2,
+        "make": "Chrysler",
+        "class_idx": 7,
+        "confidence": 0.005857718642801046
+      },
+      {
+        "rank": 3,
+        "make": "Chevrolet",
+        "class_idx": 6,
+        "confidence": 0.005687032826244831
+      },
+      {
+        "rank": 4,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.005292264744639397
+      },
+      {
+        "rank": 5,
+        "make": "Dodge",
+        "class_idx": 9,
+        "confidence": 0.003590230131521821
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/06_honda.jpg",
+    "top1_make": "Toyota",
+    "top1_confidence": 0.9702810049057007,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.9702810049057007
+      },
+      {
+        "rank": 2,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.009402900002896786
+      },
+      {
+        "rank": 3,
+        "make": "Suzuki",
+        "class_idx": 31,
+        "confidence": 0.004450044594705105
+      },
+      {
+        "rank": 4,
+        "make": "Dodge",
+        "class_idx": 9,
+        "confidence": 0.0034844789188355207
+      },
+      {
+        "rank": 5,
+        "make": "Mitsubishi",
+        "class_idx": 23,
+        "confidence": 0.0031767883338034153
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/07_hyundai.jpg",
+    "top1_make": "Toyota",
+    "top1_confidence": 0.48178011178970337,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.48178011178970337
+      },
+      {
+        "rank": 2,
+        "make": "Nissan",
+        "class_idx": 24,
+        "confidence": 0.14042438566684723
+      },
+      {
+        "rank": 3,
+        "make": "Honda",
+        "class_idx": 12,
+        "confidence": 0.11035173386335373
+      },
+      {
+        "rank": 4,
+        "make": "Volkswagen",
+        "class_idx": 33,
+        "confidence": 0.09159152209758759
+      },
+      {
+        "rank": 5,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 0.04296189174056053
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/08_infiniti.jpg",
+    "top1_make": "Hyundai",
+    "top1_confidence": 0.6497112512588501,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 0.6497112512588501
+      },
+      {
+        "rank": 2,
+        "make": "Infiniti",
+        "class_idx": 14,
+        "confidence": 0.22627873718738556
+      },
+      {
+        "rank": 3,
+        "make": "BMW",
+        "class_idx": 3,
+        "confidence": 0.07548514753580093
+      },
+      {
+        "rank": 4,
+        "make": "Subaru",
+        "class_idx": 30,
+        "confidence": 0.011226323433220387
+      },
+      {
+        "rank": 5,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.010889662429690361
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/09_jeep.jpg",
+    "top1_make": "Jeep",
+    "top1_confidence": 0.999915599822998,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Jeep",
+        "class_idx": 16,
+        "confidence": 0.999915599822998
+      },
+      {
+        "rank": 2,
+        "make": "Suzuki",
+        "class_idx": 31,
+        "confidence": 2.03834060812369e-05
+      },
+      {
+        "rank": 3,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 1.5640234778402373e-05
+      },
+      {
+        "rank": 4,
+        "make": "Mitsubishi",
+        "class_idx": 23,
+        "confidence": 1.1823389286291786e-05
+      },
+      {
+        "rank": 5,
+        "make": "Dodge",
+        "class_idx": 9,
+        "confidence": 9.753036465554032e-06
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/10_nissan.jpg",
+    "top1_make": "Ford",
+    "top1_confidence": 0.42830637097358704,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.42830637097358704
+      },
+      {
+        "rank": 2,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.4151856005191803
+      },
+      {
+        "rank": 3,
+        "make": "Cadillac",
+        "class_idx": 5,
+        "confidence": 0.08571942150592804
+      },
+      {
+        "rank": 4,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 0.028686517849564552
+      },
+      {
+        "rank": 5,
+        "make": "Nissan",
+        "class_idx": 24,
+        "confidence": 0.01246475800871849
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/11_porsche.jpg",
+    "top1_make": "Toyota",
+    "top1_confidence": 0.7155444622039795,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.7155444622039795
+      },
+      {
+        "rank": 2,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.10433945804834366
+      },
+      {
+        "rank": 3,
+        "make": "Alfa Romeo",
+        "class_idx": 1,
+        "confidence": 0.027289830148220062
+      },
+      {
+        "rank": 4,
+        "make": "Mazda",
+        "class_idx": 22,
+        "confidence": 0.021310871466994286
+      },
+      {
+        "rank": 5,
+        "make": "Renault",
+        "class_idx": 28,
+        "confidence": 0.02050052024424076
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/12_subaru.jpg",
+    "top1_make": "Toyota",
+    "top1_confidence": 0.9995301961898804,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.9995301961898804
+      },
+      {
+        "rank": 2,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.000270018819719553
+      },
+      {
+        "rank": 3,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 0.00010475464659975842
+      },
+      {
+        "rank": 4,
+        "make": "Subaru",
+        "class_idx": 30,
+        "confidence": 3.429756179684773e-05
+      },
+      {
+        "rank": 5,
+        "make": "Cadillac",
+        "class_idx": 5,
+        "confidence": 1.4033965271664783e-05
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/13_toyota.jpg",
+    "top1_make": "Toyota",
+    "top1_confidence": 0.9633268713951111,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.9633268713951111
+      },
+      {
+        "rank": 2,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.0171490665525198
+      },
+      {
+        "rank": 3,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 0.014099806547164917
+      },
+      {
+        "rank": 4,
+        "make": "Cadillac",
+        "class_idx": 5,
+        "confidence": 0.004089459776878357
+      },
+      {
+        "rank": 5,
+        "make": "Lexus",
+        "class_idx": 19,
+        "confidence": 0.000710642954800278
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/14_volkswagen.jpg",
+    "top1_make": "Toyota",
+    "top1_confidence": 0.7544424533843994,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.7544424533843994
+      },
+      {
+        "rank": 2,
+        "make": "Hyundai",
+        "class_idx": 13,
+        "confidence": 0.10614528506994247
+      },
+      {
+        "rank": 3,
+        "make": "Lexus",
+        "class_idx": 19,
+        "confidence": 0.081020288169384
+      },
+      {
+        "rank": 4,
+        "make": "Volkswagen",
+        "class_idx": 33,
+        "confidence": 0.020090920850634575
+      },
+      {
+        "rank": 5,
+        "make": "Chrysler",
+        "class_idx": 7,
+        "confidence": 0.01045950222760439
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  },
+  {
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/15_volvo.jpg",
+    "top1_make": "Honda",
+    "top1_confidence": 0.5108007192611694,
+    "predictions": [
+      {
+        "rank": 1,
+        "make": "Honda",
+        "class_idx": 12,
+        "confidence": 0.5108007192611694
+      },
+      {
+        "rank": 2,
+        "make": "Nissan",
+        "class_idx": 24,
+        "confidence": 0.36292320489883423
+      },
+      {
+        "rank": 3,
+        "make": "Toyota",
+        "class_idx": 32,
+        "confidence": 0.07749929279088974
+      },
+      {
+        "rank": 4,
+        "make": "Ford",
+        "class_idx": 10,
+        "confidence": 0.010690553113818169
+      },
+      {
+        "rank": 5,
+        "make": "Mazda",
+        "class_idx": 22,
+        "confidence": 0.009076965972781181
+      }
+    ],
+    "latency_ms": 169.14523000014015,
+    "model_variant": "platesmania",
+    "model_type": "35-makes",
+    "provider": "CPUExecutionProvider"
+  }
+]
