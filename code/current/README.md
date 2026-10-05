@@ -9,7 +9,7 @@ This directory contains the production and experimental model pipelines for fine
 ```text
 code/current/
 ├── efficientnet/      # EfficientNet-B0 transfer learning pipelines, ONNX weights, and diagnostic suite
-└── mobilenetv2/       # MobileNetV2 architecture experiments (in progress)
+└── mobilenet/       # MobileNetV2 architecture experiments (in progress)
 ```
 
 ---

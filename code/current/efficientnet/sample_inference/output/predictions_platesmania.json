@@ -1,6 +1,6 @@
 [
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/01_audi.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/01_audi.jpg",
     "top1_make": "Honda",
     "top1_confidence": 0.4183597266674042,
     "predictions": [
@@ -35,13 +35,12 @@
         "confidence": 0.04597357660531998
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/02_bmw.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/02_bmw.jpg",
     "top1_make": "BMW",
     "top1_confidence": 0.9999991655349731,
     "predictions": [
@@ -76,13 +75,12 @@
         "confidence": 1.4678593451833422e-08
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/03_chevrolet.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/03_chevrolet.jpg",
     "top1_make": "Volkswagen",
     "top1_confidence": 0.5724709630012512,
     "predictions": [
@@ -117,13 +115,12 @@
         "confidence": 0.04578627645969391
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/04_ford.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/04_ford.jpg",
     "top1_make": "Kia",
     "top1_confidence": 0.3473985195159912,
     "predictions": [
@@ -158,13 +155,12 @@
         "confidence": 0.12316188216209412
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/05_gmc.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/05_gmc.jpg",
     "top1_make": "GMC",
     "top1_confidence": 0.9748197793960571,
     "predictions": [
@@ -199,13 +195,12 @@
         "confidence": 0.003590230131521821
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/06_honda.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/06_honda.jpg",
     "top1_make": "Toyota",
     "top1_confidence": 0.9702810049057007,
     "predictions": [
@@ -240,13 +235,12 @@
         "confidence": 0.0031767883338034153
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/07_hyundai.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/07_hyundai.jpg",
     "top1_make": "Toyota",
     "top1_confidence": 0.48178011178970337,
     "predictions": [
@@ -281,13 +275,12 @@
         "confidence": 0.04296189174056053
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/08_infiniti.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/08_infiniti.jpg",
     "top1_make": "Hyundai",
     "top1_confidence": 0.6497112512588501,
     "predictions": [
@@ -322,13 +315,12 @@
         "confidence": 0.010889662429690361
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/09_jeep.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/09_jeep.jpg",
     "top1_make": "Jeep",
     "top1_confidence": 0.999915599822998,
     "predictions": [
@@ -363,13 +355,12 @@
         "confidence": 9.753036465554032e-06
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/10_nissan.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/10_nissan.jpg",
     "top1_make": "Ford",
     "top1_confidence": 0.42830637097358704,
     "predictions": [
@@ -404,13 +395,12 @@
         "confidence": 0.01246475800871849
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/11_porsche.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/11_porsche.jpg",
     "top1_make": "Toyota",
     "top1_confidence": 0.7155444622039795,
     "predictions": [
@@ -445,13 +435,12 @@
         "confidence": 0.02050052024424076
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/12_subaru.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/12_subaru.jpg",
     "top1_make": "Toyota",
     "top1_confidence": 0.9995301961898804,
     "predictions": [
@@ -486,13 +475,12 @@
         "confidence": 1.4033965271664783e-05
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/13_toyota.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/13_toyota.jpg",
     "top1_make": "Toyota",
     "top1_confidence": 0.9633268713951111,
     "predictions": [
@@ -527,13 +515,12 @@
         "confidence": 0.000710642954800278
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/14_volkswagen.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/14_volkswagen.jpg",
     "top1_make": "Toyota",
     "top1_confidence": 0.7544424533843994,
     "predictions": [
@@ -568,13 +555,12 @@
         "confidence": 0.01045950222760439
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   },
   {
-    "image_path": "/home/researchadmin/Econ-n/repo-clone/stanford-cars-model/code/current/efficientnet/sample_inference/images/15_volvo.jpg",
+    "image_path": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/efficientnet/sample_inference/images/15_volvo.jpg",
     "top1_make": "Honda",
     "top1_confidence": 0.5108007192611694,
     "predictions": [
@@ -609,8 +595,7 @@
         "confidence": 0.009076965972781181
       }
     ],
-    "latency_ms": 169.14523000014015,
-    "model_variant": "platesmania",
+    "latency_ms": 149.87154606690942,
     "model_type": "35-makes",
     "provider": "CPUExecutionProvider"
   }
