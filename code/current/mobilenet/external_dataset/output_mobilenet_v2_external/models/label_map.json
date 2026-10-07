@@ -72,5 +72,6 @@
     "32": "Toyota",
     "33": "Volkswagen",
     "34": "Volvo"
-  }
+  },
+  "num_classes": 35
 }

@@ -2472,5 +2472,6 @@
     "1232": "Volkswagen/XL1",
     "1233": "Volkswagen/up!",
     "1234": "Volvo/FH"
-  }
+  },
+  "num_classes": 1235
 }

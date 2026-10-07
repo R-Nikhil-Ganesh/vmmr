@@ -256,7 +256,11 @@ def main():
         class_to_idx = {k: int(v) for k, v in label_map_raw.items()}
     num_classes = len(class_to_idx)
     with open(models_dir / "label_map.json", "w") as f:
-        json.dump({"class_to_idx": class_to_idx, "idx_to_class": {v: k for k, v in class_to_idx.items()}}, f, indent=2)
+        json.dump({
+            "class_to_idx": class_to_idx,
+            "idx_to_class": {v: k for k, v in class_to_idx.items()},
+            "num_classes": num_classes
+        }, f, indent=2)
 
     print("\n" + "=" * 65)
     print(f"  MobileNetV2 External (PyTorch) | {num_classes} classes | {args.img_size}x{args.img_size} | batch={args.batch_size}")

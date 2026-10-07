@@ -261,7 +261,8 @@ def main():
     # Save standardized label_map.json
     label_meta = {
         "class_to_idx": target_classes,
-        "idx_to_class": {str(v): k for k, v in target_classes.items()}
+        "idx_to_class": {str(v): k for k, v in target_classes.items()},
+        "num_classes": len(target_classes)
     }
     with open(OUTPUT_DIR / "label_map.json", "w") as f:
         json.dump(label_meta, f, indent=2)
