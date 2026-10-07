@@ -283,7 +283,6 @@ def main():
     best_val_acc = 0.0
     history = []
 
-    best_pt_path = models_dir / "mobilenet_v2_best.pt"
     best_onnx_path = models_dir / "mobilenet_v2_best.onnx"
 
     for epoch in range(args.epochs):
@@ -343,12 +342,8 @@ def main():
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_val_acc = val_acc
-            torch.save(model.state_dict(), best_pt_path)
-            print(f"[*] New best validation loss: {best_val_loss:.4f}. Saved checkpoint to {best_pt_path}")
-            try:
-                export_to_onnx(model, num_classes, args.img_size, best_onnx_path)
-            except Exception as e:
-                print(f"[Warning] ONNX export failed: {e}")
+            print(f"[*] New best validation loss: {best_val_loss:.4f} (Val Acc: {best_val_acc:.2%}). Exporting ONNX weights to {best_onnx_path}")
+            export_to_onnx(model, num_classes, args.img_size, best_onnx_path)
 
     # Save training history
     history_df = pd.DataFrame(history)

@@ -58,14 +58,14 @@ IDX_TO_MAKE = {i: m for i, m in enumerate(TARGET_MAKES)}
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate MobileNetV2 Models on In-Domain, Out-of-Domain, and Mixed Benchmarks.")
     parser.add_argument("--pm-model-path", type=str,
-        default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.pt"),
-        help="Path to PlatesMania model checkpoint (.pt)")
+        default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.onnx"),
+        help="Path to PlatesMania model checkpoint (.onnx or .pt)")
     parser.add_argument("--pm-label-map", type=str,
         default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "label_map.json"),
         help="Path to PlatesMania label map")
     parser.add_argument("--ext-model-path", type=str,
-        default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "mobilenet_v2_best.pt"),
-        help="Path to External model checkpoint (.pt)")
+        default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "mobilenet_v2_best.onnx"),
+        help="Path to External model checkpoint (.onnx or .pt)")
     parser.add_argument("--ext-label-map", type=str,
         default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "label_map.json"),
         help="Path to External label map")

@@ -16,7 +16,7 @@ vmmr/code/current/mobilenet/
 │   ├── analysis/                         # Evaluation & explainability subsystem
 │   │   ├── output_analysis_platesmania.py    # Diagnostic evaluation adapter
 │   │   └── output_analysis_platesmania.ipynb # Full diagnostic evaluation notebook
-│   └── output_mobilenet_v2/              # Model artifacts (.pt, .onnx), metrics, plots, logs
+│   └── output_mobilenet_v2/              # Model artifacts (.onnx), metrics, plots, logs
 │
 ├── external_dataset/                     # External Merged Dataset Pipeline (Model B)
 │   ├── train/                            # Training subsystem
@@ -26,7 +26,7 @@ vmmr/code/current/mobilenet/
 │   ├── analysis/                         # Evaluation & explainability subsystem
 │   │   ├── output_analysis_external.py       # Diagnostic evaluation adapter
 │   │   └── output_analysis_external.ipynb    # Full diagnostic evaluation notebook
-│   └── output_mobilenet_v2_external/     # Model artifacts (.pt, .onnx), metrics, plots, logs
+│   └── output_mobilenet_v2_external/     # Model artifacts (.onnx), metrics, plots, logs
 │
 ├── output_analysis.py                    # Universal PyTorch & ONNX diagnostic & explainability engine
 ├── evaluate_mixed.py                     # Cross-domain & mixed benchmark evaluation engine

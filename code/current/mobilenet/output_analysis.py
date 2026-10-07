@@ -449,7 +449,7 @@ def plot_calibration_curve(y_true: np.ndarray, y_pred: np.ndarray, y_probs: np.n
 # ==============================================================================
 def main():
     parser = argparse.ArgumentParser(description="Universal Diagnostic Analysis for MobileNetV2")
-    parser.add_argument("--model-path", type=str, required=True, help="Path to best_model.pt or .onnx")
+    parser.add_argument("--model-path", type=str, required=True, help="Path to model checkpoint (.onnx or .pt)")
     parser.add_argument("--test-csv", type=str, required=True, help="Path to test.csv split")
     parser.add_argument("--label-map", type=str, required=True, help="Path to label_map.json")
     parser.add_argument("--output-dir", type=str, required=True, help="Output directory for reports & plots")

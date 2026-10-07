@@ -2,8 +2,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PM_RUNNER="${SCRIPT_DIR}/platesmania_dataset/run_train.sh"
-EXT_RUNNER="${SCRIPT_DIR}/external_dataset/run_train_external.sh"
+PM_RUNNER="${SCRIPT_DIR}/platesmania_dataset/train/run_train.sh"
+EXT_RUNNER="${SCRIPT_DIR}/external_dataset/train/run_train_external.sh"
 EVAL_RUNNER="${SCRIPT_DIR}/run_eval_mixed.sh"
 
 echo "=================================================================="

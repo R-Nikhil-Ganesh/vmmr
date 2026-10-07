@@ -152,11 +152,11 @@ Evaluated across 5,000 PlatesMania test images + 5,000 External test images (10,
 
 | Artifact | File Path |
 | :--- | :--- |
-| **Model A Weights** | `vmmr/code/current/mobilenet/platesmania_dataset/output_mobilenet_v2/models/mobilenet_v2_best.pt` |
+| **Model A Weights** | `vmmr/code/current/mobilenet/platesmania_dataset/output_mobilenet_v2/models/mobilenet_v2_best.onnx` |
 | **Model A Label Map** | `vmmr/code/current/mobilenet/platesmania_dataset/output_mobilenet_v2/models/label_map.json` |
 | **Model A Training History** | `vmmr/code/current/mobilenet/platesmania_dataset/output_mobilenet_v2/reports/training_history.csv` |
 | **Model A Curves Plot** | `vmmr/code/current/mobilenet/platesmania_dataset/output_mobilenet_v2/plots/training_curves.png` |
-| **Model B Weights** | `vmmr/code/current/mobilenet/external_dataset/output_mobilenet_v2_external/models/mobilenet_v2_best.pt` |
+| **Model B Weights** | `vmmr/code/current/mobilenet/external_dataset/output_mobilenet_v2_external/models/mobilenet_v2_best.onnx` |
 | **Model B Label Map** | `vmmr/code/current/mobilenet/external_dataset/output_mobilenet_v2_external/models/label_map.json` |
 | **Model B Training History** | `vmmr/code/current/mobilenet/external_dataset/output_mobilenet_v2_external/reports/training_history.csv` |
 | **Model B Curves Plot** | `vmmr/code/current/mobilenet/external_dataset/output_mobilenet_v2_external/plots/training_curves.png` |
