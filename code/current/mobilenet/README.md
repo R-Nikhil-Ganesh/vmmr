@@ -33,6 +33,7 @@ vmmr/code/current/mobilenet/
 ├── run_all_pipeline.sh                   # Master chained runner for both models + eval
 ├── run_eval_mixed.sh                     # Mixed benchmark evaluation launcher
 ├── run_1.md                              # Comprehensive benchmark report for Run 1
+├── run_2.md                              # Comprehensive benchmark & production report for Run 2
 └── README.md                             # Documentation & user guide
 ```
 
@@ -114,7 +115,7 @@ Generates:
 - `mixed_benchmark_results/mixed_benchmark_summary.csv`
 - `mixed_benchmark_results/cross_domain_comparison.png`
 
-Detailed metrics and analysis from the latest run are documented in [`run_1.md`](run_1.md).
+Detailed metrics and analysis are documented in [`run_1.md`](run_1.md) and the latest production ONNX benchmark in [`run_2.md`](run_2.md).
 
 ---
 

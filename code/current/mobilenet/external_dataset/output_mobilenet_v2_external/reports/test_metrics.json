@@ -1,0 +1,11 @@
+{
+  "test_accuracy": 0.9396033269353806,
+  "test_top5_accuracy": 0.9840051183621241,
+  "macro_f1": 0.9375513175930851,
+  "weighted_f1": 0.9399474051010076,
+  "macro_precision": 0.9418881759887341,
+  "macro_recall": 0.93440212091767,
+  "cross_entropy_loss": 0.2195528745651245,
+  "num_evaluated_samples": 7815,
+  "num_classes": 35
+}

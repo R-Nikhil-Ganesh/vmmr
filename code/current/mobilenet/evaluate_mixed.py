@@ -31,6 +31,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from PIL import Image
 from sklearn.metrics import classification_report, precision_recall_fscore_support
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -136,8 +137,9 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
     n_failed = 0
 
     n_samples = len(paths)
+    pbar = tqdm(range(0, n_samples, batch_size), desc="  Evaluating", unit="batch", leave=False)
     with torch.no_grad():
-        for i in range(0, n_samples, batch_size):
+        for i in pbar:
             b_paths = paths[i:i + batch_size]
             b_labels = true_make_indices[i:i + batch_size]
 

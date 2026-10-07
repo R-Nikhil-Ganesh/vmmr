@@ -1,7 +1,7 @@
 model,test_split,domain_type,accuracy,macro_f1,weighted_f1
-Model A (PlatesMania),PlatesMania (In-Domain),In-Domain,0.9616,0.9475501166773136,0.9614265824371864
-Model A (PlatesMania),External (Out-of-Domain),Out-of-Domain,0.4932,0.5029542292037229,0.47961211837427
-Model A (PlatesMania),Mixed (Combined),Mixed,0.7274,0.687982340294385,0.7107567770418841
-Model B (External),External (In-Domain),In-Domain,0.9108,0.9023154540150751,0.911064670906865
-Model B (External),PlatesMania (Out-of-Domain),Out-of-Domain,0.1428,0.11125428644081461,0.16407971633235602
-Model B (External),Mixed (Combined),Mixed,0.5268,0.5681491927692436,0.5471048042858907
+Model A (PlatesMania),PlatesMania (In-Domain),In-Domain,0.9672,0.9376383448720339,0.9669689588901076
+Model A (PlatesMania),External (Out-of-Domain),Out-of-Domain,0.485,0.5115394892145709,0.47957190857199794
+Model A (PlatesMania),Mixed (Combined),Mixed,0.7261,0.69449545760853,0.7115971754368366
+Model B (External),External (In-Domain),In-Domain,0.9434,0.9436609407988481,0.9437941338374874
+Model B (External),PlatesMania (Out-of-Domain),Out-of-Domain,0.1718,0.14030480663920628,0.1996827646134585
+Model B (External),Mixed (Combined),Mixed,0.5576,0.6059605428081755,0.5722466364018322

@@ -22,6 +22,18 @@ from typing import Dict, List, Optional, Tuple, Any, Union
 
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib_cache")
 
+# Preload NVIDIA CUDA / cuDNN shared libraries from virtualenv site-packages
+# to ensure onnxruntime-gpu CUDAExecutionProvider loads successfully without symbol errors
+import site
+import glob
+import ctypes
+for _sp in site.getsitepackages():
+    for _lib in sorted(glob.glob(os.path.join(_sp, "nvidia", "*", "lib", "*.so*"))):
+        try:
+            ctypes.CDLL(_lib, mode=ctypes.RTLD_GLOBAL)
+        except Exception:
+            pass
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -31,9 +43,12 @@ from PIL import Image
 from sklearn.metrics import classification_report, confusion_matrix, precision_recall_fscore_support
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+import torchvision.io as io
 
 try:
     import onnxruntime as ort
@@ -136,11 +151,23 @@ class MobileNetV2Evaluator(nn.Module):
             raise ImportError("onnxruntime is required to evaluate .onnx models.")
 
         available = ort.get_available_providers()
-        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        providers = []
+        if "CUDAExecutionProvider" in available:
+            cuda_options = {
+                "device_id": 0,
+                "arena_extend_strategy": "kNextPowerOfTwo",
+                "cudnn_conv_algo_search": "HEURISTIC",
+                "do_copy_in_default_stream": True,
+            }
+            providers.append(("CUDAExecutionProvider", cuda_options))
+        providers.append("CPUExecutionProvider")
+
         self.ort_session = ort.InferenceSession(self.checkpoint_path, providers=providers)
         self.input_name = self.ort_session.get_inputs()[0].name
         self.output_names = [o.name for o in self.ort_session.get_outputs()]
-        print(f"[Model] Initialized ONNX Runtime session ({self.ort_session.get_providers()[0]}) from {self.checkpoint_path}")
+        self.active_provider = self.ort_session.get_providers()[0]
+        device_label = "GPU (CUDA)" if "CUDA" in self.active_provider else "CPU"
+        print(f"[Model] Initialized ONNX Runtime session on {device_label} ({self.active_provider}) from {self.checkpoint_path}")
         if "embeddings" not in self.output_names:
             print("[WARN] ONNX model has no 'embeddings'/'class_maps' outputs (exported by an older script); "
                   "latent-space and Grad-CAM analysis are unavailable. Re-export with the current training script.")
@@ -149,15 +176,21 @@ class MobileNetV2Evaluator(nn.Module):
         self.class_maps: Optional[np.ndarray] = None
 
     def forward(self, x):
-        x_np = x.detach().cpu().numpy().astype(np.float32)
+        if isinstance(x, torch.Tensor):
+            x_np = x.detach().cpu().numpy().astype(np.float32)
+        else:
+            x_np = x.astype(np.float32)
         out = dict(zip(self.output_names, self.ort_session.run(None, {self.input_name: x_np})))
         self.embeddings = out.get("embeddings")
         self.class_maps = out.get("class_maps")
-        return torch.from_numpy(out["predictions"]).to(x.device)
+        preds = torch.from_numpy(out["predictions"])
+        if isinstance(x, torch.Tensor) and x.is_cuda:
+            preds = preds.to(x.device)
+        return preds
 
 
 # ==============================================================================
-# 3. Image Preprocessing & Batch Evaluation
+# 3. Image Preprocessing & High-Throughput Batch Evaluation
 # ==============================================================================
 def load_and_preprocess_image(path: str, img_size: int = 512, crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0):
     img = Image.open(path).convert("RGB")
@@ -173,10 +206,81 @@ def load_and_preprocess_image(path: str, img_size: int = 512, crop_top_pct: floa
     return tensor, img
 
 
-def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame, batch_size: int = 64):
+class DiagnosticDataset(Dataset):
+    """High-throughput image dataset using C-level libjpeg-turbo decoding and antialiased resize."""
+    def __init__(self, paths: List[str], labels: np.ndarray, img_size: int = 512,
+                 crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0):
+        self.paths = paths
+        self.labels = labels
+        self.img_size = img_size
+        self.crop_top_pct = crop_top_pct
+        self.crop_bottom_pct = crop_bottom_pct
+        self.mean_tensor = torch.tensor(IMAGENET_MEAN).view(3, 1, 1)
+        self.std_tensor = torch.tensor(IMAGENET_STD).view(3, 1, 1)
+
+    def __len__(self):
+        return len(self.paths)
+
+    def __getitem__(self, idx: int):
+        path = self.paths[idx]
+        label = self.labels[idx]
+        try:
+            img = io.read_image(path, mode=io.ImageReadMode.RGB)
+            _, h, w = img.shape
+            top = int(h * self.crop_top_pct)
+            bottom = max(top + 10, int(h * (1.0 - self.crop_bottom_pct)))
+            if top > 0 or self.crop_bottom_pct > 0:
+                img = img[:, top:bottom, :]
+            res = nn.functional.interpolate(
+                img.unsqueeze(0).float(),
+                size=(self.img_size, self.img_size),
+                mode="bilinear",
+                align_corners=False,
+                antialias=True
+            ).squeeze(0)
+            tensor = (res / 255.0 - self.mean_tensor) / self.std_tensor
+            return tensor, label, True
+        except Exception:
+            try:
+                t, _ = load_and_preprocess_image(path, self.img_size, self.crop_top_pct, self.crop_bottom_pct)
+                return t.squeeze(0), label, True
+            except Exception:
+                return torch.zeros((3, self.img_size, self.img_size), dtype=torch.float32), label, False
+
+
+def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame,
+                          batch_size: int = 64, num_workers: int = 6,
+                          max_samples: Optional[int] = None):
     device = context.device
     model.to(device)
     model.eval()
+
+    paths = test_df["image_path"].values if "image_path" in test_df.columns else test_df["image_rel_path"].values
+    if context.base_img_dir:
+        paths = [str(Path(context.base_img_dir) / p) if not os.path.isabs(p) else p for p in paths]
+    labels = test_df["label"].values.astype(int)
+
+    if max_samples is not None and len(paths) > max_samples:
+        print(f"[Eval] Subsampling test set to {max_samples:,} samples for rapid diagnostic evaluation...")
+        indices = np.random.RandomState(42).choice(len(paths), size=max_samples, replace=False)
+        paths = [paths[i] for i in indices]
+        labels = labels[indices]
+
+    n_samples = len(paths)
+    device_label = "GPU (CUDA)" if "CUDA" in model.active_provider else "CPU"
+    print(f"[Eval] Running evaluation on {n_samples:,} samples using {device_label} "
+          f"(batch_size={batch_size}, workers={num_workers}, provider={model.active_provider})...")
+
+    dataset = DiagnosticDataset(paths, labels, context.img_size, context.crop_top_pct, context.crop_bottom_pct)
+    loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=True,
+        persistent_workers=(num_workers > 0),
+        prefetch_factor=2 if num_workers > 0 else None
+    )
 
     all_preds = []
     all_probs = []
@@ -184,44 +288,28 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame, ba
     all_embeddings = []
     n_failed = 0
 
-    paths = test_df["image_path"].values if "image_path" in test_df.columns else test_df["image_rel_path"].values
-    if context.base_img_dir:
-        paths = [str(Path(context.base_img_dir) / p) if not os.path.isabs(p) else p for p in paths]
-    labels = test_df["label"].values.astype(int)
-
-    n_samples = len(paths)
-    print(f"[Eval] Running evaluation on {n_samples:,} samples (batch_size={batch_size})...")
-
+    pbar = tqdm(loader, desc=f"[{device_label}] Inferences", unit="batch")
     with torch.no_grad():
-        for i in range(0, n_samples, batch_size):
-            batch_paths = paths[i:i + batch_size]
-            batch_labels = labels[i:i + batch_size]
-
-            tensors = []
-            valid_idx = []
-            for j, p in enumerate(batch_paths):
-                try:
-                    t, _ = load_and_preprocess_image(p, context.img_size, context.crop_top_pct, context.crop_bottom_pct)
-                    tensors.append(t)
-                    valid_idx.append(j)
-                except Exception as e:
-                    n_failed += 1
-                    print(f"[WARN] Skipping unreadable image {p}: {e}", file=sys.stderr, flush=True)
-                    continue
-
-            if not tensors:
+        for batch_imgs, batch_lbls, valid_mask in pbar:
+            valid_np = valid_mask.numpy()
+            if not np.any(valid_np):
+                n_failed += len(valid_np)
                 continue
+            if not np.all(valid_np):
+                batch_imgs = batch_imgs[valid_np]
+                batch_lbls = batch_lbls[valid_np]
+                n_failed += int(np.sum(~valid_np))
 
-            batch_tensor = torch.cat(tensors, dim=0).to(device)
-            logits = model(batch_tensor)
+            batch_imgs = batch_imgs.to(device, non_blocking=True)
+            logits = model(batch_imgs)
             probs = torch.softmax(logits, dim=-1).cpu().numpy()
             preds = np.argmax(probs, axis=1)
 
             all_preds.extend(preds)
             all_probs.extend(probs)
-            all_labels.extend(batch_labels[valid_idx])
+            all_labels.extend(batch_lbls.numpy())
             if model.embeddings is not None:
-                all_embeddings.append(model.embeddings.astype(np.float16))  # float16 keeps full-test-set memory modest
+                all_embeddings.append(model.embeddings.astype(np.float16))
 
     if n_failed:
         print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded from the metrics.")
@@ -429,22 +517,38 @@ def plot_calibration_curve(y_true: np.ndarray, y_pred: np.ndarray, y_probs: np.n
 # ==============================================================================
 def main():
     parser = argparse.ArgumentParser(description="Universal Diagnostic Analysis for MobileNetV2")
-    parser.add_argument("--model-path", type=str, required=True, help="Path to model checkpoint (.onnx)")
-    parser.add_argument("--test-csv", type=str, required=True, help="Path to test.csv split")
-    parser.add_argument("--label-map", type=str, required=True, help="Path to label_map.json")
-    parser.add_argument("--output-dir", type=str, required=True, help="Output directory for reports & plots")
-    parser.add_argument("--base-img-dir", type=str, default=None, help="Root folder for relative image paths")
-    parser.add_argument("--img-size", type=int, default=512)
-    parser.add_argument("--crop-top-pct", type=float, default=0.0)
-    parser.add_argument("--crop-bottom-pct", type=float, default=0.0)
+    parser.add_argument("--model-path", type=str,
+        default=str(context.model_path) if context.model_path else None,
+        required=context.model_path is None,
+        help="Path to model checkpoint (.onnx)")
+    parser.add_argument("--test-csv", type=str,
+        default=str(context.test_csv_path) if context.test_csv_path else None,
+        required=context.test_csv_path is None,
+        help="Path to test.csv split")
+    parser.add_argument("--label-map", type=str,
+        default=str(context.label_map_path) if context.label_map_path else None,
+        required=context.label_map_path is None,
+        help="Path to label_map.json")
+    parser.add_argument("--output-dir", type=str,
+        default=str(context.output_dir) if context.output_dir else None,
+        required=context.output_dir is None,
+        help="Output directory for reports & plots")
+    parser.add_argument("--base-img-dir", type=str,
+        default=str(context.base_img_dir) if context.base_img_dir else None,
+        help="Root folder for relative image paths")
+    parser.add_argument("--img-size", type=int, default=context.img_size)
+    parser.add_argument("--crop-top-pct", type=float, default=context.crop_top_pct)
+    parser.add_argument("--crop-bottom-pct", type=float, default=context.crop_bottom_pct)
     parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--num-workers", type=int, default=6, help="DataLoader workers (default: 6)")
+    parser.add_argument("--max-samples", type=int, default=None, help="Optional max test samples to evaluate (default: all)")
     parser.add_argument("--run-all", action="store_true")
     args = parser.parse_args()
 
     set_context(
         model_path=args.model_path,
         output_dir=args.output_dir,
-        test_csv=args.test_csv,
+        test_csv_path=args.test_csv,
         label_map_path=args.label_map,
         base_img_dir=args.base_img_dir,
         img_size=args.img_size,
@@ -452,10 +556,15 @@ def main():
         crop_bottom_pct=args.crop_bottom_pct
     )
 
-    test_df = pd.read_csv(args.test_csv)
+    test_df = pd.read_csv(context.test_csv_path)
     model = MobileNetV2Evaluator(num_classes=context.num_classes, checkpoint_path=args.model_path)
     
-    y_true, y_pred, y_probs, embeddings = evaluate_test_dataset(model, test_df, batch_size=args.batch_size)
+    y_true, y_pred, y_probs, embeddings = evaluate_test_dataset(
+        model, test_df,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        max_samples=args.max_samples
+    )
     metrics = compute_and_save_metrics(y_true, y_pred, y_probs, context.output_dir)
 
     plot_confusion_matrix(context.reports_dir / "confusion_matrix_normalized.csv", context.plots_dir / "confusion_matrix.png")
