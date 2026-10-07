@@ -53,3 +53,7 @@ ${PYTHON_BIN} -u "${SCRIPT_DIR}/evaluate_mixed.py" \
 echo "=================================================================="
 echo "  Evaluation completed successfully!"
 echo "=================================================================="
+
+if [ "${AUTO_GIT_PUSH:-1}" = "1" ] && [ -f "${SCRIPT_DIR}/auto_git_sync.sh" ]; then
+    bash "${SCRIPT_DIR}/auto_git_sync.sh" "Mixed Benchmark Evaluation"
+fi

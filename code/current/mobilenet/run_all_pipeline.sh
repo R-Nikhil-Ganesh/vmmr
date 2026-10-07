@@ -33,3 +33,7 @@ echo "=================================================================="
 echo "=== All MobileNetV2 Training & Evaluation Completed! ==="
 echo "  Finished: $(date)"
 echo "=================================================================="
+
+if [ "${AUTO_GIT_PUSH:-1}" = "1" ] && [ -f "${SCRIPT_DIR}/auto_git_sync.sh" ]; then
+    bash "${SCRIPT_DIR}/auto_git_sync.sh" "Full MobileNetV2 Pipeline & Benchmark"
+fi

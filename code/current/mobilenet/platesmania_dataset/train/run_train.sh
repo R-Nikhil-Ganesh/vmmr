@@ -53,3 +53,8 @@ ${PYTHON_BIN} -u "${SCRIPT_DIR}/train_mobilenet_v2.py" \
 echo "==================================================================" | tee -a "${LOG_FILE}"
 echo "  Training finished successfully at: $(date)" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
+
+ROOT_MOBILENET_DIR="$(cd "${DATASET_DIR}/.." && pwd)"
+if [ "${AUTO_GIT_PUSH:-1}" = "1" ] && [ -f "${ROOT_MOBILENET_DIR}/auto_git_sync.sh" ]; then
+    bash "${ROOT_MOBILENET_DIR}/auto_git_sync.sh" "PlatesMania 1235 Make+Model Training" 2>&1 | tee -a "${LOG_FILE}"
+fi
