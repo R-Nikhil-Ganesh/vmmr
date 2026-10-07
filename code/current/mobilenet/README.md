@@ -41,17 +41,19 @@ vmmr/code/current/mobilenet/
 
 ## 1. Quick Start: End-to-End Pipeline
 
-Run the full pipeline (Model A training $\to$ Model B training $\to$ Mixed Benchmark evaluation):
+Run the full pipeline (Model A training $\to$ Model B training $\to$ Mixed Benchmark evaluation $\to$ **Auto Git Push**):
 
 ```bash
 cd vmmr/code/current/mobilenet
 
-# Direct execution
-bash run_all_pipeline.sh
+# One-click detached tmux launcher (auto pushes to GitHub upon completion)
+bash start_pipeline_tmux.sh
 
-# Or in a detached background tmux session
-tmux new-session -d -s mobilenet_pipeline "bash run_all_pipeline.sh; exec bash"
+# To view / monitor progress:
 tmux attach -t mobilenet_pipeline
+
+# Or direct foreground execution
+bash run_all_pipeline.sh
 ```
 
 ---
@@ -63,14 +65,19 @@ Trained on surveillance & natural street-level vehicle images (1,093,501 images 
 - **Label Map**: `/home/researchadmin/Econ/models/dataset_manifests/label_map_1235models.json` (1,235 classes)
 - **Watermark Countermeasure**: On-the-fly cropping of top 15% banner (`PLATESMANIA.COM`) only (`crop_top_pct=0.15`, `crop_bottom_pct=0.0`).
 - **Head Strategy**: Single flat fine-grained head (`nn.Linear(1280, 1235)`) with top 5 backbone layers unlocked.
+- **Auto Git Push**: Automatically commits and pushes `.onnx` models, training logs, and metrics to GitHub when done.
 
 ```bash
-# Run training directly
 cd vmmr/code/current/mobilenet/platesmania_dataset/train
-bash run_train.sh
 
-# Or in background tmux
-tmux new-session -d -s train_pm "bash run_train.sh; exec bash"
+# One-click detached tmux launcher (auto pushes to GitHub upon completion)
+bash start_train_tmux.sh
+
+# Monitor session:
+tmux attach -t train_pm
+
+# Or run directly in foreground
+bash run_train.sh
 
 # Run diagnostic suite
 cd ../analysis
@@ -86,14 +93,19 @@ Trained on 41,880 curated vehicle images mapped directly into the **1,235 Make/M
 - **Label Map**: `splits_1235models/label_map.json` (1,235 classes, shared taxonomy)
 - **Bounding Boxes**: On-the-fly cropping of vehicle bounding boxes for Stanford Cars.
 - **Head Strategy**: `nn.Linear(1280, 1235)` with top 5 backbone layers unlocked.
+- **Auto Git Push**: Automatically commits and pushes `.onnx` models, training logs, and metrics to GitHub when done.
 
 ```bash
-# Run training directly
 cd vmmr/code/current/mobilenet/external_dataset/train
-bash run_train_external.sh
 
-# Or in background tmux
-tmux new-session -d -s train_ext "bash run_train_external.sh; exec bash"
+# One-click detached tmux launcher (auto pushes to GitHub upon completion)
+bash start_train_tmux.sh
+
+# Monitor session:
+tmux attach -t train_ext
+
+# Or run directly in foreground
+bash run_train.sh
 
 # Run diagnostic suite
 cd ../analysis
