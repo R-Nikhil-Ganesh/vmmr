@@ -361,6 +361,24 @@ def compute_and_save_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_probs: np
         "num_classes": int(context.num_classes)
     }
 
+    # Make-level view of a Make/Model classifier (class names are "Make/Model")
+    class_names_all = [context.idx_to_class.get(i, "") for i in range(context.num_classes)]
+    is_model_level = context.num_classes > 0 and all("/" in n for n in class_names_all)
+    if is_model_level:
+        makes_sorted = sorted({n.split("/", 1)[0] for n in class_names_all})
+        make_idx = {m: i for i, m in enumerate(makes_sorted)}
+        cls_to_make = np.array([make_idx[n.split("/", 1)[0]] for n in class_names_all])
+        yt_make, yp_make = cls_to_make[y_true], cls_to_make[y_pred]
+        _, _, make_macro_f1, _ = precision_recall_fscore_support(yt_make, yp_make, average="macro", zero_division=0)
+        # Marginalized: P(make) = sum of P(model) over the make's models, then argmax
+        proj = np.zeros((context.num_classes, len(makes_sorted)), dtype=np.float32)
+        proj[np.arange(context.num_classes), cls_to_make] = 1.0
+        metrics["model_level"] = True
+        metrics["num_makes"] = len(makes_sorted)
+        metrics["make_accuracy"] = float(np.mean(yt_make == yp_make))
+        metrics["make_accuracy_marginalized"] = float(np.mean((y_probs @ proj).argmax(1) == yt_make))
+        metrics["make_macro_f1"] = float(make_macro_f1)
+
     reports_dir = output_dir / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
     with open(reports_dir / "test_metrics.json", "w") as f:
@@ -380,8 +398,21 @@ def compute_and_save_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_probs: np
     pd.DataFrame(cm_raw, index=present_names, columns=present_names).to_csv(reports_dir / "confusion_matrix_raw.csv")
     pd.DataFrame(cm_norm, index=present_names, columns=present_names).to_csv(reports_dir / "confusion_matrix_normalized.csv")
 
+    if is_model_level:
+        # Make-level confusion matrix (35 x 35) and per-make report derived from the model-level predictions
+        mk_labels = sorted(set(yt_make) | set(yp_make))
+        mk_names = [makes_sorted[i] for i in mk_labels]
+        cm_mk = confusion_matrix(yt_make, yp_make, labels=mk_labels)
+        cm_mk_norm = cm_mk.astype(float) / (cm_mk.sum(axis=1, keepdims=True) + 1e-12)
+        pd.DataFrame(cm_mk, index=mk_names, columns=mk_names).to_csv(reports_dir / "confusion_matrix_make_raw.csv")
+        pd.DataFrame(cm_mk_norm, index=mk_names, columns=mk_names).to_csv(reports_dir / "confusion_matrix_make_normalized.csv")
+        mk_report = classification_report(yt_make, yp_make, labels=mk_labels, target_names=mk_names, output_dict=True, zero_division=0)
+        pd.DataFrame(mk_report).transpose().to_csv(reports_dir / "test_classification_report_make.csv")
+
     print("\n" + "=" * 60)
     print(f"  Accuracy:      {acc:.2%}" + (f" | Top-5: {top5_acc:.2%}" if top5_acc else ""))
+    if is_model_level:
+        print(f"  Make accuracy: {metrics['make_accuracy']:.2%} (marginalized: {metrics['make_accuracy_marginalized']:.2%}) | Make macro F1: {metrics['make_macro_f1']:.2%}")
     print(f"  Macro F1:      {macro_f1:.2%} | Weighted F1: {weighted_f1:.2%}")
     print(f"  Loss:          {ce_loss:.4f} | Samples: {len(y_true):,}")
     print("=" * 60)
@@ -389,13 +420,16 @@ def compute_and_save_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_probs: np
     return metrics
 
 
-def plot_confusion_matrix(cm_norm_path: Path, out_path: Path, top_n: int = 35):
+def plot_confusion_matrix(cm_norm_path: Path, out_path: Path, top_n: int = 35, title: str = "Normalized Confusion Matrix"):
     if not cm_norm_path.exists():
         return
     df = pd.read_csv(cm_norm_path, index_col=0)
     if len(df) > top_n:
-        # Show top confusion pairs or subset
-        df = df.iloc[:top_n, :top_n]
+        # Too many classes to show: keep the top_n hardest ones (lowest per-class recall)
+        n_total = len(df)
+        keep = sorted(np.argsort(np.diag(df.values))[:top_n])
+        df = df.iloc[keep, keep]
+        title = f"{title} ({top_n} hardest of {n_total} classes)"
 
     fig, ax = plt.subplots(figsize=(14, 12))
     cax = ax.matshow(df.values, cmap="Blues", vmin=0, vmax=1)
@@ -405,7 +439,7 @@ def plot_confusion_matrix(cm_norm_path: Path, out_path: Path, top_n: int = 35):
     ax.set_yticks(range(len(df.index)))
     ax.set_xticklabels(df.columns, rotation=90, fontsize=8)
     ax.set_yticklabels(df.index, fontsize=8)
-    ax.set_title("Normalized Confusion Matrix (Top Classes)", fontsize=14, pad=20, fontweight="bold")
+    ax.set_title(title, fontsize=14, pad=20, fontweight="bold")
     ax.set_xlabel("Predicted Label", fontsize=11)
     ax.set_ylabel("True Label", fontsize=11)
 
@@ -575,6 +609,8 @@ def main():
     metrics = compute_and_save_metrics(y_true, y_pred, y_probs, context.output_dir)
 
     plot_confusion_matrix(context.reports_dir / "confusion_matrix_normalized.csv", context.plots_dir / "confusion_matrix.png")
+    plot_confusion_matrix(context.reports_dir / "confusion_matrix_make_normalized.csv", context.plots_dir / "confusion_matrix_make.png",
+                          title="Make-level Normalized Confusion Matrix")
     plot_calibration_curve(y_true, y_pred, y_probs, context.plots_dir / "calibration_curve.png")
     plot_latent_space(embeddings, y_true, context.plots_dir / "latent_space_tsne_pca.png")
 
