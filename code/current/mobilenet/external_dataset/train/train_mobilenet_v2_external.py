@@ -50,9 +50,9 @@ import output_analysis as oa
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train MobileNetV2 on External Merged Dataset (35 Makes).")
+    parser = argparse.ArgumentParser(description="Train MobileNetV2 on External Merged Dataset (1,235 Make/Model Classes).")
     parser.add_argument("--splits-dir", type=str,
-        default="/home/researchadmin/Econ/external_datasets/merged_data",
+        default=str(DATASET_DIR / "splits_1235models"),
         help="Path containing train.csv, val.csv, test.csv, and label_map.json")
     parser.add_argument("--output-dir", type=str,
         default=str(DATASET_DIR / "output_mobilenet_v2_external"),
@@ -80,6 +80,9 @@ class ExternalMergedDataset(Dataset):
         self.labels = df["label"].values.astype(np.int64)
         self.img_size = img_size
         self.crop_bottom_pct = crop_bottom_pct
+        self.has_bbox = "bbox_x1" in df.columns
+        if self.has_bbox:
+            self.bboxes = df[["bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"]].values.astype(int)
 
     def __len__(self):
         return len(self.paths)
@@ -89,9 +92,20 @@ class ExternalMergedDataset(Dataset):
         try:
             img = io.read_image(path, mode=io.ImageReadMode.RGB)
             _, h, w = img.shape
-            # Bottom border strip crop to strip web dealership stamps
-            bottom_h = max(20, int(h * (1.0 - self.crop_bottom_pct)))
-            cropped = img[:, :bottom_h, :]
+
+            # If sample has bounding box annotations (e.g. Stanford Cars)
+            if self.has_bbox and self.bboxes[idx][0] >= 0:
+                x1, y1, x2, y2 = self.bboxes[idx]
+                x1 = max(0, min(x1, w - 1))
+                y1 = max(0, min(y1, h - 1))
+                x2 = max(x1 + 1, min(x2, w))
+                y2 = max(y1 + 1, min(y2, h))
+                cropped = img[:, y1:y2, x1:x2]
+            else:
+                # Bottom border strip crop to strip web dealership stamps if configured
+                bottom_h = max(20, int(h * (1.0 - self.crop_bottom_pct)))
+                cropped = img[:, :bottom_h, :]
+
             resized = nn.functional.interpolate(
                 cropped.unsqueeze(0).float(),
                 size=(self.img_size, self.img_size),

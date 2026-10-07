@@ -58,9 +58,11 @@ tmux attach -t mobilenet_pipeline
 
 ## 2. PlatesMania Dataset Pipeline (`platesmania_dataset/`)
 
-Trained on surveillance & natural street-level vehicle images (1,102,776 images across 35 makes):
-- **Watermark Countermeasure**: On-the-fly cropping of the top 15% banner (`PLATESMANIA.COM`) only (`crop_top_pct=0.15`, `crop_bottom_pct=0.0`).
-- **Head Strategy**: Single head with top 5 backbone layers unlocked.
+Trained on surveillance & natural street-level vehicle images (1,093,501 images across **1,235 fine-grained Make/Model classes** spanning 35 makes):
+- **Manifest**: `/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv`
+- **Label Map**: `/home/researchadmin/Econ/models/dataset_manifests/label_map_1235models.json` (1,235 classes)
+- **Watermark Countermeasure**: On-the-fly cropping of top 15% banner (`PLATESMANIA.COM`) only (`crop_top_pct=0.15`, `crop_bottom_pct=0.0`).
+- **Head Strategy**: Single flat fine-grained head (`nn.Linear(1280, 1235)`) with top 5 backbone layers unlocked.
 
 ```bash
 # Run training directly
@@ -79,8 +81,11 @@ python output_analysis_platesmania.py
 
 ## 3. External Merged Dataset Pipeline (`external_dataset/`)
 
-Trained on 52,174 curated vehicle images spanning 35 automotive makes (BoxCars116k, Stanford Cars, CompCars CCTV/Web):
-- **Watermark Countermeasure**: Zero top crop applied (`crop_top_pct=0.0`); bottom 5% border inset stripping dealership stamps (`crop_bottom_pct=0.05`).
+Trained on 41,880 curated vehicle images mapped directly into the **1,235 Make/Model taxonomy** across 268 active models and 35 automotive makes (BoxCars116k, Stanford Cars, CompCars CCTV):
+- **Splits**: `splits_1235models/` (`train.csv`: 29,554, `val.csv`: 6,163, `test.csv`: 6,163)
+- **Label Map**: `splits_1235models/label_map.json` (1,235 classes, shared taxonomy)
+- **Bounding Boxes**: On-the-fly cropping of vehicle bounding boxes for Stanford Cars.
+- **Head Strategy**: `nn.Linear(1280, 1235)` with top 5 backbone layers unlocked.
 
 ```bash
 # Run training directly
@@ -99,10 +104,15 @@ python output_analysis_external.py
 
 ## 4. Cross-Domain & Mixed Benchmark Evaluation (`evaluate_mixed.py`)
 
-Compares **Model A** (PlatesMania) and **Model B** (External) across:
+Compares **Model A** (PlatesMania) and **Model B** (External) on:
+1. **Fine-Grained Model Level**: Top-1 Accuracy & Macro F1 across 1,235 vehicle model classes.
+2. **Coarse Make Level**: Top-1 Accuracy & Macro F1 across 35 automotive makes via probability marginalization:
+   $$P(\text{Make}_k) = \sum_{m \in \text{Make}_k} P(\text{Model}_m)$$
+
+Evaluated across:
 1. **In-Domain Test Sets**
 2. **Out-of-Domain Cross Test Sets**
-3. **Mixed Test Set** (Combined benchmark of up to 5,000 random samples per dataset, 10,000 total, not balanced per make)
+3. **Mixed Test Set** (Combined benchmark of up to 5,000 samples per dataset)
 
 ```bash
 cd vmmr/code/current/mobilenet
@@ -113,9 +123,7 @@ bash run_eval_mixed.sh
 
 Generates:
 - `mixed_benchmark_results/mixed_benchmark_summary.csv`
-- `mixed_benchmark_results/cross_domain_comparison.png`
-
-Detailed metrics and analysis are documented in [`run_1.md`](run_1.md) and the latest production ONNX benchmark in [`run_2.md`](run_2.md).
+- `mixed_benchmark_results/cross_domain_comparison.png` (side-by-side Make Accuracy & Model Accuracy comparison)
 
 ---
 

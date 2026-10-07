@@ -34,7 +34,8 @@ echo "  Output:  ${OUTPUT_DIR}" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
 ${PYTHON_BIN} -u "${SCRIPT_DIR}/train_mobilenet_v2.py" \
-    --splits-dir "/home/researchadmin/Econ/resized_640x640/splits_filtered" \
+    --csv-path "/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv" \
+    --label-map-path "/home/researchadmin/Econ/models/dataset_manifests/label_map_1235models.json" \
     --base-img-dir "/home/researchadmin/Econ/resized_640x640" \
     --output-dir "${OUTPUT_DIR}" \
     --img-size 512 \

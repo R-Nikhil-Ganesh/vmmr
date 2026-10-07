@@ -34,7 +34,7 @@ echo "  Output:  ${OUTPUT_DIR}" | tee -a "${LOG_FILE}"
 echo "==================================================================" | tee -a "${LOG_FILE}"
 
 ${PYTHON_BIN} -u "${SCRIPT_DIR}/train_mobilenet_v2_external.py" \
-    --splits-dir "/home/researchadmin/Econ/external_datasets/merged_data" \
+    --splits-dir "${DATASET_DIR}/splits_1235models" \
     --output-dir "${OUTPUT_DIR}" \
     --img-size 512 \
     --batch-size 32 \

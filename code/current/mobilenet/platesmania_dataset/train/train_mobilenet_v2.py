@@ -52,16 +52,16 @@ import output_analysis as oa
 def parse_args():
     parser = argparse.ArgumentParser(description="Train MobileNetV2 on PlatesMania Dataset using PyTorch.")
     parser.add_argument("--splits-dir", type=str,
-        default="/home/researchadmin/Econ/resized_640x640/splits_filtered",
+        default=None,
         help="Path containing train.csv, val.csv, test.csv, and optionally label_map.json")
     parser.add_argument("--csv-path", type=str,
-        default=None,
+        default="/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv",
         help="Path to single unified dataset split CSV (if applicable)")
     parser.add_argument("--base-img-dir", type=str,
         default="/home/researchadmin/Econ/resized_640x640",
         help="Base image folder")
     parser.add_argument("--label-map-path", type=str,
-        default=None,
+        default="/home/researchadmin/Econ/models/dataset_manifests/label_map_1235models.json",
         help="Path to label_map.json")
     parser.add_argument("--output-dir", type=str,
         default=str(DATASET_DIR / "output_mobilenet_v2"),

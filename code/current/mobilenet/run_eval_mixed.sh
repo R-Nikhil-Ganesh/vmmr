@@ -37,7 +37,18 @@ echo "  Results Destination:   ${OUTPUT_DIR}"
 echo "  Python:                ${PYTHON_BIN}"
 echo "=================================================================="
 
-${PYTHON_BIN} -u "${SCRIPT_DIR}/evaluate_mixed.py"     --pm-model-path "${PM_MODEL}"     --pm-label-map "${PM_LABEL_MAP}"     --ext-model-path "${EXT_MODEL}"     --ext-label-map "${EXT_LABEL_MAP}"     --pm-test-csv "/home/researchadmin/Econ/resized_640x640/splits_filtered/test.csv"     --pm-img-dir "/home/researchadmin/Econ/resized_640x640"     --ext-test-csv "/home/researchadmin/Econ/external_datasets/merged_data/test.csv"     --output-dir "${OUTPUT_DIR}"     --img-size 512     --batch-size 64     --max-eval-per-dataset 5000
+${PYTHON_BIN} -u "${SCRIPT_DIR}/evaluate_mixed.py" \
+    --pm-model-path "${PM_MODEL}" \
+    --pm-label-map "${PM_LABEL_MAP}" \
+    --ext-model-path "${EXT_MODEL}" \
+    --ext-label-map "${EXT_LABEL_MAP}" \
+    --pm-test-csv "/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv" \
+    --pm-img-dir "/home/researchadmin/Econ/resized_640x640" \
+    --ext-test-csv "${SCRIPT_DIR}/external_dataset/splits_1235models/test.csv" \
+    --output-dir "${OUTPUT_DIR}" \
+    --img-size 512 \
+    --batch-size 64 \
+    --max-eval-per-dataset 5000
 
 echo "=================================================================="
 echo "  Evaluation completed successfully!"

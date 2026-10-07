@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """
-Cross-Domain & Mixed Benchmark Evaluation Engine for MobileNetV2
-================================================================
+Cross-Domain & Mixed Benchmark Evaluation Engine for MobileNetV2 (Make + Model)
+================================================================================
 Compares two models:
-1. Model A (PlatesMania-trained)
-2. Model B (External Merged-trained)
+1. Model A (PlatesMania-trained on 1,235 Make/Model classes)
+2. Model B (External-trained on 1,235 Make/Model classes)
 
 Evaluated across three test splits:
 - PlatesMania Test Set (In-domain for Model A, Out-of-domain for Model B)
 - External Test Set    (In-domain for Model B, Out-of-domain for Model A)
 - Mixed Test Set       (Stratified combination of both domains)
 
-Evaluates on the 35 standardized vehicle makes using exact probability marginalization
-for fine-grained models: P(Make_k) = sum_{m in Make_k} P(Model_m).
+Dual-Level Metrics:
+1. Fine-Grained Model Level: Top-1 Accuracy & Macro F1 (1,235 classes)
+2. Coarse Make Level: Top-1 Accuracy & Macro F1 (marginalized via P(Make_k) = sum_{m in Make_k} P(Model_m))
 """
 
 import os
@@ -20,7 +21,7 @@ import sys
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib_cache")
 
@@ -30,12 +31,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from PIL import Image
-from sklearn.metrics import classification_report, precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support
 from tqdm import tqdm
 
 import torch
 import torch.nn as nn
-from torchvision import models
 
 torch.set_float32_matmul_precision("high")
 
@@ -57,7 +57,7 @@ IDX_TO_MAKE = {i: m for i, m in enumerate(TARGET_MAKES)}
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Evaluate MobileNetV2 Models on In-Domain, Out-of-Domain, and Mixed Benchmarks.")
+    parser = argparse.ArgumentParser(description="Evaluate MobileNetV2 Models on In-Domain, Out-of-Domain, and Mixed Benchmarks (Make + Model).")
     parser.add_argument("--pm-model-path", type=str,
         default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.onnx"),
         help="Path to PlatesMania model (.onnx)")
@@ -68,16 +68,16 @@ def parse_args():
         default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "mobilenet_v2_best.onnx"),
         help="Path to External model (.onnx)")
     parser.add_argument("--ext-label-map", type=str,
-        default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "label_map.json"),
+        default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "label_map.json"),
         help="Path to External label map")
     parser.add_argument("--pm-test-csv", type=str,
-        default="/home/researchadmin/Econ/dataset_split_640x640.csv",
+        default="/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv",
         help="Path to PlatesMania test CSV")
     parser.add_argument("--pm-img-dir", type=str,
         default="/home/researchadmin/Econ/resized_640x640",
         help="Base image folder for PlatesMania")
     parser.add_argument("--ext-test-csv", type=str,
-        default="/home/researchadmin/Econ/external_datasets/merged_data/test.csv",
+        default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "test.csv"),
         help="Path to External test CSV")
     parser.add_argument("--output-dir", type=str,
         default=str(CURRENT_DIR / "mixed_benchmark_results"),
@@ -95,7 +95,6 @@ def build_make_projection_matrix(model_label_map: Dict[str, int]) -> np.ndarray:
     proj = np.zeros((n_models, len(TARGET_MAKES)), dtype=np.float32)
 
     for cls_name, idx in model_label_map.items():
-        # Class name format can be 'Make/Model' or just 'Make'
         make = cls_name.split("/")[0] if "/" in cls_name else cls_name
         if make in MAKE_TO_IDX:
             proj[idx, MAKE_TO_IDX[make]] = 1.0
@@ -103,37 +102,20 @@ def build_make_projection_matrix(model_label_map: Dict[str, int]) -> np.ndarray:
     return proj
 
 
-def check_label_order(model_label_map: Dict[str, int], name: str) -> None:
-    """A 35-class model's argmax is used directly as a TARGET_MAKES index, so its label order must match."""
-    if len(model_label_map) != len(TARGET_MAKES):
-        return
-    idx_to_class = {v: k for k, v in model_label_map.items()}
-    model_order = [idx_to_class[i] for i in range(len(idx_to_class))]
-    if model_order != TARGET_MAKES:
-        mismatches = [(i, a, b) for i, (a, b) in enumerate(zip(model_order, TARGET_MAKES)) if a != b]
-        raise ValueError(f"{name} label_map order does not match TARGET_MAKES (first mismatches: {mismatches[:5]})")
-
-
-def make_indices_or_drop(makes: List[str], name: str) -> List[Optional[int]]:
-    """Maps make names to TARGET_MAKES indices; unknown makes become None (caller drops those rows)."""
-    out = [MAKE_TO_IDX.get(m) for m in makes]
-    unknown = sorted({m for m, i in zip(makes, out) if i is None})
-    if unknown:
-        n_dropped = sum(i is None for i in out)
-        print(f"[WARN] {name}: dropping {n_dropped:,} samples with makes not in TARGET_MAKES: {unknown}")
-    return out
-
-
 def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indices: List[int],
-                            proj_matrix: Optional[np.ndarray], img_size: int = 512,
+                            true_model_indices: Optional[List[int]] = None,
+                            proj_matrix: Optional[np.ndarray] = None,
+                            bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]] = None,
+                            img_size: int = 512,
                             crop_top: float = 0.0, crop_bottom: float = 0.0,
-                            batch_size: int = 64, device: str = "cuda") -> Tuple[float, float, float, np.ndarray, np.ndarray]:
+                            batch_size: int = 64, device: str = "cuda") -> Dict[str, Any]:
     model.eval()
     model.to(device)
 
     all_pred_makes = []
     all_true_makes = []
-    all_make_probs = []
+    all_pred_models = []
+    all_true_models = []
     n_failed = 0
 
     n_samples = len(paths)
@@ -141,7 +123,9 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
     with torch.no_grad():
         for i in pbar:
             b_paths = paths[i:i + batch_size]
-            b_labels = true_make_indices[i:i + batch_size]
+            b_make_labels = true_make_indices[i:i + batch_size]
+            b_model_labels = true_model_indices[i:i + batch_size] if true_model_indices is not None else None
+            b_bboxes = bboxes[i:i + batch_size] if bboxes is not None else None
 
             tensors = []
             valid_idx = []
@@ -151,13 +135,13 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
                 idx_g = i + j
                 ct = crop_top[idx_g] if is_top_list else crop_top
                 cb = crop_bottom[idx_g] if is_bot_list else crop_bottom
+                bb = b_bboxes[j] if b_bboxes is not None else None
                 try:
-                    t, _ = oa.load_and_preprocess_image(p, img_size, ct, cb)
+                    t, _ = oa.load_and_preprocess_image(p, img_size, ct, cb, bbox=bb)
                     tensors.append(t)
                     valid_idx.append(j)
                 except Exception as e:
                     n_failed += 1
-                    print(f"[WARN] Skipping unreadable image {p}: {e}", file=sys.stderr, flush=True)
                     continue
 
             if not tensors:
@@ -167,30 +151,53 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
             logits = model(batch_tensor)
             probs = torch.softmax(logits, dim=-1).cpu().numpy()
 
+            # 1. Model predictions (1235 classes)
+            pred_models = np.argmax(probs, axis=1)
+            all_pred_models.extend(pred_models)
+            if b_model_labels is not None:
+                all_true_models.extend([b_model_labels[k] for k in valid_idx])
+
+            # 2. Make predictions (marginalized over models)
             if proj_matrix is not None:
-                # Aggregate model probabilities into 35 make probabilities
                 make_probs = probs @ proj_matrix
             else:
                 make_probs = probs
 
             pred_makes = np.argmax(make_probs, axis=1)
-
             all_pred_makes.extend(pred_makes)
-            all_true_makes.extend([b_labels[k] for k in valid_idx])
-            all_make_probs.extend(make_probs)
+            all_true_makes.extend([b_make_labels[k] for k in valid_idx])
 
     if n_failed:
-        print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded from the metrics.")
+        print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded.")
 
-    y_pred = np.array(all_pred_makes)
-    y_true = np.array(all_true_makes)
-    y_probs = np.array(all_make_probs)
+    y_pred_make = np.array(all_pred_makes)
+    y_true_make = np.array(all_true_makes)
 
-    acc = float(np.mean(y_true == y_pred))
-    _, _, macro_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="macro", zero_division=0)
-    _, _, weighted_f1, _ = precision_recall_fscore_support(y_true, y_pred, average="weighted", zero_division=0)
+    make_acc = float(np.mean(y_true_make == y_pred_make))
+    _, _, make_macro_f1, _ = precision_recall_fscore_support(y_true_make, y_pred_make, average="macro", zero_division=0)
+    _, _, make_weighted_f1, _ = precision_recall_fscore_support(y_true_make, y_pred_make, average="weighted", zero_division=0)
 
-    return acc, float(macro_f1), float(weighted_f1), y_true, y_pred
+    res = {
+        "make_accuracy": make_acc,
+        "make_macro_f1": float(make_macro_f1),
+        "make_weighted_f1": float(make_weighted_f1)
+    }
+
+    if all_true_models:
+        y_pred_model = np.array(all_pred_models)
+        y_true_model = np.array(all_true_models)
+        model_acc = float(np.mean(y_true_model == y_pred_model))
+        _, _, model_macro_f1, _ = precision_recall_fscore_support(y_true_model, y_pred_model, average="macro", zero_division=0)
+        _, _, model_weighted_f1, _ = precision_recall_fscore_support(y_true_model, y_pred_model, average="weighted", zero_division=0)
+        res["model_accuracy"] = model_acc
+        res["model_macro_f1"] = float(model_macro_f1)
+        res["model_weighted_f1"] = float(model_weighted_f1)
+    else:
+        res["model_accuracy"] = None
+        res["model_macro_f1"] = None
+        res["model_weighted_f1"] = None
+
+    return res
 
 
 def main():
@@ -200,7 +207,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("\n" + "=" * 70)
-    print("  Cross-Domain & Mixed Benchmark Evaluation for MobileNetV2")
+    print("  Cross-Domain & Mixed Benchmark Evaluation (Make + Model)")
     print(f"  Model A (PlatesMania): {args.pm_model_path}")
     print(f"  Model B (External):    {args.ext_model_path}")
     print(f"  Output Directory:      {output_dir}")
@@ -210,13 +217,11 @@ def main():
     with open(args.pm_label_map) as f:
         pm_lm_raw = json.load(f)
     pm_lm = pm_lm_raw["class_to_idx"] if "class_to_idx" in pm_lm_raw else pm_lm_raw
-    check_label_order(pm_lm, "PlatesMania model")
     pm_proj = build_make_projection_matrix(pm_lm) if len(pm_lm) > len(TARGET_MAKES) else None
 
     with open(args.ext_label_map) as f:
         ext_lm_raw = json.load(f)
     ext_lm = ext_lm_raw["class_to_idx"] if "class_to_idx" in ext_lm_raw else ext_lm_raw
-    check_label_order(ext_lm, "External model")
     ext_proj = build_make_projection_matrix(ext_lm) if len(ext_lm) > len(TARGET_MAKES) else None
 
     # Load models
@@ -232,38 +237,50 @@ def main():
 
     pm_col = "image_path" if "image_path" in df_pm.columns else "image_rel_path"
     pm_paths = [os.path.join(args.pm_img_dir, p) if not os.path.isabs(p) else p for p in df_pm[pm_col].values]
+    pm_make_names = [str(r["make"]).strip() if "make" in r and pd.notna(r["make"]) else str(r["class_name"]).split("/")[0] for _, r in df_pm.iterrows()]
+    pm_make_indices = [MAKE_TO_IDX.get(m) for m in pm_make_names]
+    pm_model_indices = df_pm["label"].values.astype(int).tolist()
 
-    # Extract make labels for PlatesMania
-    pm_make_names = []
-    for _, row in df_pm.iterrows():
-        if "make" in row and pd.notna(row["make"]):
-            m = str(row["make"])
-        elif "class_name" in row and pd.notna(row["class_name"]):
-            m = str(row["class_name"]).split("/")[0]
-        else:
-            m = "Unknown"
-        pm_make_names.append(m)
-    pm_makes = make_indices_or_drop(pm_make_names, "PlatesMania")
-    pm_keep = [i for i, m in enumerate(pm_makes) if m is not None]
+    pm_keep = [i for i, m in enumerate(pm_make_indices) if m is not None]
     pm_paths = [pm_paths[i] for i in pm_keep]
-    pm_makes = [pm_makes[i] for i in pm_keep]
+    pm_make_indices = [pm_make_indices[i] for i in pm_keep]
+    pm_model_indices = [pm_model_indices[i] for i in pm_keep]
+    pm_bboxes = [None] * len(pm_paths)
 
     # 2. Prepare External test split
     df_ext = pd.read_csv(args.ext_test_csv)
+    if "split" in df_ext.columns:
+        df_ext = df_ext[df_ext["split"] == "test"].reset_index(drop=True)
     if len(df_ext) > args.max_eval_per_dataset:
         df_ext = df_ext.sample(n=args.max_eval_per_dataset, random_state=42).reset_index(drop=True)
 
     ext_paths = df_ext["image_path"].tolist()
-    ext_makes = make_indices_or_drop([str(m) for m in df_ext["make"].values], "External")
-    ext_keep = [i for i, m in enumerate(ext_makes) if m is not None]
-    ext_paths = [ext_paths[i] for i in ext_keep]
-    ext_makes = [ext_makes[i] for i in ext_keep]
+    ext_make_names = [str(r["make"]).strip() if "make" in r and pd.notna(r["make"]) else str(r["class_name"]).split("/")[0] for _, r in df_ext.iterrows()]
+    ext_make_indices = [MAKE_TO_IDX.get(m) for m in ext_make_names]
+    ext_model_indices = df_ext["label"].values.astype(int).tolist()
 
-    # 3. Prepare Mixed test split (combination)
+    ext_bboxes = None
+    if "bbox_x1" in df_ext.columns:
+        ext_bboxes = [
+            (int(r["bbox_x1"]), int(r["bbox_y1"]), int(r["bbox_x2"]), int(r["bbox_y2"]))
+            if int(r["bbox_x1"]) >= 0 else None
+            for _, r in df_ext.iterrows()
+        ]
+
+    ext_keep = [i for i, m in enumerate(ext_make_indices) if m is not None]
+    ext_paths = [ext_paths[i] for i in ext_keep]
+    ext_make_indices = [ext_make_indices[i] for i in ext_keep]
+    ext_model_indices = [ext_model_indices[i] for i in ext_keep]
+    if ext_bboxes is not None:
+        ext_bboxes = [ext_bboxes[i] for i in ext_keep]
+    else:
+        ext_bboxes = [None] * len(ext_paths)
+
+    # 3. Prepare Mixed test split
     mixed_paths = pm_paths + ext_paths
-    mixed_makes = pm_makes + ext_makes
-    # Top crop is ONLY applied to PlatesMania images (0.15) to strip PLATESMANIA.COM banner.
-    # External images NEVER have top crop (0.0).
+    mixed_make_indices = pm_make_indices + ext_make_indices
+    mixed_model_indices = pm_model_indices + ext_model_indices
+    mixed_bboxes = pm_bboxes + ext_bboxes
     mixed_crop_top = [0.15] * len(pm_paths) + [0.0] * len(ext_paths)
     mixed_crop_bot = [0.0] * len(pm_paths) + [0.05] * len(ext_paths)
 
@@ -273,71 +290,84 @@ def main():
 
     # Benchmark Model A (PlatesMania)
     print("\n--- Evaluating Model A (PlatesMania) ---")
-    acc_a_pm, f1_a_pm, wf1_a_pm, _, _ = evaluate_model_on_split(model_a, pm_paths, pm_makes, pm_proj, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device)
-    print(f"Model A on PlatesMania (In-Domain):     Acc={acc_a_pm:.2%} | Macro F1={f1_a_pm:.2%}")
+    res_a_pm = evaluate_model_on_split(model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device)
+    print(f"Model A on PlatesMania (In-Domain):     Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
 
-    acc_a_ext, f1_a_ext, wf1_a_ext, _, _ = evaluate_model_on_split(model_a, ext_paths, ext_makes, pm_proj, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device)
-    print(f"Model A on External    (Out-of-Domain): Acc={acc_a_ext:.2%} | Macro F1={f1_a_ext:.2%}")
+    res_a_ext = evaluate_model_on_split(model_a, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device)
+    print(f"Model A on External    (Out-of-Domain): Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
 
-    acc_a_mix, f1_a_mix, wf1_a_mix, _, _ = evaluate_model_on_split(model_a, mixed_paths, mixed_makes, pm_proj, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device)
-    print(f"Model A on Mixed       (Combined):      Acc={acc_a_mix:.2%} | Macro F1={f1_a_mix:.2%}")
+    res_a_mix = evaluate_model_on_split(model_a, mixed_paths, mixed_make_indices, mixed_model_indices, pm_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device)
+    print(f"Model A on Mixed       (Combined):      Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
 
     results.extend([
-        {"model": "Model A (PlatesMania)", "test_split": "PlatesMania (In-Domain)", "domain_type": "In-Domain", "accuracy": acc_a_pm, "macro_f1": f1_a_pm, "weighted_f1": wf1_a_pm},
-        {"model": "Model A (PlatesMania)", "test_split": "External (Out-of-Domain)", "domain_type": "Out-of-Domain", "accuracy": acc_a_ext, "macro_f1": f1_a_ext, "weighted_f1": wf1_a_ext},
-        {"model": "Model A (PlatesMania)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", "accuracy": acc_a_mix, "macro_f1": f1_a_mix, "weighted_f1": wf1_a_mix},
+        {"model": "Model A (PlatesMania)", "test_split": "PlatesMania (In-Domain)", "domain_type": "In-Domain", **res_a_pm},
+        {"model": "Model A (PlatesMania)", "test_split": "External (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_a_ext},
+        {"model": "Model A (PlatesMania)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_a_mix},
     ])
 
     # Benchmark Model B (External)
     print("\n--- Evaluating Model B (External Merged) ---")
-    acc_b_ext, f1_b_ext, wf1_b_ext, _, _ = evaluate_model_on_split(model_b, ext_paths, ext_makes, ext_proj, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device)
-    print(f"Model B on External    (In-Domain):     Acc={acc_b_ext:.2%} | Macro F1={f1_b_ext:.2%}")
+    res_b_ext = evaluate_model_on_split(model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device)
+    print(f"Model B on External    (In-Domain):     Make Acc={res_b_ext['make_accuracy']:.2%} | Model Acc={res_b_ext['model_accuracy']:.2%} | Make Macro F1={res_b_ext['make_macro_f1']:.2%}")
 
-    acc_b_pm, f1_b_pm, wf1_b_pm, _, _ = evaluate_model_on_split(model_b, pm_paths, pm_makes, ext_proj, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device)
-    print(f"Model B on PlatesMania (Out-of-Domain): Acc={acc_b_pm:.2%} | Macro F1={f1_b_pm:.2%}")
+    res_b_pm = evaluate_model_on_split(model_b, pm_paths, pm_make_indices, pm_model_indices, ext_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device)
+    print(f"Model B on PlatesMania (Out-of-Domain): Make Acc={res_b_pm['make_accuracy']:.2%} | Model Acc={res_b_pm['model_accuracy']:.2%} | Make Macro F1={res_b_pm['make_macro_f1']:.2%}")
 
-    acc_b_mix, f1_b_mix, wf1_b_mix, _, _ = evaluate_model_on_split(model_b, mixed_paths, mixed_makes, ext_proj, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device)
-    print(f"Model B on Mixed       (Combined):      Acc={acc_b_mix:.2%} | Macro F1={f1_b_mix:.2%}")
+    res_b_mix = evaluate_model_on_split(model_b, mixed_paths, mixed_make_indices, mixed_model_indices, ext_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device)
+    print(f"Model B on Mixed       (Combined):      Make Acc={res_b_mix['make_accuracy']:.2%} | Model Acc={res_b_mix['model_accuracy']:.2%} | Make Macro F1={res_b_mix['make_macro_f1']:.2%}")
 
     results.extend([
-        {"model": "Model B (External)", "test_split": "External (In-Domain)", "domain_type": "In-Domain", "accuracy": acc_b_ext, "macro_f1": f1_b_ext, "weighted_f1": wf1_b_ext},
-        {"model": "Model B (External)", "test_split": "PlatesMania (Out-of-Domain)", "domain_type": "Out-of-Domain", "accuracy": acc_b_pm, "macro_f1": f1_b_pm, "weighted_f1": wf1_b_pm},
-        {"model": "Model B (External)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", "accuracy": acc_b_mix, "macro_f1": f1_b_mix, "weighted_f1": wf1_b_mix},
+        {"model": "Model B (External)", "test_split": "External (In-Domain)", "domain_type": "In-Domain", **res_b_ext},
+        {"model": "Model B (External)", "test_split": "PlatesMania (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_b_pm},
+        {"model": "Model B (External)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_b_mix},
     ])
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(output_dir / "mixed_benchmark_summary.csv", index=False)
 
-    # Plot comparison bar chart
-    fig, ax = plt.subplots(figsize=(10, 6))
+    # Plot dual comparison bar chart (Make Accuracy & Model Accuracy side by side)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
     splits = ["PlatesMania Split", "External Split", "Mixed Split"]
     x = np.arange(len(splits))
     width = 0.35
 
-    acc_a_vals = [acc_a_pm, acc_a_ext, acc_a_mix]
-    acc_b_vals = [acc_b_pm, acc_b_ext, acc_b_mix]
-
-    rects1 = ax.bar(x - width/2, [v * 100 for v in acc_a_vals], width, label="Model A (PlatesMania)", color="#2563EB")
-    rects2 = ax.bar(x + width/2, [v * 100 for v in acc_b_vals], width, label="Model B (External)", color="#16A34A")
-
-    ax.set_ylabel("Make Accuracy (%)", fontsize=12)
-    ax.set_title("Cross-Domain & Mixed Benchmark Make Accuracy (MobileNetV2)", fontsize=14, fontweight="bold")
-    ax.set_xticks(x)
-    ax.set_xticklabels(splits, fontsize=11)
-    ax.set_ylim(0, 105)
-    ax.grid(True, linestyle="--", alpha=0.4, axis="y")
-    ax.legend(fontsize=11)
-
-    for r in rects1 + rects2:
+    # 1. Make Accuracy Plot
+    make_a_vals = [res_a_pm["make_accuracy"], res_a_ext["make_accuracy"], res_a_mix["make_accuracy"]]
+    make_b_vals = [res_b_pm["make_accuracy"], res_b_ext["make_accuracy"], res_b_mix["make_accuracy"]]
+    r1 = ax1.bar(x - width/2, [v * 100 for v in make_a_vals], width, label="Model A (PlatesMania)", color="#2563EB")
+    r2 = ax1.bar(x + width/2, [v * 100 for v in make_b_vals], width, label="Model B (External)", color="#16A34A")
+    ax1.set_ylabel("Make Accuracy (%)", fontsize=12)
+    ax1.set_title("Make Accuracy (Marginalized over Models)", fontsize=13, fontweight="bold")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(splits, fontsize=10)
+    ax1.set_ylim(0, 105)
+    ax1.grid(True, linestyle="--", alpha=0.4, axis="y")
+    ax1.legend(fontsize=10)
+    for r in r1 + r2:
         h = r.get_height()
-        ax.annotate(f"{h:.1f}%", xy=(r.get_x() + r.get_width() / 2, h),
-                    xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=9, fontweight="bold")
+        ax1.annotate(f"{h:.1f}%", xy=(r.get_x() + r.get_width() / 2, h), xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=8, fontweight="bold")
+
+    # 2. Model Accuracy Plot
+    model_a_vals = [res_a_pm["model_accuracy"], res_a_ext["model_accuracy"], res_a_mix["model_accuracy"]]
+    model_b_vals = [res_b_pm["model_accuracy"], res_b_ext["model_accuracy"], res_b_mix["model_accuracy"]]
+    r3 = ax2.bar(x - width/2, [v * 100 for v in model_a_vals], width, label="Model A (PlatesMania)", color="#2563EB")
+    r4 = ax2.bar(x + width/2, [v * 100 for v in model_b_vals], width, label="Model B (External)", color="#16A34A")
+    ax2.set_ylabel("Model Accuracy (%)", fontsize=12)
+    ax2.set_title("Fine-Grained Model Accuracy (1,235 Classes)", fontsize=13, fontweight="bold")
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(splits, fontsize=10)
+    ax2.set_ylim(0, 105)
+    ax2.grid(True, linestyle="--", alpha=0.4, axis="y")
+    ax2.legend(fontsize=10)
+    for r in r3 + r4:
+        h = r.get_height()
+        ax2.annotate(f"{h:.1f}%", xy=(r.get_x() + r.get_width() / 2, h), xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=8, fontweight="bold")
 
     plt.tight_layout()
     plt.savefig(str(output_dir / "cross_domain_comparison.png"), dpi=150)
     plt.close()
 
-    print(f"\n[Done] Benchmark results and comparison chart saved to: {output_dir}")
+    print(f"\n[Done] Benchmark results and dual comparison charts saved to: {output_dir}")
 
 
 if __name__ == "__main__":

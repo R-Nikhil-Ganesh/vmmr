@@ -182,8 +182,8 @@ class MobileNetV2Evaluator(nn.Module):
             x_np = x.astype(np.float32)
         out = dict(zip(self.output_names, self.ort_session.run(None, {self.input_name: x_np})))
         self.embeddings = out.get("embeddings")
-        self.class_maps = out.get("class_maps")
-        preds = torch.from_numpy(out["predictions"])
+        pred_key = "predictions" if "predictions" in out else ("logits" if "logits" in out else self.output_names[0])
+        preds = torch.from_numpy(out[pred_key])
         if isinstance(x, torch.Tensor) and x.is_cuda:
             preds = preds.to(x.device)
         return preds
@@ -192,12 +192,19 @@ class MobileNetV2Evaluator(nn.Module):
 # ==============================================================================
 # 3. Image Preprocessing & High-Throughput Batch Evaluation
 # ==============================================================================
-def load_and_preprocess_image(path: str, img_size: int = 512, crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0):
+def load_and_preprocess_image(path: str, img_size: int = 512, crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0, bbox: Optional[Tuple[int, int, int, int]] = None):
     img = Image.open(path).convert("RGB")
     w, h = img.size
-    top = int(h * crop_top_pct)
-    bottom = max(top + 10, int(h * (1.0 - crop_bottom_pct)))
-    if top > 0 or crop_bottom_pct > 0:
+    if bbox is not None and bbox[0] >= 0:
+        x1, y1, x2, y2 = bbox
+        x1 = max(0, min(x1, w - 1))
+        y1 = max(0, min(y1, h - 1))
+        x2 = max(x1 + 1, min(x2, w))
+        y2 = max(y1 + 1, min(y2, h))
+        img = img.crop((x1, y1, x2, y2))
+    elif crop_top_pct > 0 or crop_bottom_pct > 0:
+        top = int(h * crop_top_pct)
+        bottom = max(top + 10, int(h * (1.0 - crop_bottom_pct)))
         img = img.crop((0, top, w, bottom))
     img = img.resize((img_size, img_size), Image.BILINEAR)
     arr = np.array(img, dtype=np.float32) / 255.0
