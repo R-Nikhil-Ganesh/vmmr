@@ -117,29 +117,54 @@ def set_context(**kwargs):
 # 2. PyTorch Model Loader & Feature Hook
 # ==============================================================================
 class MobileNetV2Evaluator(nn.Module):
-    """Wraps MobileNetV2 to capture final conv feature maps and penultimate embeddings."""
+    """Wraps MobileNetV2 to capture final conv feature maps and penultimate embeddings.
+       Supports both .pt PyTorch checkpoints and .onnx ONNX Runtime models."""
     def __init__(self, num_classes: int, checkpoint_path: Optional[str] = None, dropout_rate: float = 0.2):
         super().__init__()
-        self.base = models.mobilenet_v2(weights=None)
-        in_features = self.base.classifier[1].in_features
-        self.base.classifier = nn.Sequential(
-            nn.Dropout(p=dropout_rate),
-            nn.Linear(in_features, num_classes)
-        )
-        if checkpoint_path and os.path.exists(checkpoint_path):
-            state = torch.load(checkpoint_path, map_location="cpu")
-            if "model_state_dict" in state:
-                self.load_state_dict(state["model_state_dict"])
-            elif "state_dict" in state:
-                self.load_state_dict(state["state_dict"])
+        self.num_classes = num_classes
+        self.checkpoint_path = str(checkpoint_path) if checkpoint_path else None
+        self.is_onnx = False
+        self.ort_session = None
+        self.input_name = None
+
+        if self.checkpoint_path and self.checkpoint_path.endswith(".onnx") and os.path.exists(self.checkpoint_path):
+            self.is_onnx = True
+            if HAS_ORT:
+                self.ort_session = ort.InferenceSession(self.checkpoint_path, providers=["CPUExecutionProvider"])
+                self.input_name = self.ort_session.get_inputs()[0].name
+                print(f"[Model] Successfully initialized ONNX Runtime session from {self.checkpoint_path}")
             else:
-                self.load_state_dict(state)
-            print(f"[Model] Successfully loaded weights from {checkpoint_path}")
+                raise ImportError("onnxruntime is required to evaluate .onnx models.")
+        else:
+            self.base = models.mobilenet_v2(weights=None)
+            in_features = self.base.classifier[1].in_features
+            self.base.classifier = nn.Sequential(
+                nn.Dropout(p=dropout_rate),
+                nn.Linear(in_features, num_classes)
+            )
+            if self.checkpoint_path and os.path.exists(self.checkpoint_path):
+                state = torch.load(self.checkpoint_path, map_location="cpu")
+                if "model_state_dict" in state:
+                    state = state["model_state_dict"]
+                elif "state_dict" in state:
+                    state = state["state_dict"]
+                
+                if any(k.startswith("base.") for k in state.keys()):
+                    self.load_state_dict(state)
+                else:
+                    self.base.load_state_dict(state)
+                print(f"[Model] Successfully loaded weights from {self.checkpoint_path}")
 
         self.last_conv_features = None
         self.embeddings = None
 
     def forward(self, x):
+        if self.is_onnx:
+            x_np = x.detach().cpu().numpy().astype(np.float32)
+            out = self.ort_session.run(None, {self.input_name: x_np})
+            logits = torch.from_numpy(out[0]).to(x.device)
+            return logits
+
         features = self.base.features(x)
         self.last_conv_features = features
         pooled = nn.functional.adaptive_avg_pool2d(features, (1, 1))

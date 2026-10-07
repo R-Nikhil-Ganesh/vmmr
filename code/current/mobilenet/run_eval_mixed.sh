@@ -23,10 +23,10 @@ fi
 OUTPUT_DIR="${SCRIPT_DIR}/mixed_benchmark_results"
 mkdir -p "${OUTPUT_DIR}"
 
-PM_MODEL="${SCRIPT_DIR}/platesmania_dataset/output_mobilenet_v2/models/mobilenet_v2_best.pt"
+PM_MODEL="${SCRIPT_DIR}/platesmania_dataset/output_mobilenet_v2/models/mobilenet_v2_best.onnx"
 PM_LABEL_MAP="${SCRIPT_DIR}/platesmania_dataset/output_mobilenet_v2/models/label_map.json"
 
-EXT_MODEL="${SCRIPT_DIR}/external_dataset/output_mobilenet_v2_external/models/mobilenet_v2_best.pt"
+EXT_MODEL="${SCRIPT_DIR}/external_dataset/output_mobilenet_v2_external/models/mobilenet_v2_best.onnx"
 EXT_LABEL_MAP="${SCRIPT_DIR}/external_dataset/output_mobilenet_v2_external/models/label_map.json"
 
 echo "=================================================================="

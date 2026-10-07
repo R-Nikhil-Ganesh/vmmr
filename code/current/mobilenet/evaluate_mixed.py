@@ -20,7 +20,7 @@ import sys
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib_cache")
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-MobileNetV2 Training Pipeline on PlatesMania Dataset (PyTorch)
-==============================================================
-Dataset: /home/researchadmin/Econ/resized_640x640/splits_filtered/
+MobileNetV2 Training Pipeline on External Merged Dataset (PyTorch)
+==================================================================
+Dataset: /home/researchadmin/Econ/external_datasets/merged_data
+Classes: 35 Vehicle Makes (BoxCars116k, Stanford Cars, CompCars CCTV/Web)
 Environment: pt-env (PyTorch 2.14 + CUDA, RTX 4090)
 """
 
@@ -27,6 +28,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from PIL import Image
 from tqdm import tqdm
 
 import torch
@@ -35,12 +37,12 @@ from torchvision import models
 import torchvision.io as io
 import torchvision.transforms.v2 as v2
 from torch.utils.data import Dataset, DataLoader
-from sklearn.metrics import precision_recall_fscore_support
 
 torch.set_float32_matmul_precision("high")
 
 CURRENT_DIR = Path(__file__).resolve().parent
-ROOT_MOBILENET_DIR = CURRENT_DIR.parent
+DATASET_DIR = CURRENT_DIR.parent
+ROOT_MOBILENET_DIR = DATASET_DIR.parent
 if str(ROOT_MOBILENET_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_MOBILENET_DIR))
 
@@ -48,32 +50,22 @@ import output_analysis as oa
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train MobileNetV2 on PlatesMania Dataset using PyTorch.")
+    parser = argparse.ArgumentParser(description="Train MobileNetV2 on External Merged Dataset (35 Makes).")
     parser.add_argument("--splits-dir", type=str,
-        default="/home/researchadmin/Econ/resized_640x640/splits_filtered",
-        help="Path containing train.csv, val.csv, test.csv, and optionally label_map.json")
-    parser.add_argument("--csv-path", type=str,
-        default=None,
-        help="Path to single unified dataset split CSV (if applicable)")
-    parser.add_argument("--base-img-dir", type=str,
-        default="/home/researchadmin/Econ/resized_640x640",
-        help="Base image folder")
-    parser.add_argument("--label-map-path", type=str,
-        default=None,
-        help="Path to label_map.json")
+        default="/home/researchadmin/Econ/external_datasets/merged_data",
+        help="Path containing train.csv, val.csv, test.csv, and label_map.json")
     parser.add_argument("--output-dir", type=str,
-        default=str(CURRENT_DIR / "output_mobilenet_v2"),
+        default=str(DATASET_DIR / "output_mobilenet_v2_external"),
         help="Destination directory for checkpoints, metrics, and plots")
     parser.add_argument("--img-size", type=int, default=512, help="Input resolution (default: 512)")
     parser.add_argument("--batch-size", type=int, default=32, help="Training batch size (default: 32)")
     parser.add_argument("--eval-batch-size", type=int, default=64, help="Evaluation batch size")
     parser.add_argument("--epochs", type=int, default=15, help="Number of training epochs")
-    parser.add_argument("--lr", type=float, default=5e-4, help="Head learning rate")
+    parser.add_argument("--lr", type=float, default=5e-4, help="Classifier head learning rate")
     parser.add_argument("--backbone-lr", type=float, default=5e-5, help="Backbone learning rate")
-    parser.add_argument("--dropout", type=float, default=0.25, help="Classifier dropout rate")
+    parser.add_argument("--dropout", type=float, default=0.25, help="Classifier head dropout rate")
     parser.add_argument("--unfreeze-layers", type=int, default=5, help="Number of top backbone layers to unlock (default: 5)")
-    parser.add_argument("--crop-top-pct", type=float, default=0.15, help="Top watermark crop (default: 0.15)")
-    parser.add_argument("--crop-bottom-pct", type=float, default=0.0, help="Bottom watermark crop (default: 0.0)")
+    parser.add_argument("--crop-bottom-pct", type=float, default=0.0, help="Bottom watermark strip crop (default: 0.0)")
     parser.add_argument("--num-workers", type=int, default=6, help="DataLoader workers")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--evaluate-only", action="store_true")
@@ -82,16 +74,13 @@ def parse_args():
 
 
 # ==============================================================================
-# Dataset Loader with Top Watermark Cropping
+# External Merged Dataset Loader
 # ==============================================================================
-class PlatesManiaDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, base_img_dir: Path, img_size: int = 512,
-                 crop_top_pct: float = 0.15, crop_bottom_pct: float = 0.0):
-        col = "image_path" if "image_path" in df.columns else "image_rel_path"
-        self.paths = [os.path.join(str(base_img_dir), p) if not os.path.isabs(p) else p for p in df[col].values]
+class ExternalMergedDataset(Dataset):
+    def __init__(self, df: pd.DataFrame, img_size: int = 512, crop_bottom_pct: float = 0.0):
+        self.paths = df["image_path"].values
         self.labels = df["label"].values.astype(np.int64)
         self.img_size = img_size
-        self.crop_top_pct = crop_top_pct
         self.crop_bottom_pct = crop_bottom_pct
 
     def __len__(self):
@@ -102,9 +91,9 @@ class PlatesManiaDataset(Dataset):
         try:
             img = io.read_image(path, mode=io.ImageReadMode.RGB)
             _, h, w = img.shape
-            top = int(h * self.crop_top_pct)
-            bottom = max(top + 10, int(h * (1.0 - self.crop_bottom_pct)))
-            cropped = img[:, top:bottom, :]
+            # Bottom border strip crop to strip web dealership stamps
+            bottom_h = max(20, int(h * (1.0 - self.crop_bottom_pct)))
+            cropped = img[:, :bottom_h, :]
             resized = nn.functional.interpolate(
                 cropped.unsqueeze(0).float(),
                 size=(self.img_size, self.img_size),
@@ -173,7 +162,8 @@ def export_to_onnx(model: nn.Module, num_classes: int, img_size: int, out_onnx_p
         do_constant_folding=True,
         input_names=["input_image"],
         output_names=["predictions"],
-        dynamic_axes={"input_image": {0: "batch_size"}, "predictions": {0: "batch_size"}}
+        dynamic_axes={"input_image": {0: "batch_size"}, "predictions": {0: "batch_size"}},
+        dynamo=False
     )
     print(f"[ONNX] Exported model successfully to: {out_onnx_path}")
 
@@ -184,6 +174,7 @@ def main():
     np.random.seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    splits_dir = Path(args.splits_dir)
     output_dir = Path(args.output_dir)
     models_dir = output_dir / "models"
     plots_dir = output_dir / "plots"
@@ -191,22 +182,7 @@ def main():
     for d in [models_dir, plots_dir, reports_dir]:
         d.mkdir(parents=True, exist_ok=True)
 
-    # Resolve label map with robust multi-location fallback
-    label_map_file = None
-    if args.label_map_path and os.path.exists(args.label_map_path):
-        label_map_file = Path(args.label_map_path)
-    elif args.splits_dir and (Path(args.splits_dir) / "label_map.json").exists():
-        label_map_file = Path(args.splits_dir) / "label_map.json"
-    elif (models_dir / "label_map.json").exists():
-        label_map_file = models_dir / "label_map.json"
-    else:
-        ref_pm = ROOT_MOBILENET_DIR.parent / "efficientnet" / "platesmania_dataset" / "output_efficientnet_b0" / "models" / "label_map.json"
-        if ref_pm.exists():
-            label_map_file = ref_pm
-        else:
-            raise FileNotFoundError("Could not find label_map.json. Provide --label-map-path or place in output directory.")
-
-    with open(label_map_file) as f:
+    with open(splits_dir / "label_map.json") as f:
         label_map_raw = json.load(f)
     if "class_to_idx" in label_map_raw:
         class_to_idx = {k: int(v) for k, v in label_map_raw["class_to_idx"].items()}
@@ -217,27 +193,20 @@ def main():
         json.dump({"class_to_idx": class_to_idx, "idx_to_class": {v: k for k, v in class_to_idx.items()}}, f, indent=2)
 
     print("\n" + "=" * 65)
-    print(f"  MobileNetV2 (PyTorch) | {num_classes} classes | {args.img_size}x{args.img_size} | batch={args.batch_size}")
+    print(f"  MobileNetV2 External (PyTorch) | {num_classes} classes | {args.img_size}x{args.img_size} | batch={args.batch_size}")
     print(f"  LR={args.lr} | Backbone LR={args.backbone_lr} | Epochs={args.epochs}")
+    print(f"  Splits: {splits_dir}")
     print(f"  Output: {output_dir}")
     print("=" * 65 + "\n")
 
-    # Load splits (supports either --csv-path or --splits-dir)
-    if args.csv_path and os.path.exists(args.csv_path):
-        df = pd.read_csv(args.csv_path)
-        train_df = df[df["split"] == "train"].reset_index(drop=True)
-        val_df   = df[df["split"] == "val"].reset_index(drop=True)
-        test_df  = df[df["split"] == "test"].reset_index(drop=True)
-    else:
-        splits_dir = Path(args.splits_dir)
-        train_df = pd.read_csv(splits_dir / "train.csv")
-        val_df   = pd.read_csv(splits_dir / "val.csv")
-        test_df  = pd.read_csv(splits_dir / "test.csv")
+    train_df = pd.read_csv(splits_dir / "train.csv")
+    val_df   = pd.read_csv(splits_dir / "val.csv")
+    test_df  = pd.read_csv(splits_dir / "test.csv")
     print(f"[Data] Train: {len(train_df):,} | Val: {len(val_df):,} | Test: {len(test_df):,}")
 
-    train_ds = PlatesManiaDataset(train_df, Path(args.base_img_dir), args.img_size, args.crop_top_pct, args.crop_bottom_pct)
-    val_ds   = PlatesManiaDataset(val_df, Path(args.base_img_dir), args.img_size, args.crop_top_pct, args.crop_bottom_pct)
-    test_ds  = PlatesManiaDataset(test_df, Path(args.base_img_dir), args.img_size, args.crop_top_pct, args.crop_bottom_pct)
+    train_ds = ExternalMergedDataset(train_df, args.img_size, args.crop_bottom_pct)
+    val_ds   = ExternalMergedDataset(val_df, args.img_size, args.crop_bottom_pct)
+    test_ds  = ExternalMergedDataset(test_df, args.img_size, args.crop_bottom_pct)
 
     # Optimized high-throughput DataLoaders
     train_loader = DataLoader(
@@ -262,17 +231,14 @@ def main():
 
     train_tf, val_tf = build_transforms()
 
-    torch.backends.cudnn.benchmark = True
-    model = create_model(num_classes=num_classes, dropout=args.dropout, unfreeze_layers=args.unfreeze_layers).to(device)
+    model = create_model(num_classes=num_classes, dropout=args.dropout).to(device)
 
-    # Differential learning rate for unlocked layers vs new head
-    trainable_backbone = [p for p in model.features.parameters() if p.requires_grad]
+    # Differential learning rate
     param_groups = [
-        {"params": trainable_backbone, "lr": args.backbone_lr},
+        {"params": [p for n, p in model.named_parameters() if "classifier" not in n], "lr": args.backbone_lr},
         {"params": model.classifier.parameters(), "lr": args.lr}
     ]
-    use_fused = (device.type == "cuda")
-    optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4, fused=use_fused)
+    optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
     criterion = nn.CrossEntropyLoss()
     scaler = torch.cuda.amp.GradScaler()

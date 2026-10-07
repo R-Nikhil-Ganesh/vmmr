@@ -9,7 +9,8 @@ PyTorch & ONNX diagnostic & explainability engine in output_analysis.py.
 import sys
 from pathlib import Path
 
-DATASET_DIR = Path(__file__).resolve().parent
+ANALYSIS_DIR = Path(__file__).resolve().parent
+DATASET_DIR = ANALYSIS_DIR.parent
 ROOT_MOBILENET_DIR = DATASET_DIR.parent
 if str(ROOT_MOBILENET_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_MOBILENET_DIR))
@@ -18,9 +19,9 @@ import output_analysis as _oa
 
 # Configure analysis context specifically for PlatesMania
 _oa.set_context(
-    model_path=DATASET_DIR / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.pt",
+    model_path=DATASET_DIR / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.onnx",
     output_dir=DATASET_DIR / "output_mobilenet_v2",
-    test_csv=Path("/home/researchadmin/Econ/dataset_split_640x640.csv"),
+    test_csv=Path("/home/researchadmin/Econ/resized_640x640/splits_filtered/test.csv"),
     label_map=DATASET_DIR / "output_mobilenet_v2" / "models" / "label_map.json",
     base_img_dir=Path("/home/researchadmin/Econ/resized_640x640"),
     img_size=512,

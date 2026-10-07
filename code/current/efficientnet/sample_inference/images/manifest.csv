@@ -1,0 +1,16 @@
+filename,true_make,source,original_path
+01_audi.jpg,Audi,boxcars116k,/home/researchadmin/Econ/external_datasets/merged_data/images/Audi/audi_boxcars116k_00583.jpg
+02_bmw.jpg,BMW,compcars_cctv,/home/researchadmin/Econ/external_datasets/merged_data/images/BMW/bmw_compcars_cctv_00410.jpg
+03_chevrolet.jpg,Chevrolet,boxcars116k,/home/researchadmin/Econ/external_datasets/merged_data/images/Chevrolet/chevrolet_boxcars116k_01735.jpg
+04_ford.jpg,Ford,boxcars116k,/home/researchadmin/Econ/external_datasets/merged_data/images/Ford/ford_boxcars116k_02649.jpg
+05_gmc.jpg,GMC,compcars_web,/home/researchadmin/Econ/external_datasets/merged_data/images/GMC/gmc_compcars_web_00605.jpg
+06_honda.jpg,Honda,compcars_cctv,/home/researchadmin/Econ/external_datasets/merged_data/images/Honda/honda_compcars_cctv_00128.jpg
+07_hyundai.jpg,Hyundai,boxcars116k,/home/researchadmin/Econ/external_datasets/merged_data/images/Hyundai/hyundai_boxcars116k_00175.jpg
+08_infiniti.jpg,Infiniti,compcars_web,/home/researchadmin/Econ/external_datasets/merged_data/images/Infiniti/infiniti_compcars_web_01018.jpg
+09_jeep.jpg,Jeep,compcars_cctv,/home/researchadmin/Econ/external_datasets/merged_data/images/Jeep/jeep_compcars_cctv_00003.jpg
+10_nissan.jpg,Nissan,compcars_cctv,/home/researchadmin/Econ/external_datasets/merged_data/images/Nissan/nissan_compcars_cctv_00307.jpg
+11_porsche.jpg,Porsche,compcars_web,/home/researchadmin/Econ/external_datasets/merged_data/images/Porsche/porsche_compcars_web_00184.jpg
+12_subaru.jpg,Subaru,compcars_cctv,/home/researchadmin/Econ/external_datasets/merged_data/images/Subaru/subaru_compcars_cctv_00312.jpg
+13_toyota.jpg,Toyota,compcars_cctv,/home/researchadmin/Econ/external_datasets/merged_data/images/Toyota/toyota_compcars_cctv_01411.jpg
+14_volkswagen.jpg,Volkswagen,compcars_cctv,/home/researchadmin/Econ/external_datasets/merged_data/images/Volkswagen/volkswagen_compcars_cctv_02825.jpg
+15_volvo.jpg,Volvo,boxcars116k,/home/researchadmin/Econ/external_datasets/merged_data/images/Volvo/volvo_boxcars116k_00781.jpg
