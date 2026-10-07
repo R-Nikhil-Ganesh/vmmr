@@ -9,6 +9,7 @@ Environment: pt-env (PyTorch 2.14 + CUDA, RTX 4090)
 import os
 import sys
 import json
+import math
 import copy
 import argparse
 from pathlib import Path
@@ -83,6 +84,18 @@ def parse_args():
 # ==============================================================================
 # Dataset Loader with Top Watermark Cropping
 # ==============================================================================
+def resize_uint8(img: torch.Tensor, size: int) -> torch.Tensor:
+    """Antialiased bilinear resize of a (3,H,W) uint8 tensor to (3,size,size).
+    Runs directly on uint8 (much cheaper than a float round-trip); falls back to float if unsupported by this torch build."""
+    try:
+        return nn.functional.interpolate(img.unsqueeze(0), size=(size, size), mode="bilinear",
+                                         align_corners=False, antialias=True).squeeze(0)
+    except (RuntimeError, NotImplementedError):
+        out = nn.functional.interpolate(img.unsqueeze(0).float(), size=(size, size), mode="bilinear",
+                                        align_corners=False, antialias=True)
+        return out.squeeze(0).round().clamp(0, 255).to(torch.uint8)
+
+
 class PlatesManiaDataset(Dataset):
     def __init__(self, df: pd.DataFrame, base_img_dir: Path, img_size: int = 512,
                  crop_top_pct: float = 0.15, crop_bottom_pct: float = 0.0):
@@ -104,33 +117,67 @@ class PlatesManiaDataset(Dataset):
             top = int(h * self.crop_top_pct)
             bottom = max(top + 10, int(h * (1.0 - self.crop_bottom_pct)))
             cropped = img[:, top:bottom, :]
-            resized = nn.functional.interpolate(
-                cropped.unsqueeze(0).float(),
-                size=(self.img_size, self.img_size),
-                mode="bilinear",
-                align_corners=False,
-                antialias=True
-            ).squeeze(0).round().clamp(0, 255).to(torch.uint8)
-            return resized, self.labels[idx]
+            return resize_uint8(cropped, self.img_size), self.labels[idx]
         except Exception as e:
             # Unreadable image: report it and mark it with IGNORE_INDEX so it is excluded from loss/accuracy
             print(f"[WARN] Failed to load image {path}: {e}", file=sys.stderr, flush=True)
             return torch.zeros((3, self.img_size, self.img_size), dtype=torch.uint8), IGNORE_INDEX
 
 
-def build_transforms():
-    train_gpu_transforms = v2.Compose([
-        v2.ToDtype(torch.float32, scale=True),
-        v2.RandomHorizontalFlip(p=0.5),
-        v2.RandomAffine(degrees=(-10, 10), translate=(0.06, 0.06), scale=(0.94, 1.06)),
-        v2.ColorJitter(brightness=0.15, contrast=0.15, saturation=0.15),
-        v2.Normalize(mean=oa.IMAGENET_MEAN, std=oa.IMAGENET_STD)
-    ])
-    val_test_gpu_transforms = v2.Compose([
+def build_val_transform():
+    return v2.Compose([
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=oa.IMAGENET_MEAN, std=oa.IMAGENET_STD)
     ])
-    return train_gpu_transforms, val_test_gpu_transforms
+
+
+def _gray(x: torch.Tensor) -> torch.Tensor:
+    return 0.299 * x[:, 0:1] + 0.587 * x[:, 1:2] + 0.114 * x[:, 2:3]
+
+
+def augment_batch(imgs: torch.Tensor) -> torch.Tensor:
+    """Vectorized GPU augmentation: uint8 (B,3,H,W) -> normalized float32 (B,3,H,W).
+
+    Every image gets its own random draw, but with only a handful of batched kernels (a per-image loop over
+    torchvision v2 transforms made the Python main thread the bottleneck). Same ranges as before:
+    hflip p=0.5, rotate +-10 deg, translate +-6% of the size, scale 0.94-1.06 (zero fill), and
+    brightness/contrast/saturation factors in 1 +- 0.15 (random op order per batch).
+    """
+    B, dev = imgs.shape[0], imgs.device
+    x = imgs.float().div_(255.0)
+
+    # Horizontal flip
+    flip = torch.rand(B, device=dev) < 0.5
+    x = torch.where(flip[:, None, None, None], x.flip(-1), x)
+
+    # Affine (rotation + isotropic scale + translation) in one grid_sample. theta maps output -> input coordinates.
+    ang = (torch.rand(B, device=dev) * 2 - 1) * math.radians(10.0)
+    scale = 0.94 + torch.rand(B, device=dev) * 0.12
+    t = (torch.rand(B, 2, device=dev) * 2 - 1) * (0.06 * 2)  # +-6% of the image size, in [-1, 1] coordinates
+    c, s = torch.cos(ang) / scale, torch.sin(ang) / scale
+    theta = torch.zeros(B, 2, 3, device=dev)
+    theta[:, 0, 0], theta[:, 0, 1] = c, s
+    theta[:, 1, 0], theta[:, 1, 1] = -s, c
+    theta[:, 0, 2] = -(c * t[:, 0] + s * t[:, 1])
+    theta[:, 1, 2] = -(-s * t[:, 0] + c * t[:, 1])
+    grid = nn.functional.affine_grid(theta, list(x.shape), align_corners=False)
+    x = nn.functional.grid_sample(x, grid, mode="bilinear", padding_mode="zeros", align_corners=False)
+
+    # Colour jitter (brightness, contrast, saturation), per-image factors
+    for op in torch.randperm(3).tolist():
+        f = 0.85 + torch.rand(B, 1, 1, 1, device=dev) * 0.30
+        if op == 0:
+            x = (x * f).clamp_(0.0, 1.0)
+        elif op == 1:
+            m = _gray(x).mean(dim=(1, 2, 3), keepdim=True)
+            x = ((x - m) * f + m).clamp_(0.0, 1.0)
+        else:
+            g = _gray(x)
+            x = ((x - g) * f + g).clamp_(0.0, 1.0)
+
+    mean = torch.tensor(oa.IMAGENET_MEAN, device=dev).view(1, 3, 1, 1)
+    std = torch.tensor(oa.IMAGENET_STD, device=dev).view(1, 3, 1, 1)
+    return (x - mean) / std
 
 
 def create_model(num_classes: int, dropout: float = 0.25, unfreeze_layers: int = 5):
@@ -168,11 +215,6 @@ def set_train_mode(model: nn.Module, unfreeze_layers: int):
         for m in block.modules():
             if isinstance(m, nn.BatchNorm2d):
                 m.eval()
-
-
-def apply_per_sample(tf, imgs: torch.Tensor) -> torch.Tensor:
-    """Apply a random transform independently to every image (v2 transforms draw one set of params per call)."""
-    return torch.stack([tf(img) for img in imgs])
 
 
 def evaluate(model: nn.Module, loader: DataLoader, tf, criterion: nn.Module, device: torch.device):
@@ -294,23 +336,23 @@ def main():
         train_ds, batch_size=args.batch_size, shuffle=True,
         num_workers=args.num_workers, pin_memory=True,
         persistent_workers=(args.num_workers > 0),
-        prefetch_factor=2 if args.num_workers > 0 else None,
+        prefetch_factor=4 if args.num_workers > 0 else None,
         drop_last=True
     )
     val_loader   = DataLoader(
         val_ds, batch_size=args.eval_batch_size, shuffle=False,
         num_workers=args.num_workers, pin_memory=True,
         persistent_workers=(args.num_workers > 0),
-        prefetch_factor=2 if args.num_workers > 0 else None
+        prefetch_factor=4 if args.num_workers > 0 else None
     )
     test_loader  = DataLoader(
         test_ds, batch_size=args.eval_batch_size, shuffle=False,
         num_workers=args.num_workers, pin_memory=True,
         persistent_workers=(args.num_workers > 0),
-        prefetch_factor=2 if args.num_workers > 0 else None
+        prefetch_factor=4 if args.num_workers > 0 else None
     )
 
-    train_tf, val_tf = build_transforms()
+    val_tf = build_val_transform()
 
     torch.backends.cudnn.benchmark = True
     model = create_model(num_classes=num_classes, dropout=args.dropout, unfreeze_layers=args.unfreeze_layers).to(device)
@@ -348,7 +390,7 @@ def main():
             n_valid = int(valid.sum().item())
             if n_valid == 0:
                 continue
-            imgs = apply_per_sample(train_tf, imgs)
+            imgs = augment_batch(imgs)
 
             optimizer.zero_grad()
             with torch.amp.autocast(device_type=device.type, enabled=use_amp):

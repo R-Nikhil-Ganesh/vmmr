@@ -47,7 +47,7 @@ ${PYTHON_BIN} -u "${SCRIPT_DIR}/train_mobilenet_v2.py" \
     --unfreeze-layers 5 \
     --crop-top-pct 0.15 \
     --crop-bottom-pct 0.0 \
-    --num-workers 6 2>&1 | tee -a "${LOG_FILE}"
+    --num-workers 8 2>&1 | tee -a "${LOG_FILE}"
 
 echo "==================================================================" | tee -a "${LOG_FILE}"
 echo "  Training finished successfully at: $(date)" | tee -a "${LOG_FILE}"
