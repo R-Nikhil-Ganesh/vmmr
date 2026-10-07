@@ -21,8 +21,8 @@ import output_analysis as _oa
 _oa.set_context(
     model_path=DATASET_DIR / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.onnx",
     output_dir=DATASET_DIR / "output_mobilenet_v2",
-    test_csv=Path("/home/researchadmin/Econ/resized_640x640/splits_filtered/test.csv"),
-    label_map=DATASET_DIR / "output_mobilenet_v2" / "models" / "label_map.json",
+    test_csv_path=Path("/home/researchadmin/Econ/resized_640x640/splits_filtered/test.csv"),
+    label_map_path=DATASET_DIR / "output_mobilenet_v2" / "models" / "label_map.json",
     base_img_dir=Path("/home/researchadmin/Econ/resized_640x640"),
     img_size=512,
     crop_top_pct=0.15,

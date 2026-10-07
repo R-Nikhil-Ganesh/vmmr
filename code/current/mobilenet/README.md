@@ -101,7 +101,7 @@ python output_analysis_external.py
 Compares **Model A** (PlatesMania) and **Model B** (External) across:
 1. **In-Domain Test Sets**
 2. **Out-of-Domain Cross Test Sets**
-3. **Mixed Test Set** (Combined balanced benchmark across all 35 vehicle makes, 10,000 total samples)
+3. **Mixed Test Set** (Combined benchmark of up to 5,000 random samples per dataset, 10,000 total, not balanced per make)
 
 ```bash
 cd vmmr/code/current/mobilenet
@@ -122,5 +122,5 @@ Detailed metrics and analysis from the latest run are documented in [`run_1.md`]
 
 - **Framework**: PyTorch 2.14 (`pt-env`) with mixed precision (`torch.cuda.amp.autocast()`) and TF32 enabled for NVIDIA RTX 4090.
 - **Backbone**: `torchvision.models.mobilenet_v2` (ImageNet pretrained, top 5 layers unfrozen).
-- **Automated ONNX Export**: Automatically serializes the best checkpoint to `.onnx` whenever validation loss reaches a new minimum.
+- **Automated ONNX Export**: Automatically serializes the best checkpoint to `.onnx` whenever validation loss reaches a new minimum. The graph exposes three outputs: `predictions` (logits), `embeddings` (1280-D, for t-SNE/PCA) and `class_maps` (per-class activation maps, for Grad-CAM).
 - **Diagnostic Engine**: Analytical Grad-CAM, 2D latent space projections (t-SNE & PCA), confusion matrices, and confidence calibration with rejection curves ($\tau = 0.70$).

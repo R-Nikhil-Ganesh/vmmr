@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Universal PyTorch & ONNX Diagnostic Analysis Engine for MobileNetV2
+ONNX Diagnostic Analysis Engine for MobileNetV2
 ===================================================================
 Features:
-- Pure PyTorch & ONNX Runtime support for fast, low-overhead evaluation
+- ONNX Runtime evaluation (weights are stored as .onnx only)
 - Native evaluation of both Make and Model classifiers
 - Hierarchical Make extraction from Make/Model labels (P(Make) = sum_{m in Make} P(Model_m))
 - Per-class classification reports, normalized confusion matrices, and top confusion pairs
@@ -34,8 +34,6 @@ from sklearn.manifold import TSNE
 
 import torch
 import torch.nn as nn
-from torchvision import models
-import torchvision.transforms.v2 as v2
 
 try:
     import onnxruntime as ort
@@ -114,64 +112,48 @@ def set_context(**kwargs):
 
 
 # ==============================================================================
-# 2. PyTorch Model Loader & Feature Hook
+# 2. ONNX Model Loader
 # ==============================================================================
 class MobileNetV2Evaluator(nn.Module):
-    """Wraps MobileNetV2 to capture final conv feature maps and penultimate embeddings.
-       Supports both .pt PyTorch checkpoints and .onnx ONNX Runtime models."""
-    def __init__(self, num_classes: int, checkpoint_path: Optional[str] = None, dropout_rate: float = 0.2):
+    """ONNX Runtime wrapper around an exported MobileNetV2 classifier (weights are only stored as .onnx).
+
+    The exported graph has up to three outputs (see export_to_onnx in the training scripts):
+      predictions  (B, num_classes)        logits
+      embeddings   (B, 1280)               pooled penultimate features (t-SNE / PCA)
+      class_maps   (B, num_classes, H, W)  per-class activation maps (CAM / Grad-CAM)
+    After forward(), `embeddings` and `class_maps` hold the latest batch (None for older single-output models).
+    """
+    def __init__(self, num_classes: int, checkpoint_path: str):
         super().__init__()
         self.num_classes = num_classes
-        self.checkpoint_path = str(checkpoint_path) if checkpoint_path else None
-        self.is_onnx = False
-        self.ort_session = None
-        self.input_name = None
+        self.checkpoint_path = str(checkpoint_path)
 
-        if self.checkpoint_path and self.checkpoint_path.endswith(".onnx") and os.path.exists(self.checkpoint_path):
-            self.is_onnx = True
-            if HAS_ORT:
-                self.ort_session = ort.InferenceSession(self.checkpoint_path, providers=["CPUExecutionProvider"])
-                self.input_name = self.ort_session.get_inputs()[0].name
-                print(f"[Model] Successfully initialized ONNX Runtime session from {self.checkpoint_path}")
-            else:
-                raise ImportError("onnxruntime is required to evaluate .onnx models.")
-        else:
-            self.base = models.mobilenet_v2(weights=None)
-            in_features = self.base.classifier[1].in_features
-            self.base.classifier = nn.Sequential(
-                nn.Dropout(p=dropout_rate),
-                nn.Linear(in_features, num_classes)
-            )
-            if self.checkpoint_path and os.path.exists(self.checkpoint_path):
-                state = torch.load(self.checkpoint_path, map_location="cpu")
-                if "model_state_dict" in state:
-                    state = state["model_state_dict"]
-                elif "state_dict" in state:
-                    state = state["state_dict"]
-                
-                if any(k.startswith("base.") for k in state.keys()):
-                    self.load_state_dict(state)
-                else:
-                    self.base.load_state_dict(state)
-                print(f"[Model] Successfully loaded weights from {self.checkpoint_path}")
+        if not self.checkpoint_path.endswith(".onnx"):
+            raise ValueError(f"Only .onnx models are supported, got: {self.checkpoint_path}")
+        if not os.path.exists(self.checkpoint_path):
+            raise FileNotFoundError(f"ONNX model not found: {self.checkpoint_path}")
+        if not HAS_ORT:
+            raise ImportError("onnxruntime is required to evaluate .onnx models.")
 
-        self.last_conv_features = None
-        self.embeddings = None
+        available = ort.get_available_providers()
+        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        self.ort_session = ort.InferenceSession(self.checkpoint_path, providers=providers)
+        self.input_name = self.ort_session.get_inputs()[0].name
+        self.output_names = [o.name for o in self.ort_session.get_outputs()]
+        print(f"[Model] Initialized ONNX Runtime session ({self.ort_session.get_providers()[0]}) from {self.checkpoint_path}")
+        if "embeddings" not in self.output_names:
+            print("[WARN] ONNX model has no 'embeddings'/'class_maps' outputs (exported by an older script); "
+                  "latent-space and Grad-CAM analysis are unavailable. Re-export with the current training script.")
+
+        self.embeddings: Optional[np.ndarray] = None
+        self.class_maps: Optional[np.ndarray] = None
 
     def forward(self, x):
-        if self.is_onnx:
-            x_np = x.detach().cpu().numpy().astype(np.float32)
-            out = self.ort_session.run(None, {self.input_name: x_np})
-            logits = torch.from_numpy(out[0]).to(x.device)
-            return logits
-
-        features = self.base.features(x)
-        self.last_conv_features = features
-        pooled = nn.functional.adaptive_avg_pool2d(features, (1, 1))
-        flattened = torch.flatten(pooled, 1)
-        self.embeddings = flattened
-        logits = self.base.classifier(flattened)
-        return logits
+        x_np = x.detach().cpu().numpy().astype(np.float32)
+        out = dict(zip(self.output_names, self.ort_session.run(None, {self.input_name: x_np})))
+        self.embeddings = out.get("embeddings")
+        self.class_maps = out.get("class_maps")
+        return torch.from_numpy(out["predictions"]).to(x.device)
 
 
 # ==============================================================================
@@ -200,6 +182,7 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame, ba
     all_probs = []
     all_labels = []
     all_embeddings = []
+    n_failed = 0
 
     paths = test_df["image_path"].values if "image_path" in test_df.columns else test_df["image_rel_path"].values
     if context.base_img_dir:
@@ -221,7 +204,9 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame, ba
                     t, _ = load_and_preprocess_image(p, context.img_size, context.crop_top_pct, context.crop_bottom_pct)
                     tensors.append(t)
                     valid_idx.append(j)
-                except Exception:
+                except Exception as e:
+                    n_failed += 1
+                    print(f"[WARN] Skipping unreadable image {p}: {e}", file=sys.stderr, flush=True)
                     continue
 
             if not tensors:
@@ -236,12 +221,15 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame, ba
             all_probs.extend(probs)
             all_labels.extend(batch_labels[valid_idx])
             if model.embeddings is not None:
-                all_embeddings.extend(model.embeddings.cpu().numpy())
+                all_embeddings.append(model.embeddings.astype(np.float16))  # float16 keeps full-test-set memory modest
+
+    if n_failed:
+        print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded from the metrics.")
 
     all_preds = np.array(all_preds)
     all_labels = np.array(all_labels)
     all_probs = np.array(all_probs)
-    all_embeddings = np.array(all_embeddings)
+    all_embeddings = np.concatenate(all_embeddings).astype(np.float32) if all_embeddings else np.empty((0, 1280), dtype=np.float32)
 
     return all_labels, all_preds, all_probs, all_embeddings
 
@@ -337,26 +325,18 @@ def plot_confusion_matrix(cm_norm_path: Path, out_path: Path, top_n: int = 35):
 # 5. Analytical Grad-CAM on MobileNetV2
 # ==============================================================================
 def compute_gradcam(model: MobileNetV2Evaluator, image_tensor: torch.Tensor, class_idx: int) -> np.ndarray:
-    """Computes class activation map directly using folded linear head weights."""
+    """Class activation map L_c = ReLU(sum_k w_k^c * A^k), computed inside the ONNX graph as the `class_maps` output."""
     model.eval()
-    device = context.device
-    image_tensor = image_tensor.to(device)
-
     with torch.no_grad():
-        logits = model(image_tensor)
-        conv_features = model.last_conv_features  # (1, 1280, H_feat, W_feat)
-        linear_weights = model.base.classifier[1].weight.data[class_idx]  # (1280,)
+        model(image_tensor.to(context.device))
+    if model.class_maps is None:
+        raise RuntimeError("ONNX model has no 'class_maps' output; re-export it with the current training script.")
 
-        # Linear combination: L_c = ReLU(sum_k w_k^c * A^k)
-        cam = torch.zeros(conv_features.shape[2:], device=device)
-        for k in range(conv_features.shape[1]):
-            cam += linear_weights[k] * conv_features[0, k]
-
-        cam = torch.relu(cam).cpu().numpy()
-        cam -= cam.min()
-        if cam.max() > 0:
-            cam /= cam.max()
-        return cam
+    cam = np.maximum(model.class_maps[0, class_idx], 0)  # (H_feat, W_feat)
+    cam = cam - cam.min()
+    if cam.max() > 0:
+        cam = cam / cam.max()
+    return cam
 
 
 def overlay_cam_on_image(img_pil: Image.Image, cam: np.ndarray, alpha: float = 0.5) -> Image.Image:
@@ -449,7 +429,7 @@ def plot_calibration_curve(y_true: np.ndarray, y_pred: np.ndarray, y_probs: np.n
 # ==============================================================================
 def main():
     parser = argparse.ArgumentParser(description="Universal Diagnostic Analysis for MobileNetV2")
-    parser.add_argument("--model-path", type=str, required=True, help="Path to model checkpoint (.onnx or .pt)")
+    parser.add_argument("--model-path", type=str, required=True, help="Path to model checkpoint (.onnx)")
     parser.add_argument("--test-csv", type=str, required=True, help="Path to test.csv split")
     parser.add_argument("--label-map", type=str, required=True, help="Path to label_map.json")
     parser.add_argument("--output-dir", type=str, required=True, help="Output directory for reports & plots")

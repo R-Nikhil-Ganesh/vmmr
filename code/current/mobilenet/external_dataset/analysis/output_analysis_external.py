@@ -21,8 +21,8 @@ import output_analysis as _oa
 _oa.set_context(
     model_path=DATASET_DIR / "output_mobilenet_v2_external" / "models" / "mobilenet_v2_best.onnx",
     output_dir=DATASET_DIR / "output_mobilenet_v2_external",
-    test_csv=Path("/home/researchadmin/Econ/external_datasets/merged_data/test.csv"),
-    label_map=DATASET_DIR / "output_mobilenet_v2_external" / "models" / "label_map.json",
+    test_csv_path=Path("/home/researchadmin/Econ/external_datasets/merged_data/test.csv"),
+    label_map_path=DATASET_DIR / "output_mobilenet_v2_external" / "models" / "label_map.json",
     base_img_dir=None,
     img_size=512,
     crop_top_pct=0.0,

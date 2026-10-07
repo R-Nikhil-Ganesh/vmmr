@@ -10,7 +10,6 @@ Environment: pt-env (PyTorch 2.14 + CUDA, RTX 4090)
 import os
 import sys
 import json
-import time
 import copy
 import argparse
 from pathlib import Path
@@ -28,7 +27,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from PIL import Image
 from tqdm import tqdm
 
 import torch
@@ -39,6 +37,8 @@ import torchvision.transforms.v2 as v2
 from torch.utils.data import Dataset, DataLoader
 
 torch.set_float32_matmul_precision("high")
+
+IGNORE_INDEX = -100  # label for unreadable images; ignored by CrossEntropyLoss
 
 CURRENT_DIR = Path(__file__).resolve().parent
 DATASET_DIR = CURRENT_DIR.parent
@@ -68,8 +68,6 @@ def parse_args():
     parser.add_argument("--crop-bottom-pct", type=float, default=0.0, help="Bottom watermark strip crop (default: 0.0)")
     parser.add_argument("--num-workers", type=int, default=6, help="DataLoader workers")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--evaluate-only", action="store_true")
-    parser.add_argument("--checkpoint-path", type=str, default=None)
     return parser.parse_args()
 
 
@@ -98,11 +96,14 @@ class ExternalMergedDataset(Dataset):
                 cropped.unsqueeze(0).float(),
                 size=(self.img_size, self.img_size),
                 mode="bilinear",
-                align_corners=False
-            ).squeeze(0).to(torch.uint8)
+                align_corners=False,
+                antialias=True
+            ).squeeze(0).round().clamp(0, 255).to(torch.uint8)
             return resized, self.labels[idx]
-        except Exception:
-            return torch.zeros((3, self.img_size, self.img_size), dtype=torch.uint8), self.labels[idx]
+        except Exception as e:
+            # Unreadable image: report it and mark it with IGNORE_INDEX so it is excluded from loss/accuracy
+            print(f"[WARN] Failed to load image {path}: {e}", file=sys.stderr, flush=True)
+            return torch.zeros((3, self.img_size, self.img_size), dtype=torch.uint8), IGNORE_INDEX
 
 
 def build_transforms():
@@ -147,11 +148,61 @@ def create_model(num_classes: int, dropout: float = 0.25, unfreeze_layers: int =
     return model
 
 
-def export_to_onnx(model: nn.Module, num_classes: int, img_size: int, out_onnx_path: Path):
+def set_train_mode(model: nn.Module, unfreeze_layers: int):
+    """model.train(), but keep BatchNorm running stats of the frozen backbone blocks fixed."""
+    model.train()
+    n_frozen_blocks = max(0, len(model.features) - unfreeze_layers)
+    for block in model.features[:n_frozen_blocks]:
+        for m in block.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
+
+
+def apply_per_sample(tf, imgs: torch.Tensor) -> torch.Tensor:
+    """Apply a random transform independently to every image (v2 transforms draw one set of params per call)."""
+    return torch.stack([tf(img) for img in imgs])
+
+
+def evaluate(model: nn.Module, loader: DataLoader, tf, criterion: nn.Module, device: torch.device):
+    """Returns (loss, accuracy) over valid (readable) samples."""
     model.eval()
+    loss_sum, correct, total = 0.0, 0, 0
+    with torch.inference_mode():
+        for imgs, labels in loader:
+            imgs, labels = imgs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+            valid = labels != IGNORE_INDEX
+            n_valid = int(valid.sum().item())
+            if n_valid == 0:
+                continue
+            imgs = tf(imgs)
+            with torch.amp.autocast(device_type=device.type, enabled=(device.type == "cuda")):
+                outputs = model(imgs)
+                loss = criterion(outputs, labels)
+            loss_sum += loss.item() * n_valid
+            correct += ((outputs.argmax(1) == labels) & valid).sum().item()
+            total += n_valid
+    return loss_sum / total, correct / total
+
+
+class OnnxExportWrapper(nn.Module):
+    """Exposes logits plus the pooled embeddings and per-class activation maps, so t-SNE and CAM work from ONNX."""
+    def __init__(self, model: nn.Module):
+        super().__init__()
+        self.model = model
+
+    def forward(self, x):
+        features = self.model.features(x)                                              # (B, 1280, H, W)
+        pooled = torch.flatten(nn.functional.adaptive_avg_pool2d(features, (1, 1)), 1)  # (B, 1280)
+        logits = self.model.classifier(pooled)                                         # (B, num_classes)
+        head_w = self.model.classifier[1].weight                                       # (num_classes, 1280)
+        class_maps = nn.functional.conv2d(features, head_w[:, :, None, None])          # (B, num_classes, H, W)
+        return logits, pooled, class_maps
+
+
+def export_to_onnx(model: nn.Module, num_classes: int, img_size: int, out_onnx_path: Path):
+    cpu_model = OnnxExportWrapper(copy.deepcopy(model).cpu()).eval()
     dummy_input = torch.randn(1, 3, img_size, img_size, device="cpu")
-    cpu_model = copy.deepcopy(model).cpu()
-    
+
     out_onnx_path.parent.mkdir(parents=True, exist_ok=True)
     torch.onnx.export(
         cpu_model,
@@ -161,8 +212,9 @@ def export_to_onnx(model: nn.Module, num_classes: int, img_size: int, out_onnx_p
         opset_version=13,
         do_constant_folding=True,
         input_names=["input_image"],
-        output_names=["predictions"],
-        dynamic_axes={"input_image": {0: "batch_size"}, "predictions": {0: "batch_size"}},
+        output_names=["predictions", "embeddings", "class_maps"],
+        dynamic_axes={"input_image": {0: "batch_size"}, "predictions": {0: "batch_size"},
+                      "embeddings": {0: "batch_size"}, "class_maps": {0: "batch_size"}},
         dynamo=False
     )
     print(f"[ONNX] Exported model successfully to: {out_onnx_path}")
@@ -231,26 +283,29 @@ def main():
 
     train_tf, val_tf = build_transforms()
 
-    model = create_model(num_classes=num_classes, dropout=args.dropout).to(device)
+    model = create_model(num_classes=num_classes, dropout=args.dropout, unfreeze_layers=args.unfreeze_layers).to(device)
 
     # Differential learning rate
+    trainable_backbone = [p for p in model.features.parameters() if p.requires_grad]
     param_groups = [
-        {"params": [p for n, p in model.named_parameters() if "classifier" not in n], "lr": args.backbone_lr},
+        {"params": trainable_backbone, "lr": args.backbone_lr},
         {"params": model.classifier.parameters(), "lr": args.lr}
     ]
     optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
-    criterion = nn.CrossEntropyLoss()
-    scaler = torch.cuda.amp.GradScaler()
+    criterion = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    use_amp = (device.type == "cuda")
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
     best_val_loss = float("inf")
     best_val_acc = 0.0
     history = []
+    best_state = None
 
     best_onnx_path = models_dir / "mobilenet_v2_best.onnx"
 
     for epoch in range(args.epochs):
-        model.train()
+        set_train_mode(model, args.unfreeze_layers)
         running_loss = 0.0
         correct = 0
         total = 0
@@ -258,10 +313,14 @@ def main():
         pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{args.epochs}")
         for imgs, labels in pbar:
             imgs, labels = imgs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-            imgs = train_tf(imgs)
+            valid = labels != IGNORE_INDEX
+            n_valid = int(valid.sum().item())
+            if n_valid == 0:
+                continue
+            imgs = apply_per_sample(train_tf, imgs)
 
             optimizer.zero_grad()
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast(device_type=device.type, enabled=use_amp):
                 outputs = model(imgs)
                 loss = criterion(outputs, labels)
 
@@ -269,10 +328,9 @@ def main():
             scaler.step(optimizer)
             scaler.update()
 
-            running_loss += loss.item() * len(labels)
-            _, preds = torch.max(outputs, 1)
-            correct += (preds == labels).sum().item()
-            total += len(labels)
+            running_loss += loss.item() * n_valid
+            correct += ((outputs.argmax(1) == labels) & valid).sum().item()
+            total += n_valid
 
             pbar.set_postfix({"loss": f"{loss.item():.4f}", "acc": f"{correct/total:.2%}"})
 
@@ -280,25 +338,7 @@ def main():
         train_loss = running_loss / total
         train_acc = correct / total
 
-        # Validation loop
-        model.eval()
-        val_loss = 0.0
-        val_correct = 0
-        val_total = 0
-        with torch.inference_mode():
-            for imgs, labels in val_loader:
-                imgs, labels = imgs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-                imgs = val_tf(imgs)
-                with torch.cuda.amp.autocast():
-                    outputs = model(imgs)
-                    loss = criterion(outputs, labels)
-                val_loss += loss.item() * len(labels)
-                _, preds = torch.max(outputs, 1)
-                val_correct += (preds == labels).sum().item()
-                val_total += len(labels)
-
-        val_loss /= val_total
-        val_acc = val_correct / val_total
+        val_loss, val_acc = evaluate(model, val_loader, val_tf, criterion, device)
 
         print(f"\n[Epoch {epoch+1:02d}] Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2%} || Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2%}")
         history.append({"epoch": epoch + 1, "train_loss": train_loss, "train_acc": train_acc, "val_loss": val_loss, "val_acc": val_acc})
@@ -308,6 +348,15 @@ def main():
             best_val_acc = val_acc
             print(f"[*] New best validation loss: {best_val_loss:.4f} (Val Acc: {best_val_acc:.2%}). Exporting ONNX weights to {best_onnx_path}")
             export_to_onnx(model, num_classes, args.img_size, best_onnx_path)
+            best_state = copy.deepcopy(model.state_dict())
+
+    # Final test-set evaluation with the best (lowest val loss) weights, the same ones exported to ONNX
+    if best_state is not None:
+        model.load_state_dict(best_state)
+        test_loss, test_acc = evaluate(model, test_loader, val_tf, criterion, device)
+        print(f"[Test] Loss: {test_loss:.4f} | Acc: {test_acc:.2%}")
+        with open(reports_dir / "test_metrics.json", "w") as f:
+            json.dump({"test_loss": test_loss, "test_acc": test_acc, "best_val_loss": best_val_loss, "best_val_acc": best_val_acc}, f, indent=2)
 
     # Save training history
     history_df = pd.DataFrame(history)

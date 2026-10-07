@@ -21,5 +21,5 @@ code/current/
 - **Production Artifacts**: 8.45 MB ONNX Runtime binaries, sub-15 ms CPU inference latency.
 - **Documentation**: See [`efficientnet/README.md`](efficientnet/README.md) and [`efficientnet/efficientnet_conclusions.md`](efficientnet/efficientnet_conclusions.md) for architectural trade-offs, multi-resolution scaling frontiers (224×224 to 720×720), and diagnostic Grad-CAM heatmaps.
 
-### 2. MobileNetV2 (`mobilenetv2/`)
+### 2. MobileNetV2 (`mobilenet/`)
 - Lightweight mobile-first architecture experiment exploring inverted residuals and linear bottlenecks for low-latency vehicle classification.

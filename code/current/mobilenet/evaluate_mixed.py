@@ -59,13 +59,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate MobileNetV2 Models on In-Domain, Out-of-Domain, and Mixed Benchmarks.")
     parser.add_argument("--pm-model-path", type=str,
         default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.onnx"),
-        help="Path to PlatesMania model checkpoint (.onnx or .pt)")
+        help="Path to PlatesMania model (.onnx)")
     parser.add_argument("--pm-label-map", type=str,
         default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "label_map.json"),
         help="Path to PlatesMania label map")
     parser.add_argument("--ext-model-path", type=str,
         default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "mobilenet_v2_best.onnx"),
-        help="Path to External model checkpoint (.onnx or .pt)")
+        help="Path to External model (.onnx)")
     parser.add_argument("--ext-label-map", type=str,
         default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "label_map.json"),
         help="Path to External label map")
@@ -102,6 +102,27 @@ def build_make_projection_matrix(model_label_map: Dict[str, int]) -> np.ndarray:
     return proj
 
 
+def check_label_order(model_label_map: Dict[str, int], name: str) -> None:
+    """A 35-class model's argmax is used directly as a TARGET_MAKES index, so its label order must match."""
+    if len(model_label_map) != len(TARGET_MAKES):
+        return
+    idx_to_class = {v: k for k, v in model_label_map.items()}
+    model_order = [idx_to_class[i] for i in range(len(idx_to_class))]
+    if model_order != TARGET_MAKES:
+        mismatches = [(i, a, b) for i, (a, b) in enumerate(zip(model_order, TARGET_MAKES)) if a != b]
+        raise ValueError(f"{name} label_map order does not match TARGET_MAKES (first mismatches: {mismatches[:5]})")
+
+
+def make_indices_or_drop(makes: List[str], name: str) -> List[Optional[int]]:
+    """Maps make names to TARGET_MAKES indices; unknown makes become None (caller drops those rows)."""
+    out = [MAKE_TO_IDX.get(m) for m in makes]
+    unknown = sorted({m for m, i in zip(makes, out) if i is None})
+    if unknown:
+        n_dropped = sum(i is None for i in out)
+        print(f"[WARN] {name}: dropping {n_dropped:,} samples with makes not in TARGET_MAKES: {unknown}")
+    return out
+
+
 def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indices: List[int],
                             proj_matrix: Optional[np.ndarray], img_size: int = 512,
                             crop_top: float = 0.0, crop_bottom: float = 0.0,
@@ -112,6 +133,7 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
     all_pred_makes = []
     all_true_makes = []
     all_make_probs = []
+    n_failed = 0
 
     n_samples = len(paths)
     with torch.no_grad():
@@ -131,7 +153,9 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
                     t, _ = oa.load_and_preprocess_image(p, img_size, ct, cb)
                     tensors.append(t)
                     valid_idx.append(j)
-                except Exception:
+                except Exception as e:
+                    n_failed += 1
+                    print(f"[WARN] Skipping unreadable image {p}: {e}", file=sys.stderr, flush=True)
                     continue
 
             if not tensors:
@@ -152,6 +176,9 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
             all_pred_makes.extend(pred_makes)
             all_true_makes.extend([b_labels[k] for k in valid_idx])
             all_make_probs.extend(make_probs)
+
+    if n_failed:
+        print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded from the metrics.")
 
     y_pred = np.array(all_pred_makes)
     y_true = np.array(all_true_makes)
@@ -181,11 +208,13 @@ def main():
     with open(args.pm_label_map) as f:
         pm_lm_raw = json.load(f)
     pm_lm = pm_lm_raw["class_to_idx"] if "class_to_idx" in pm_lm_raw else pm_lm_raw
+    check_label_order(pm_lm, "PlatesMania model")
     pm_proj = build_make_projection_matrix(pm_lm) if len(pm_lm) > len(TARGET_MAKES) else None
 
     with open(args.ext_label_map) as f:
         ext_lm_raw = json.load(f)
     ext_lm = ext_lm_raw["class_to_idx"] if "class_to_idx" in ext_lm_raw else ext_lm_raw
+    check_label_order(ext_lm, "External model")
     ext_proj = build_make_projection_matrix(ext_lm) if len(ext_lm) > len(TARGET_MAKES) else None
 
     # Load models
@@ -201,9 +230,9 @@ def main():
 
     pm_col = "image_path" if "image_path" in df_pm.columns else "image_rel_path"
     pm_paths = [os.path.join(args.pm_img_dir, p) if not os.path.isabs(p) else p for p in df_pm[pm_col].values]
-    
+
     # Extract make labels for PlatesMania
-    pm_makes = []
+    pm_make_names = []
     for _, row in df_pm.iterrows():
         if "make" in row and pd.notna(row["make"]):
             m = str(row["make"])
@@ -211,7 +240,11 @@ def main():
             m = str(row["class_name"]).split("/")[0]
         else:
             m = "Unknown"
-        pm_makes.append(MAKE_TO_IDX.get(m, 0))
+        pm_make_names.append(m)
+    pm_makes = make_indices_or_drop(pm_make_names, "PlatesMania")
+    pm_keep = [i for i, m in enumerate(pm_makes) if m is not None]
+    pm_paths = [pm_paths[i] for i in pm_keep]
+    pm_makes = [pm_makes[i] for i in pm_keep]
 
     # 2. Prepare External test split
     df_ext = pd.read_csv(args.ext_test_csv)
@@ -219,7 +252,10 @@ def main():
         df_ext = df_ext.sample(n=args.max_eval_per_dataset, random_state=42).reset_index(drop=True)
 
     ext_paths = df_ext["image_path"].tolist()
-    ext_makes = [MAKE_TO_IDX.get(str(m), 0) for m in df_ext["make"].values]
+    ext_makes = make_indices_or_drop([str(m) for m in df_ext["make"].values], "External")
+    ext_keep = [i for i, m in enumerate(ext_makes) if m is not None]
+    ext_paths = [ext_paths[i] for i in ext_keep]
+    ext_makes = [ext_makes[i] for i in ext_keep]
 
     # 3. Prepare Mixed test split (combination)
     mixed_paths = pm_paths + ext_paths
