@@ -2,14 +2,13 @@
 """
 MobileNetV2 Training Pipeline on PlatesMania Dataset (PyTorch)
 ==============================================================
-Dataset: PlatesMania (paths come from paths.sh / paths.local.sh)
+Dataset: PlatesMania (paths come from bash_scripts/lib/paths.sh / paths.local.sh)
 Environment: pt-env (PyTorch 2.14 + CUDA, RTX 4090)
 """
 
 import os
 import sys
 import json
-import math
 import copy
 import argparse
 from pathlib import Path

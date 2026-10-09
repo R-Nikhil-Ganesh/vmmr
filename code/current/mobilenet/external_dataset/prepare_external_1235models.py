@@ -8,27 +8,25 @@ Aligns Stanford Cars, BoxCars116k, and CompCars SV into the standardized
 Zero extra image duplication: records direct image paths and bounding boxes.
 """
 
-import os
 import sys
 import json
 import re
 import pickle
 import random
 from pathlib import Path
-from collections import defaultdict, Counter
+from collections import defaultdict
 
 import numpy as np
 import pandas as pd
 import scipy.io as sio
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import paths  # machine-specific paths: see paths.sh / paths.local.sh
+import paths  # machine-specific paths: see bash_scripts/lib/paths.sh / paths.local.sh
 
 SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-BASE_DIR = Path(paths.ECON_ROOT)
 EXT_DIR = Path(paths.EXT_DATASETS_DIR)
 OUTPUT_DIR = Path(__file__).resolve().parent / "splits_1235models"
 LABEL_MAP_PATH = Path(paths.PM_LABEL_MAP)

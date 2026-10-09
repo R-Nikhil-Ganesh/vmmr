@@ -31,7 +31,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from PIL import Image
 from sklearn.metrics import precision_recall_fscore_support
 from tqdm import tqdm
 
@@ -55,7 +54,6 @@ TARGET_MAKES = [
     "Toyota", "Volkswagen", "Volvo"
 ]
 MAKE_TO_IDX = {m: i for i, m in enumerate(TARGET_MAKES)}
-IDX_TO_MAKE = {i: m for i, m in enumerate(TARGET_MAKES)}
 
 
 def parse_args():

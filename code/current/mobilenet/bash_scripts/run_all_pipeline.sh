@@ -1,39 +1,36 @@
 #!/usr/bin/env bash
-set -e
+# Full pipeline: train Model A, train Model B, then diagnostics + cross-domain benchmark for both.
+# Runs in a tmux session by default. See commands.md.
+set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PM_RUNNER="${SCRIPT_DIR}/platesmania_dataset/train/run_train.sh"
-EXT_RUNNER="${SCRIPT_DIR}/external_dataset/train/run_train_external.sh"
-EVAL_RUNNER="${SCRIPT_DIR}/run_eval_mixed.sh"
+source "${SCRIPT_DIR}/lib/paths.sh"
+source "${SCRIPT_DIR}/lib/tmux_wrap.sh"
+run_in_tmux mobilenet_pipeline "${SCRIPT_DIR}/run_all_pipeline.sh" "$@"
 
 echo "=================================================================="
-echo "  Starting Full MobileNetV2 End-to-End Pipeline"
-echo "  Started: $(date)"
+echo "  MobileNetV2 end-to-end pipeline   started $(date)"
+echo "  Extra trainer flags (applied to both trainers): $*"
 echo "=================================================================="
 
-echo "=== [Step 1/3] Training Model A (PlatesMania) ==="
-if ! bash "${PM_RUNNER}"; then
-    echo "[ERROR] Step 1 (PlatesMania) failed! Check logs above."
-    exit 1
-fi
+# Inside tmux already, so the sub-runners do not open further sessions.
+# Auto-push is done once at the end instead of after every step.
+export AUTO_GIT_PUSH_FINAL="${AUTO_GIT_PUSH:-1}"
+export AUTO_GIT_PUSH=0
 
-echo "=== [Step 2/3] Training Model B (External Merged) ==="
-if ! bash "${EXT_RUNNER}"; then
-    echo "[ERROR] Step 2 (External) failed! Check logs above."
-    exit 1
-fi
+echo "=== [1/3] Train Model A (PlatesMania) ==="
+bash "${SCRIPT_DIR}/run_train_pm.sh" "$@"
 
-echo "=== [Step 3/3] Running Cross-Domain & Mixed Benchmark ==="
-if ! bash "${EVAL_RUNNER}"; then
-    echo "[ERROR] Step 3 (Evaluation) failed! Check logs above."
-    exit 1
-fi
+echo "=== [2/3] Train Model B (External) ==="
+bash "${SCRIPT_DIR}/run_train_external.sh" "$@"
+
+echo "=== [3/3] Diagnostics + cross-domain benchmark ==="
+bash "${SCRIPT_DIR}/run_diagnostics.sh"
 
 echo "=================================================================="
-echo "=== All MobileNetV2 Training & Evaluation Completed! ==="
-echo "  Finished: $(date)"
+echo "  Pipeline finished   $(date)"
 echo "=================================================================="
 
-if [ "${AUTO_GIT_PUSH:-1}" = "1" ] && [ -f "${SCRIPT_DIR}/auto_git_sync.sh" ]; then
-    bash "${SCRIPT_DIR}/auto_git_sync.sh" "Full MobileNetV2 Pipeline & Benchmark"
+if [ "${AUTO_GIT_PUSH_FINAL}" = "1" ]; then
+    bash "${SCRIPT_DIR}/lib/auto_git_sync.sh" "Full Pipeline${RUN_NAME:+ (${RUN_NAME})}"
 fi

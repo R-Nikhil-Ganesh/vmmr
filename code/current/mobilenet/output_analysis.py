@@ -13,12 +13,10 @@ Features:
 """
 
 import os
-import sys
 import json
-import time
 import argparse
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib_cache")
 
@@ -600,7 +598,6 @@ def main():
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--num-workers", type=int, default=6, help="DataLoader workers (default: 6)")
     parser.add_argument("--max-samples", type=int, default=None, help="Optional max test samples to evaluate (default: all)")
-    parser.add_argument("--run-all", action="store_true")
     args = parser.parse_args()
 
     set_context(

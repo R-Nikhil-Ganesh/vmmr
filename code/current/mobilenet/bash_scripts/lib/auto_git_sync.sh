@@ -3,7 +3,7 @@
 # Auto Git Sync Helper for MobileNetV2 Pipelines
 # ==============================================================================
 # Stages relevant code, models, reports, and plots, commits and pushes to origin.
-# Usage: bash auto_git_sync.sh "Task / Experiment Description"
+# Usage: bash bash_scripts/lib/auto_git_sync.sh "Task / Experiment Description"
 # ==============================================================================
 
 set -e

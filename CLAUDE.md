@@ -20,8 +20,8 @@ Vehicle Make/Model recognition (VMMR). Active work is in `code/current/mobilenet
 - `output_analysis.py`: ONNX Runtime evaluation, metrics, confusion matrices, Grad-CAM, t-SNE, calibration. Dataset adapters live in `*/analysis/output_analysis_*.py`.
 - `evaluate_mixed.py`: cross-domain benchmark (in-domain / out-of-domain / mixed, model- and make-level, shared-class view).
 - `external_dataset/prepare_external_1235models.py`: builds the External splits.
-- `paths.sh` / `paths.py`: **single source of machine-specific paths.** Put per-server values in the gitignored `paths.local.sh` (e.g. `ECON_ROOT=...`). Never hard-code `/home/researchadmin/...` in new code; use `paths.*`. `python paths.py --check` verifies a server.
-- `run_*.sh`, `start_*_tmux.sh`: runners and tmux launchers. Extra CLI flags pass through to the trainer; `RUN_NAME=<name>` writes to separate output folders so ablations do not overwrite each other.
+- `bash_scripts/lib/paths.sh` / `paths.py`: **single source of machine-specific paths.** Put per-server values in the gitignored `bash_scripts/lib/paths.local.sh` (e.g. `ECON_ROOT=...`). Never hard-code `/home/researchadmin/...` in new code; use `paths.*`. `python paths.py --check` verifies a server.
+- `bash_scripts/`: the only shell runners: `run_all_pipeline.sh`, `run_diagnostics.sh`, `run_train_pm.sh`, `run_train_external.sh`. **They start in a detached tmux session by default** (`lib/tmux_wrap.sh`; `NO_TMUX=1` for foreground). New long-running scripts go in `bash_scripts/` and call `run_in_tmux` the same way; do not add separate tmux/non-tmux variants. Extra CLI flags pass through to the trainer; `RUN_NAME=<name>` writes to separate output folders so ablations do not overwrite each other. Usage and arguments are documented in `code/current/mobilenet/bash_scripts/commands.md`: keep it in sync when changing a runner.
 
 ## Conventions
 - New training options must default to the **old behavior** and be flags (`--aug-strength`, `--crop-jitter`, `--label-smoothing`, `--make-loss-weight`, `--ema-decay`).
@@ -32,6 +32,6 @@ Vehicle Make/Model recognition (VMMR). Active work is in `code/current/mobilenet
 - After changing a trainer, smoke-test both on a tiny synthetic dataset on CPU (`--img-size 128 --epochs 2 --num-workers 0`) before handing back.
 
 ## Known gaps
-- `run_2.md` attributes both models to the same training script; Model B was trained with an intermediate version.
+- `run_docs/run_2.md` attributes both models to the same training script; Model B was trained with an intermediate version.
 - The planned distillation step (DINOv2 teacher fine-tuned per dataset) is not implemented; evidence for it in this setting is weak.
 - Model-level cross-domain accuracy is capped by classes present in only one dataset; read the shared-class numbers, not only the raw ones.

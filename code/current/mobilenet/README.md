@@ -11,8 +11,7 @@ vmmr/code/current/mobilenet/
 ├── platesmania_dataset/                  # PlatesMania Dataset Pipeline (Model A)
 │   ├── train/                            # Training subsystem
 │   │   ├── train_mobilenet_v2.py         # PyTorch training pipeline (AMP, CosineAnnealing, ONNX export)
-│   │   ├── train_mobilenet_v2.ipynb      # Interactive training notebook
-│   │   └── run_train.sh                  # Headless training launcher
+│   │   └── train_mobilenet_v2.ipynb      # Interactive training notebook
 │   ├── analysis/                         # Evaluation & explainability subsystem
 │   │   ├── output_analysis_platesmania.py    # Diagnostic evaluation adapter
 │   │   └── output_analysis_platesmania.ipynb # Full diagnostic evaluation notebook
@@ -21,8 +20,7 @@ vmmr/code/current/mobilenet/
 ├── external_dataset/                     # External Merged Dataset Pipeline (Model B)
 │   ├── train/                            # Training subsystem
 │   │   ├── train_mobilenet_v2_external.py    # PyTorch training pipeline (35 Makes, 52,174 images)
-│   │   ├── train_mobilenet_v2_external.ipynb # Interactive training notebook
-│   │   └── run_train_external.sh             # Headless training launcher
+│   │   └── train_mobilenet_v2_external.ipynb # Interactive training notebook
 │   ├── analysis/                         # Evaluation & explainability subsystem
 │   │   ├── output_analysis_external.py       # Diagnostic evaluation adapter
 │   │   └── output_analysis_external.ipynb    # Full diagnostic evaluation notebook
@@ -30,59 +28,41 @@ vmmr/code/current/mobilenet/
 │
 ├── output_analysis.py                    # Universal PyTorch & ONNX diagnostic & explainability engine
 ├── evaluate_mixed.py                     # Cross-domain & mixed benchmark evaluation engine
-├── run_all_pipeline.sh                   # Master chained runner for both models + eval
-├── run_eval_mixed.sh                     # Mixed benchmark evaluation launcher
-├── run_1.md                              # Comprehensive benchmark report for Run 1
-├── run_2.md                              # Comprehensive benchmark & production report for Run 2
+├── bash_scripts/                         # ALL shell runners (tmux by default); see commands.md
+│   ├── run_all_pipeline.sh               # train A -> train B -> diagnostics + benchmark
+│   ├── run_diagnostics.sh                # diagnostics + cross-domain benchmark
+│   ├── run_train_pm.sh                   # train Model A
+│   ├── run_train_external.sh             # train Model B
+│   └── lib/                              # helpers, not run directly: paths.sh, tmux_wrap.sh, auto_git_sync.sh
+├── (commands.md lives in bash_scripts/)
+├── paths.py                              # Python side of the single path config (bash_scripts/lib/paths.sh)
+├── train_common.py                       # Augmentation / objective / EMA shared by both trainers
+├── run_docs/run_1.md                     # Comprehensive benchmark report for Run 1
+├── run_docs/run_2.md                     # Comprehensive benchmark & production report for Run 2
 └── README.md                             # Documentation & user guide
 ```
 
 ---
 
-## 1. Quick Start: End-to-End Pipeline
+## 1. Quick Start
 
-Run the full pipeline (Model A training $\to$ Model B training $\to$ Mixed Benchmark evaluation $\to$ **Auto Git Push**):
+All commands, arguments and examples are in [commands.md](bash_scripts/commands.md). In short:
 
 ```bash
 cd vmmr/code/current/mobilenet
-
-# One-click detached tmux launcher (auto pushes to GitHub upon completion)
-bash start_pipeline_tmux.sh
-
-# To view / monitor progress:
-tmux attach -t mobilenet_pipeline
-
-# Or direct foreground execution
-bash run_all_pipeline.sh
+bash bash_scripts/run_all_pipeline.sh     # train A, train B, diagnostics + benchmark (tmux: mobilenet_pipeline)
+bash bash_scripts/run_train_pm.sh         # Model A only   (tmux: train_pm)
+bash bash_scripts/run_train_external.sh   # Model B only   (tmux: train_ext)
+bash bash_scripts/run_diagnostics.sh      # diagnostics + benchmark (tmux: diagnostics)
 ```
-
----
 
 ## 2. PlatesMania Dataset Pipeline (`platesmania_dataset/`)
 
 Trained on surveillance & natural street-level vehicle images (1,093,501 images across **1,235 fine-grained Make/Model classes** spanning 35 makes):
-- **Manifest**: `/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv`
-- **Label Map**: `/home/researchadmin/Econ/models/dataset_manifests/label_map_1235models.json` (1,235 classes)
+- **Manifest / label map**: set in `bash_scripts/lib/paths.sh` (`PM_MANIFEST_CSV`, `PM_LABEL_MAP`)
 - **Watermark Countermeasure**: On-the-fly cropping of top 15% banner (`PLATESMANIA.COM`) only (`crop_top_pct=0.15`, `crop_bottom_pct=0.0`).
 - **Head Strategy**: Single flat fine-grained head (`nn.Linear(1280, 1235)`) with top 5 backbone layers unlocked.
-- **Auto Git Push**: Automatically commits and pushes `.onnx` models, training logs, and metrics to GitHub when done.
-
-```bash
-cd vmmr/code/current/mobilenet/platesmania_dataset/train
-
-# One-click detached tmux launcher (auto pushes to GitHub upon completion)
-bash start_train_tmux.sh
-
-# Monitor session:
-tmux attach -t train_pm
-
-# Or run directly in foreground
-bash run_train.sh
-
-# Run diagnostic suite
-cd ../analysis
-python output_analysis_platesmania.py
-```
+- Run with `bash bash_scripts/run_train_pm.sh`.
 
 ---
 
@@ -91,26 +71,9 @@ python output_analysis_platesmania.py
 Trained on 41,880 curated vehicle images mapped directly into the **1,235 Make/Model taxonomy** across 268 active models and 35 automotive makes (BoxCars116k, Stanford Cars, CompCars CCTV):
 - **Splits**: `splits_1235models/` (`train.csv`: 29,554, `val.csv`: 6,163, `test.csv`: 6,163)
 - **Label Map**: `splits_1235models/label_map.json` (1,235 classes, shared taxonomy)
-- **Bounding Boxes**: On-the-fly cropping of vehicle bounding boxes for Stanford Cars.
+- **Bounding Boxes**: On-the-fly cropping of vehicle bounding boxes where available.
 - **Head Strategy**: `nn.Linear(1280, 1235)` with top 5 backbone layers unlocked.
-- **Auto Git Push**: Automatically commits and pushes `.onnx` models, training logs, and metrics to GitHub when done.
-
-```bash
-cd vmmr/code/current/mobilenet/external_dataset/train
-
-# One-click detached tmux launcher (auto pushes to GitHub upon completion)
-bash start_train_tmux.sh
-
-# Monitor session:
-tmux attach -t train_ext
-
-# Or run directly in foreground
-bash run_train.sh
-
-# Run diagnostic suite
-cd ../analysis
-python output_analysis_external.py
-```
+- Run with `bash bash_scripts/run_train_external.sh`. The splits are built by `python external_dataset/prepare_external_1235models.py` (see commands.md).
 
 ---
 
@@ -127,10 +90,7 @@ Evaluated across:
 3. **Mixed Test Set** (Combined benchmark of up to 5,000 samples per dataset)
 
 ```bash
-cd vmmr/code/current/mobilenet
-
-# Run one-click evaluation
-bash run_eval_mixed.sh
+bash bash_scripts/run_diagnostics.sh --bench-only
 ```
 
 Generates:
@@ -150,7 +110,7 @@ Generates:
 
 ## Moving to another server: `paths.sh`
 
-All machine-specific paths live in [`paths.sh`](paths.sh) (read by every `.sh` runner and, through [`paths.py`](paths.py), by the Python scripts). The defaults are the original server's values. On a new machine create `paths.local.sh` next to it (gitignored) with only what differs:
+All machine-specific paths live in [`bash_scripts/lib/paths.sh`](bash_scripts/lib/paths.sh) (read by every runner and, through [`paths.py`](paths.py), by the Python scripts). The defaults are the original server's values. On a new machine create `bash_scripts/lib/paths.local.sh` (gitignored) with only what differs:
 
 ```bash
 ECON_ROOT=/data/Econ                       # everything below is derived from it
@@ -173,11 +133,15 @@ Both training scripts share [`train_common.py`](train_common.py) so they use ide
 | `--ema-decay 0.999` | EMA of the weights; validation, best-checkpoint selection and ONNX export use the EMA weights |
 
 ```bash
-# ablation 1: augmentation only (run for both datasets, then evaluate with the same RUN_NAME)
-RUN_NAME=aug bash platesmania_dataset/train/run_train.sh --aug-strength strong --crop-jitter 0.5
-RUN_NAME=aug bash external_dataset/train/run_train_external.sh --aug-strength strong --crop-jitter 0.5
-RUN_NAME=aug bash run_eval_mixed.sh
+# ablation 1: augmentation only (run for both datasets, trains both, then diagnoses both with the same RUN_NAME)
+RUN_NAME=aug bash bash_scripts/run_all_pipeline.sh --aug-strength strong --crop-jitter 0.5
 # ablation 2 adds:  --label-smoothing 0.1 --make-loss-weight 0.3      ablation 3 adds:  --ema-decay 0.999
 ```
 
 `evaluate_mixed.py` also writes `class_coverage.csv` and `shared_class_summary.csv`: accuracy restricted to test images whose class has training images in **both** datasets (plain top-1 and top-1 with the argmax restricted to those classes). Use it to separate "the class was never seen" from "seen but misclassified under domain shift".
+
+---
+
+## Everything runs in tmux by default
+
+Every runner in `bash_scripts/` re-launches itself in a detached tmux session unless it is already inside tmux (`bash_scripts/lib/tmux_wrap.sh`). `NO_TMUX=1` runs in the foreground. Session names, arguments and examples are in [commands.md](bash_scripts/commands.md).

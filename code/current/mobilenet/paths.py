@@ -20,7 +20,7 @@ KEYS = ["REPO_ROOT", "ECON_ROOT", "PM_IMG_DIR", "PM_MANIFEST_CSV", "PM_LABEL_MAP
 
 
 def _resolve() -> dict:
-    sh = MOBILENET_DIR / "paths.sh"
+    sh = MOBILENET_DIR / "bash_scripts" / "lib" / "paths.sh"
     try:
         out = subprocess.run(["bash", "-c", '. "$1" && env -0', "_", str(sh)],
                              capture_output=True, check=True, timeout=30).stdout.decode()
@@ -52,6 +52,6 @@ if __name__ == "__main__":
         exists = bool(v) and Path(v).exists()
         ok &= exists
         print(f"  {'OK     ' if exists else 'MISSING'} {k:18s} {v}")
-    local = MOBILENET_DIR / "paths.local.sh"
+    local = MOBILENET_DIR / "bash_scripts" / "lib" / "paths.local.sh"
     print(f"\n  overrides file: {local} ({'present' if local.exists() else 'absent, using defaults'})")
     sys.exit(0 if ok else 1)

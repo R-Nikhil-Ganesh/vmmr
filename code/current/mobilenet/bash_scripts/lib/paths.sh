@@ -1,16 +1,16 @@
 # ==============================================================================
-# Single source of truth for machine-specific paths (sourced by every .sh runner,
+# Single source of truth for machine-specific paths (sourced by every runner in bash_scripts/,
 # and read by paths.py for the Python scripts).
 #
 # Moving to a new server:
-#   1. Copy nothing. Create  paths.local.sh  next to this file (it is gitignored) with only
+#   1. Copy nothing. Create  bash_scripts/lib/paths.local.sh  next to this file (it is gitignored) with only
 #      the values that differ, e.g.:
 #          ECON_ROOT=/data/Econ
 #          PYTHON_BIN=/opt/envs/pt-env/bin/python
 #   2. Check the result:   python paths.py --check
 #
 # Every variable can also be overridden for a single run from the shell:
-#          ECON_ROOT=/data/Econ bash run_all_pipeline.sh
+#          ECON_ROOT=/data/Econ bash bash_scripts/run_all_pipeline.sh
 # Defaults below are the original server's values, so behavior is unchanged until you override them.
 # ==============================================================================
 
@@ -30,8 +30,8 @@ if [ -f "${_PATHS_DIR}/paths.local.sh" ]; then
 fi
 
 # Repo layout (derived from this file's location, no need to set)
-: "${MOBILENET_DIR:=${_PATHS_DIR}}"
-: "${REPO_ROOT:=$(cd "${_PATHS_DIR}/../../.." && pwd)}"
+: "${MOBILENET_DIR:=$(cd "${_PATHS_DIR}/../.." && pwd)}"
+: "${REPO_ROOT:=$(cd "${_PATHS_DIR}/../../../../.." && pwd)}"
 
 # Data root: everything below is derived from it unless set explicitly
 : "${ECON_ROOT:=/home/researchadmin/Econ}"

@@ -1,39 +1,32 @@
 #!/usr/bin/env bash
+# Train Model A (PlatesMania). Runs in a tmux session by default. See commands.md.
 set -eo pipefail
 
-# ==============================================================================
-# MobileNetV2 PlatesMania Training Runner (PyTorch)
-# ==============================================================================
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DATASET_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+source "${SCRIPT_DIR}/lib/paths.sh"
+source "${SCRIPT_DIR}/lib/tmux_wrap.sh"
+run_in_tmux train_pm "${SCRIPT_DIR}/run_train_pm.sh" "$@"
 
-ROOT_MOBILENET_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-# Machine-specific paths and Python interpreter (see paths.sh)
-source "${ROOT_MOBILENET_DIR}/paths.sh"
+DATASET_DIR="${MOBILENET_DIR}/platesmania_dataset"
+[ -x "${PYTHON_BIN}" ] || { echo "[ERROR] Python not found or not executable: ${PYTHON_BIN}" >&2; exit 1; }
 
-
-if [ ! -x "${PYTHON_BIN}" ]; then
-    echo "[ERROR] Python binary not found or not executable: ${PYTHON_BIN}" >&2
-    exit 1
-fi
-
-# Extra flags are passed through to the trainer (e.g. --aug-strength strong --ema-decay 0.999).
 # RUN_NAME=<name> writes to output_<name> instead of output_mobilenet_v2, so ablations do not overwrite each other.
-OUTPUT_DIR="${DATASET_DIR}/output_mobilenet_v2"
-[ -n "${RUN_NAME:-}" ] && OUTPUT_DIR="${DATASET_DIR}/output_${RUN_NAME}"
+OUTPUT_DIR="${DATASET_DIR}/output_${RUN_NAME:-mobilenet_v2}"
 mkdir -p "${OUTPUT_DIR}"
-
 LOG_FILE="${OUTPUT_DIR}/training.log"
 
-echo "==================================================================" | tee "${LOG_FILE}"
-echo "  MobileNetV2 PlatesMania PyTorch Training Runner" | tee -a "${LOG_FILE}"
-echo "  Started: $(date)" | tee -a "${LOG_FILE}"
-echo "  Python:  ${PYTHON_BIN}" | tee -a "${LOG_FILE}"
-echo "  Output:  ${OUTPUT_DIR}" | tee -a "${LOG_FILE}"
-echo "==================================================================" | tee -a "${LOG_FILE}"
+{
+echo "=================================================================="
+echo "  MobileNetV2 PlatesMania training (Model A)"
+echo "  Started: $(date)"
+echo "  Python:  ${PYTHON_BIN}"
+echo "  Output:  ${OUTPUT_DIR}"
+echo "  Extra flags: $*"
+echo "=================================================================="
+} | tee "${LOG_FILE}"
 
-${PYTHON_BIN} -u "${SCRIPT_DIR}/train_mobilenet_v2.py" \
+# Extra flags are passed through to train_mobilenet_v2.py (e.g. --aug-strength strong --ema-decay 0.999)
+"${PYTHON_BIN}" -u "${DATASET_DIR}/train/train_mobilenet_v2.py" \
     --csv-path "${PM_MANIFEST_CSV}" \
     --label-map-path "${PM_LABEL_MAP}" \
     --base-img-dir "${PM_IMG_DIR}" \
@@ -50,10 +43,8 @@ ${PYTHON_BIN} -u "${SCRIPT_DIR}/train_mobilenet_v2.py" \
     --crop-bottom-pct 0.0 \
     --num-workers 10 "$@" 2>&1 | tee -a "${LOG_FILE}"
 
-echo "==================================================================" | tee -a "${LOG_FILE}"
-echo "  Training finished successfully at: $(date)" | tee -a "${LOG_FILE}"
-echo "==================================================================" | tee -a "${LOG_FILE}"
+echo "  Training finished at: $(date)" | tee -a "${LOG_FILE}"
 
-if [ "${AUTO_GIT_PUSH:-1}" = "1" ] && [ -f "${ROOT_MOBILENET_DIR}/auto_git_sync.sh" ]; then
-    bash "${ROOT_MOBILENET_DIR}/auto_git_sync.sh" "PlatesMania 1235 Make+Model Training" 2>&1 | tee -a "${LOG_FILE}"
+if [ "${AUTO_GIT_PUSH:-1}" = "1" ]; then
+    bash "${SCRIPT_DIR}/lib/auto_git_sync.sh" "PlatesMania Training${RUN_NAME:+ (${RUN_NAME})}" 2>&1 | tee -a "${LOG_FILE}"
 fi
