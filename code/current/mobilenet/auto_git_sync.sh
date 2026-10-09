@@ -22,7 +22,8 @@ echo "  Timestamp:  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=================================================================="
 
 # Stage all mobilenet files (code, configs, reports, plots, onnx models, manifests)
-git add -A code/current/mobilenet/ ':(exclude)*__pycache__*' ':(exclude)*.btr' ':(exclude)*paths.local.sh'
+# Note: *__pycache__, *.btr, and *paths.local.sh are strictly handled by .gitignore
+git add -A code/current/mobilenet/
 
 # Check if there is anything to commit
 if git diff --staged --quiet; then
