@@ -75,6 +75,8 @@ if [ "${RUN_PM}" -eq 1 ]; then
     echo ""
     echo "=== [1/3] Running Model A (PlatesMania) In-Domain Diagnostics ==="
     ${PYTHON_BIN} -u "${SCRIPT_DIR}/platesmania_dataset/analysis/output_analysis_platesmania.py" \
+        --test-csv "${PM_MANIFEST_CSV}" \
+        --base-img-dir "${PM_IMG_DIR}" \
         --batch-size 64 \
         --num-workers 6 \
         ${MAX_SAMPLES}
@@ -106,3 +108,4 @@ echo "=================================================================="
 if [ "${AUTO_GIT_PUSH:-1}" = "1" ] && [ -f "${SCRIPT_DIR}/auto_git_sync.sh" ]; then
     bash "${SCRIPT_DIR}/auto_git_sync.sh" "Run 3 Diagnostics Suite (1235 Make+Model)"
 fi
+
