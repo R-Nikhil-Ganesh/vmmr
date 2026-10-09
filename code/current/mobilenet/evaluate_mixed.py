@@ -44,6 +44,7 @@ if str(CURRENT_DIR) not in sys.path:
     sys.path.insert(0, str(CURRENT_DIR))
 
 import output_analysis as oa
+import paths
 
 TARGET_MAKES = [
     "Acura", "Alfa Romeo", "Audi", "BMW", "Buick", "Cadillac", "Chevrolet", "Chrysler",
@@ -71,14 +72,17 @@ def parse_args():
         default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "label_map.json"),
         help="Path to External label map")
     parser.add_argument("--pm-test-csv", type=str,
-        default="/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv",
+        default=paths.PM_MANIFEST_CSV,
         help="Path to PlatesMania test CSV")
     parser.add_argument("--pm-img-dir", type=str,
-        default="/home/researchadmin/Econ/resized_640x640",
+        default=paths.PM_IMG_DIR,
         help="Base image folder for PlatesMania")
     parser.add_argument("--ext-test-csv", type=str,
         default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "test.csv"),
         help="Path to External test CSV")
+    parser.add_argument("--ext-train-csv", type=str,
+        default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "train.csv"),
+        help="External train CSV (used only to find which classes each model could have seen)")
     parser.add_argument("--output-dir", type=str,
         default=str(CURRENT_DIR / "mixed_benchmark_results"),
         help="Destination directory for benchmark tables and plots")
@@ -108,7 +112,14 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
                             bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]] = None,
                             img_size: int = 512,
                             crop_top: float = 0.0, crop_bottom: float = 0.0,
-                            batch_size: int = 64, device: str = "cuda") -> Dict[str, Any]:
+                            batch_size: int = 64, device: str = "cuda",
+                            shared_classes: Optional[List[int]] = None) -> Dict[str, Any]:
+    """Make-level and Model-level evaluation.
+
+    shared_classes: label indices that have train images in BOTH datasets. When given, the result also contains
+    metrics on test images of those classes only: the model's plain top-1 (shared_model_accuracy) and top-1 with the
+    argmax restricted to the shared outputs (shared_model_accuracy_restricted), which removes the penalty for
+    predicting a class that the other dataset never contains."""
     model.eval()
     model.to(device)
 
@@ -116,6 +127,8 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
     all_true_makes = []
     all_pred_models = []
     all_true_models = []
+    all_pred_restricted = []
+    shared_arr = np.array(shared_classes, dtype=int) if shared_classes else None
     n_failed = 0
 
     n_samples = len(paths)
@@ -154,6 +167,8 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
             # 1. Model predictions (1235 classes)
             pred_models = np.argmax(probs, axis=1)
             all_pred_models.extend(pred_models)
+            if shared_arr is not None:
+                all_pred_restricted.extend(shared_arr[np.argmax(probs[:, shared_arr], axis=1)])
             if b_model_labels is not None:
                 all_true_models.extend([b_model_labels[k] for k in valid_idx])
 
@@ -197,6 +212,23 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
         res["model_macro_f1"] = None
         res["model_weighted_f1"] = None
 
+    if shared_arr is not None and all_true_models:
+        in_shared = np.isin(y_true_model, shared_arr)
+        res["shared_n_images"] = int(in_shared.sum())
+        res["shared_frac_of_test"] = float(in_shared.mean())
+        if in_shared.any():
+            yt = y_true_model[in_shared]
+            yp_full = y_pred_model[in_shared]
+            yp_restr = np.array(all_pred_restricted)[in_shared]
+            _, _, f1_restr, _ = precision_recall_fscore_support(yt, yp_restr, average="macro", zero_division=0)
+            res["shared_model_accuracy"] = float(np.mean(yt == yp_full))
+            res["shared_model_accuracy_restricted"] = float(np.mean(yt == yp_restr))
+            res["shared_model_macro_f1_restricted"] = float(f1_restr)
+            res["shared_make_accuracy"] = float(np.mean(y_true_make[in_shared] == y_pred_make[in_shared]))
+        else:
+            for k in ("shared_model_accuracy", "shared_model_accuracy_restricted", "shared_model_macro_f1_restricted", "shared_make_accuracy"):
+                res[k] = None
+
     return res
 
 
@@ -223,6 +255,21 @@ def main():
         ext_lm_raw = json.load(f)
     ext_lm = ext_lm_raw["class_to_idx"] if "class_to_idx" in ext_lm_raw else ext_lm_raw
     ext_proj = build_make_projection_matrix(ext_lm) if len(ext_lm) > len(TARGET_MAKES) else None
+
+    # Class coverage: which model classes have train images in each dataset (label indices are shared by both maps)
+    df_pm_all = pd.read_csv(args.pm_test_csv)
+    pm_train_counts = (df_pm_all[df_pm_all["split"] == "train"] if "split" in df_pm_all.columns else df_pm_all)["label"].value_counts()
+    ext_train_counts = pd.read_csv(args.ext_train_csv)["label"].value_counts()
+    pm_train_cls, ext_train_cls = set(pm_train_counts.index.astype(int)), set(ext_train_counts.index.astype(int))
+    shared_cls = sorted(pm_train_cls & ext_train_cls)
+    print(f"[Coverage] classes with train images: PlatesMania {len(pm_train_cls):,} | External {len(ext_train_cls):,} "
+          f"| shared {len(shared_cls):,} | of {len(pm_lm):,} total")
+    if pm_lm != ext_lm:
+        print("[WARN] PlatesMania and External label maps differ; shared-class metrics assume identical index spaces.")
+    pd.DataFrame({"label": sorted(pm_train_cls | ext_train_cls)}).assign(
+        platesmania_train_images=lambda d: d["label"].map(pm_train_counts).fillna(0).astype(int),
+        external_train_images=lambda d: d["label"].map(ext_train_counts).fillna(0).astype(int),
+    ).to_csv(output_dir / "class_coverage.csv", index=False)
 
     # Load models
     model_a = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path).to(device)
@@ -290,13 +337,13 @@ def main():
 
     # Benchmark Model A (PlatesMania)
     print("\n--- Evaluating Model A (PlatesMania) ---")
-    res_a_pm = evaluate_model_on_split(model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device)
+    res_a_pm = evaluate_model_on_split(model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model A on PlatesMania (In-Domain):     Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
 
-    res_a_ext = evaluate_model_on_split(model_a, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device)
+    res_a_ext = evaluate_model_on_split(model_a, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model A on External    (Out-of-Domain): Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
 
-    res_a_mix = evaluate_model_on_split(model_a, mixed_paths, mixed_make_indices, mixed_model_indices, pm_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device)
+    res_a_mix = evaluate_model_on_split(model_a, mixed_paths, mixed_make_indices, mixed_model_indices, pm_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model A on Mixed       (Combined):      Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
 
     results.extend([
@@ -307,13 +354,13 @@ def main():
 
     # Benchmark Model B (External)
     print("\n--- Evaluating Model B (External Merged) ---")
-    res_b_ext = evaluate_model_on_split(model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device)
+    res_b_ext = evaluate_model_on_split(model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model B on External    (In-Domain):     Make Acc={res_b_ext['make_accuracy']:.2%} | Model Acc={res_b_ext['model_accuracy']:.2%} | Make Macro F1={res_b_ext['make_macro_f1']:.2%}")
 
-    res_b_pm = evaluate_model_on_split(model_b, pm_paths, pm_make_indices, pm_model_indices, ext_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device)
+    res_b_pm = evaluate_model_on_split(model_b, pm_paths, pm_make_indices, pm_model_indices, ext_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model B on PlatesMania (Out-of-Domain): Make Acc={res_b_pm['make_accuracy']:.2%} | Model Acc={res_b_pm['model_accuracy']:.2%} | Make Macro F1={res_b_pm['make_macro_f1']:.2%}")
 
-    res_b_mix = evaluate_model_on_split(model_b, mixed_paths, mixed_make_indices, mixed_model_indices, ext_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device)
+    res_b_mix = evaluate_model_on_split(model_b, mixed_paths, mixed_make_indices, mixed_model_indices, ext_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model B on Mixed       (Combined):      Make Acc={res_b_mix['make_accuracy']:.2%} | Model Acc={res_b_mix['model_accuracy']:.2%} | Make Macro F1={res_b_mix['make_macro_f1']:.2%}")
 
     results.extend([
@@ -324,6 +371,14 @@ def main():
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(output_dir / "mixed_benchmark_summary.csv", index=False)
+
+    # Shared-class view: separates "class never seen in training" from "seen but misclassified under domain shift"
+    shared_cols = ["model", "test_split", "model_accuracy", "shared_frac_of_test", "shared_n_images", "shared_model_accuracy",
+                   "shared_model_accuracy_restricted", "shared_model_macro_f1_restricted", "shared_make_accuracy", "make_accuracy"]
+    shared_df = results_df[[c for c in shared_cols if c in results_df.columns]]
+    shared_df.to_csv(output_dir / "shared_class_summary.csv", index=False)
+    print(f"\n[Shared classes: {len(shared_cls):,}] top-1 on test images whose class has train images in both datasets")
+    print(shared_df.to_string(index=False, float_format=lambda v: f"{v:.2%}"))
 
     # Plot dual comparison bar chart (Make Accuracy & Model Accuracy side by side)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))

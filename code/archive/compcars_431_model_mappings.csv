@@ -1,0 +1,432 @@
+class_index,model_id,model_name,make_id,make_name,body_type,in_surveillance,sv_model_id,sv_make_name,sv_model_name,accuracy_pct,correct_samples,test_images,train_images,total_images,folder_path
+0,1,Audi A3 hatchback,78,Audi,hatchback,False,,,,60.87,42,69,71,140,../../compcars_cctv/extracted/data_extracted/data/image/78/1
+1,2,Audi A4L,78,Audi,sedan,False,,,,78.05,64,82,84,166,../../compcars_cctv/extracted/data_extracted/data/image/78/2
+2,3,Audi A6L,78,Audi,sedan,False,,,,50.0,33,66,69,135,../../compcars_cctv/extracted/data_extracted/data/image/78/3
+3,4,Audi Q3,78,Audi,SUV,True,4,Audi,Audi Q3,68.97,20,29,33,62,../../compcars_cctv/extracted/data_extracted/data/image/78/4
+4,5,Audi Q5,78,Audi,SUV,True,3,Audi,Audi Q5,58.67,44,75,78,153,../../compcars_cctv/extracted/data_extracted/data/image/78/5
+5,11,Audi A3 sedan,78,Audi,sedan,False,,,,69.23,18,26,28,54,../../compcars_cctv/extracted/data_extracted/data/image/78/11
+6,19,Audi A1,78,Audi,hatchback,True,6,Audi,Audi A1,58.54,24,41,43,84,../../compcars_cctv/extracted/data_extracted/data/image/78/19
+7,21,Audi A4 estate,78,Audi,estate,False,,,,66.67,12,18,20,38,../../compcars_cctv/extracted/data_extracted/data/image/78/21
+8,22,Audi A5 convertible,78,Audi,convertible,False,,,,62.22,28,45,47,92,../../compcars_cctv/extracted/data_extracted/data/image/78/22
+9,23,Audi A5 coupe,78,Audi,sedan,False,,,,66.67,36,54,56,110,../../compcars_cctv/extracted/data_extracted/data/image/78/23
+10,24,Audi A5 hatchback,78,Audi,fastback,False,,,,32.69,17,52,53,105,../../compcars_cctv/extracted/data_extracted/data/image/78/24
+11,26,Audi A7,78,Audi,fastback,True,5,Audi,Audi A7,75.0,39,52,54,106,../../compcars_cctv/extracted/data_extracted/data/image/78/26
+12,27,Audi A8L,78,Audi,sedan,False,,,,69.32,61,88,91,179,../../compcars_cctv/extracted/data_extracted/data/image/78/27
+13,32,Audi Q7,78,Audi,SUV,False,,,,80.28,57,71,74,145,../../compcars_cctv/extracted/data_extracted/data/image/78/32
+14,34,Audi S5 convertible,78,Audi,convertible,False,,,,66.67,18,27,30,57,../../compcars_cctv/extracted/data_extracted/data/image/78/34
+15,39,Audi S8,78,Audi,sedan,False,,,,33.33,8,24,28,52,../../compcars_cctv/extracted/data_extracted/data/image/78/39
+16,42,Audi TTS coupe,78,Audi,sports,False,,,,61.29,19,31,35,66,../../compcars_cctv/extracted/data_extracted/data/image/78/42
+17,44,Audi TT coupe,78,Audi,sports,False,,,,82.93,34,41,43,84,../../compcars_cctv/extracted/data_extracted/data/image/78/44
+18,68,BWM 3 Series,81,BWM,sedan,True,274,BWM,BWM 3 Series,62.14,87,140,143,283,../../compcars_cctv/extracted/data_extracted/data/image/81/68
+19,69,BWM X1,81,BWM,SUV,True,271,BWM,BWM X1,34.38,22,64,66,130,../../compcars_cctv/extracted/data_extracted/data/image/81/69
+20,70,BWM 5 Series,81,BWM,sedan,True,273,BWM,BWM 5 Series,64.35,74,115,118,233,../../compcars_cctv/extracted/data_extracted/data/image/81/70
+21,75,BWM M5,81,BWM,sedan,False,,,,71.43,20,28,30,58,../../compcars_cctv/extracted/data_extracted/data/image/81/75
+22,84,BWM 2 Series,81,BWM,sedan,False,,,,50.0,7,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/81/84
+23,85,BWM 3 Series GT,81,BWM,fastback,False,,,,35.29,6,17,21,38,../../compcars_cctv/extracted/data_extracted/data/image/81/85
+24,86,BWM 3 Series convertible,81,BWM,hardtop convertible,False,,,,50.0,7,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/81/86
+25,88,BWM 3 Series estate,81,BWM,estate,False,,,,38.1,8,21,24,45,../../compcars_cctv/extracted/data_extracted/data/image/81/88
+26,89,BWM 3 Series coupe,81,BWM,sedan,False,,,,46.43,13,28,32,60,../../compcars_cctv/extracted/data_extracted/data/image/81/89
+27,91,BWM 4 Series convertible,81,BWM,hardtop convertible,False,,,,57.14,8,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/81/91
+28,94,BWM 5 Series GT,81,BWM,fastback,False,,,,41.46,17,41,44,85,../../compcars_cctv/extracted/data_extracted/data/image/81/94
+29,100,BWM 6 Series,81,BWM,sedan,False,,,,75.86,22,29,32,61,../../compcars_cctv/extracted/data_extracted/data/image/81/100
+30,101,BWM 7 Series,81,BWM,sedan,True,270,BWM,BWM 7 Series,34.88,15,43,47,90,../../compcars_cctv/extracted/data_extracted/data/image/81/101
+31,103,BWM X3,81,BWM,SUV,True,269,BWM,BWM X3,54.93,39,71,72,143,../../compcars_cctv/extracted/data_extracted/data/image/81/103
+32,104,BWM X4,81,BWM,SUV,False,,,,68.75,11,16,18,34,../../compcars_cctv/extracted/data_extracted/data/image/81/104
+33,105,BWM X5,81,BWM,SUV,True,268,BWM,BWM X5,25.68,19,74,76,150,../../compcars_cctv/extracted/data_extracted/data/image/81/105
+34,106,BWM X6,81,BWM,SUV,True,267,BWM,BWM X6,76.32,29,38,39,77,../../compcars_cctv/extracted/data_extracted/data/image/81/106
+35,118,BWM 1 Series hatchback,81,BWM,hatchback,False,,,,59.38,19,32,35,67,../../compcars_cctv/extracted/data_extracted/data/image/81/118
+36,124,Benz C Class,77,Benz,sedan,True,36,Benz,Benz C Class,68.66,46,67,69,136,../../compcars_cctv/extracted/data_extracted/data/image/77/124
+37,126,Benz GLK Class,77,Benz,SUV,True,32,Benz,Benz GLK Class,81.48,66,81,84,165,../../compcars_cctv/extracted/data_extracted/data/image/77/126
+38,127,Benz E Class,77,Benz,sports,True,26,Benz,Benz E Class,56.3,76,135,137,272,../../compcars_cctv/extracted/data_extracted/data/image/77/127
+39,130,Benz C Class AMG,77,Benz,sedan,False,,,,80.0,24,30,31,61,../../compcars_cctv/extracted/data_extracted/data/image/77/130
+40,132,Benz G Class AMG,77,Benz,SUV,False,,,,88.89,24,27,28,55,../../compcars_cctv/extracted/data_extracted/data/image/77/132
+41,147,Benz A Class,77,Benz,hatchback,True,31,Benz,Benz A Class,37.5,9,24,27,51,../../compcars_cctv/extracted/data_extracted/data/image/77/147
+42,152,Benz C Class estate,77,Benz,estate,False,,,,75.76,25,33,34,67,../../compcars_cctv/extracted/data_extracted/data/image/77/152
+43,153,Benz E Class convertible,77,Benz,sedan,False,,,,62.86,22,35,36,71,../../compcars_cctv/extracted/data_extracted/data/image/77/153
+44,154,Benz E Class couple,77,Benz,sedan,False,,,,54.55,24,44,46,90,../../compcars_cctv/extracted/data_extracted/data/image/77/154
+45,156,Benz GL Class,77,Benz,SUV,True,33,Benz,Benz GL Class,68.0,17,25,29,54,../../compcars_cctv/extracted/data_extracted/data/image/77/156
+46,159,Benz R Class,77,Benz,MPV,True,27,Benz,Benz R Class,48.48,16,33,34,67,../../compcars_cctv/extracted/data_extracted/data/image/77/159
+47,160,Benz SLK Class,77,Benz,hardtop convertible,True,35,Benz,Benz SLK Class,83.87,26,31,35,66,../../compcars_cctv/extracted/data_extracted/data/image/77/160
+48,162,Benz S Class,77,Benz,sedan,True,28,Benz,Benz S Class,61.22,30,49,53,102,../../compcars_cctv/extracted/data_extracted/data/image/77/162
+49,187,encore,54,Buck,SUV,True,8,Buck,encore,62.07,18,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/54/187
+50,188,Buick GL8 Luxury Business,54,Buck,MPV,False,,,,97.3,36,37,39,76,../../compcars_cctv/extracted/data_extracted/data/image/54/188
+51,189,Buick GL8 Business,54,Buck,MPV,False,,,,83.78,31,37,39,76,../../compcars_cctv/extracted/data_extracted/data/image/54/189
+52,190,Regal,54,Buck,sedan,True,11,Buck,Regal,71.62,53,74,78,152,../../compcars_cctv/extracted/data_extracted/data/image/54/190
+53,191,Regal GS,54,Buck,sedan,False,,,,91.18,31,34,38,72,../../compcars_cctv/extracted/data_extracted/data/image/54/191
+54,192,Lacrosse,54,Buck,sedan,False,,,,71.91,64,89,93,182,../../compcars_cctv/extracted/data_extracted/data/image/54/192
+55,194,Exclle,54,Buck,sedan,True,7,Buck,Exclle,68.97,20,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/54/194
+56,196,EXCELLE  GT,54,Buck,sedan,False,,,,66.67,30,45,47,92,../../compcars_cctv/extracted/data_extracted/data/image/54/196
+57,197,EXCELLE  XT,54,Buck,hatchback,False,,,,73.33,33,45,48,93,../../compcars_cctv/extracted/data_extracted/data/image/54/197
+58,202,Enclave,54,Buck,SUV,True,10,Buck,Enclave,47.37,9,19,21,40,../../compcars_cctv/extracted/data_extracted/data/image/54/202
+59,211,Crosstour,100,Honda,fastback,True,125,Honda,Crosstour,54.05,20,37,39,76,../../compcars_cctv/extracted/data_extracted/data/image/100/211
+60,212,Crider,100,Honda,sedan,True,131,Honda,Crider,58.33,7,12,14,26,../../compcars_cctv/extracted/data_extracted/data/image/100/212
+61,213,Accord,100,Honda,unknown,True,129,Honda,Accord,55.56,40,72,74,146,../../compcars_cctv/extracted/data_extracted/data/image/100/213
+62,249,Jade,100,Honda,hatchback,True,126,Honda,Jade,57.14,8,14,15,29,../../compcars_cctv/extracted/data_extracted/data/image/100/249
+63,250,Spirior,100,Honda,sedan,True,124,Honda,Spirior,45.45,10,22,25,47,../../compcars_cctv/extracted/data_extracted/data/image/100/250
+64,251,Civic,100,Honda,sedan,True,128,Honda,Civic,43.59,34,78,82,160,../../compcars_cctv/extracted/data_extracted/data/image/100/251
+65,252,Honda CR-V,100,Honda,SUV,True,127,Honda,Honda CR-V,74.29,26,35,39,74,../../compcars_cctv/extracted/data_extracted/data/image/100/252
+66,254,Peugeot 2008,102,Peugeot,unknown,False,,,,62.5,15,24,27,51,../../compcars_cctv/extracted/data_extracted/data/image/102/254
+67,255,Peugeot 207 hatchback,102,Peugeot,hatchback,False,,,,57.58,19,33,36,69,../../compcars_cctv/extracted/data_extracted/data/image/102/255
+68,256,Peugeot 207 sedan,102,Peugeot,sedan,False,,,,23.81,10,42,46,88,../../compcars_cctv/extracted/data_extracted/data/image/102/256
+69,257,Peugeot 3008,102,Peugeot,SUV,True,181,Peugeot,Peugeot 3008,44.44,12,27,29,56,../../compcars_cctv/extracted/data_extracted/data/image/102/257
+70,258,Peugeot 301,102,Peugeot,unknown,True,182,Peugeot,Peugeot 301,70.0,14,20,22,42,../../compcars_cctv/extracted/data_extracted/data/image/102/258
+71,259,Peugeot 307 hatchback,102,Peugeot,hatchback,False,,,,79.31,23,29,32,61,../../compcars_cctv/extracted/data_extracted/data/image/102/259
+72,260,Peugeot 307 sedan,102,Peugeot,sedan,False,,,,76.92,10,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/102/260
+73,261,Peugeot 308,102,Peugeot,sedan,True,183,Peugeot,Peugeot 308,83.33,30,36,38,74,../../compcars_cctv/extracted/data_extracted/data/image/102/261
+74,262,Peugeot 408,102,Peugeot,sedan,True,179,Peugeot,Peugeot 408,77.42,48,62,66,128,../../compcars_cctv/extracted/data_extracted/data/image/102/262
+75,263,Peugeot 508,102,Peugeot,sedan,True,180,Peugeot,Peugeot 508,65.12,28,43,45,88,../../compcars_cctv/extracted/data_extracted/data/image/102/263
+76,266,Peugeot 207CC,102,Peugeot,hardtop convertible,False,,,,64.0,16,25,26,51,../../compcars_cctv/extracted/data_extracted/data/image/102/266
+77,267,Peugeot 308SW,102,Peugeot,estate,False,,,,60.0,12,20,21,41,../../compcars_cctv/extracted/data_extracted/data/image/102/267
+78,268,Peugeot 4008,102,Peugeot,SUV,False,,,,76.19,16,21,24,45,../../compcars_cctv/extracted/data_extracted/data/image/102/268
+79,269,Peugeot RCZ,102,Peugeot,sports,False,,,,50.0,15,30,33,63,../../compcars_cctv/extracted/data_extracted/data/image/102/269
+80,293,Peugeot 308CC,102,Peugeot,hardtop convertible,False,,,,68.0,17,25,28,53,../../compcars_cctv/extracted/data_extracted/data/image/102/293
+81,294,BYD F0,105,BYD,hatchback,True,200,BYD,BYD F0,84.44,38,45,47,92,../../compcars_cctv/extracted/data_extracted/data/image/105/294
+82,296,BYD F3R,105,BYD,hatchback,False,,,,48.48,16,33,35,68,../../compcars_cctv/extracted/data_extracted/data/image/105/296
+83,297,BYD F6,105,BYD,sedan,True,197,BYD,BYD F6,57.14,12,21,23,44,../../compcars_cctv/extracted/data_extracted/data/image/105/297
+84,298,BYD G3,105,BYD,sedan,False,,,,44.44,8,18,21,39,../../compcars_cctv/extracted/data_extracted/data/image/105/298
+85,302,BYD L3,105,BYD,sedan,True,198,BYD,BYD L3,55.56,20,36,38,74,../../compcars_cctv/extracted/data_extracted/data/image/105/302
+86,303,BYD M6,105,BYD,MPV,False,,,,86.96,20,23,24,47,../../compcars_cctv/extracted/data_extracted/data/image/105/303
+87,304,BYD S6,105,BYD,SUV,True,193,BYD,BYD S6,67.65,23,34,38,72,../../compcars_cctv/extracted/data_extracted/data/image/105/304
+88,317,Panamera,48,Porsche,sports,True,185,Porsche,Panamera,63.46,33,52,54,106,../../compcars_cctv/extracted/data_extracted/data/image/48/317
+89,319,Porsche 911,48,Porsche,sports,False,,,,68.75,44,64,67,131,../../compcars_cctv/extracted/data_extracted/data/image/48/319
+90,321,Canyenne,48,Porsche,SUV,True,184,Porsche,Canyenne,58.14,25,43,47,90,../../compcars_cctv/extracted/data_extracted/data/image/48/321
+91,326,Cayman,48,Porsche,sports,False,,,,88.68,47,53,56,109,../../compcars_cctv/extracted/data_extracted/data/image/48/326
+92,328,BAW E Series sedan ,58,BAW,sedan,False,,,,8.33,1,12,13,25,../../compcars_cctv/extracted/data_extracted/data/image/58/328
+93,342,BAW E Series hatchback,58,BAW,hatchback,False,,,,96.55,28,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/58/342
+94,343,Baojun 610,82,Baojun,hatchback,False,,,,57.14,8,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/82/343
+95,344,Baojun 630,82,Baojun,sedan,True,49,Baojun,Baojun 630,86.27,44,51,55,106,../../compcars_cctv/extracted/data_extracted/data/image/82/344
+96,346,Lechi,82,Baojun,hatchback,False,,,,94.34,50,53,56,109,../../compcars_cctv/extracted/data_extracted/data/image/82/346
+97,364,Besturn B50,76,Besturn,sedan,False,,,,50.0,28,56,59,115,../../compcars_cctv/extracted/data_extracted/data/image/76/364
+98,365,Besturn B90,76,Besturn,sedan,False,,,,24.14,7,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/76/365
+99,366,Besturn X80,76,Besturn,SUV,True,1,Besturn,Besturn X80,82.14,23,28,29,57,../../compcars_cctv/extracted/data_extracted/data/image/76/366
+100,367,Besturn B70,76,Besturn,sedan,False,,,,57.53,42,73,76,149,../../compcars_cctv/extracted/data_extracted/data/image/76/367
+101,378,Great Wall C50,150,GreatWall,sedan,True,260,GreatWall,Great Wall C50,38.89,14,36,38,74,../../compcars_cctv/extracted/data_extracted/data/image/150/378
+102,380,Great Wall M2,150,GreatWall,SUV,False,,,,81.82,18,22,23,45,../../compcars_cctv/extracted/data_extracted/data/image/150/380
+103,381,Great Wall M4,150,GreatWall,SUV,False,,,,92.86,26,28,32,60,../../compcars_cctv/extracted/data_extracted/data/image/150/381
+104,382,Great Wall V80,150,GreatWall,MPV,False,,,,84.62,33,39,41,80,../../compcars_cctv/extracted/data_extracted/data/image/150/382
+105,384,Wingle 5,150,GreatWall,pickup,False,,,,80.95,17,21,24,45,../../compcars_cctv/extracted/data_extracted/data/image/150/384
+106,391,Xuanli,150,GreatWall,hatchback,True,262,GreatWall,Xuanli,77.78,21,27,28,55,../../compcars_cctv/extracted/data_extracted/data/image/150/391
+107,392,Xuanli CROSS,150,GreatWall,crossover,False,,,,77.78,14,18,22,40,../../compcars_cctv/extracted/data_extracted/data/image/150/392
+108,397,Benben,152,Changan,hatchback,True,188,Changan,Benben,84.62,11,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/152/397
+109,398,Benben MINI,152,Changan,hatchback,False,,,,85.0,34,40,43,83,../../compcars_cctv/extracted/data_extracted/data/image/152/398
+110,399,Changan CS35,152,Changan,SUV,True,190,Changan,Changan CS35,68.97,20,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/152/399
+111,401,Changan CX20,152,Changan,hatchback,True,186,Changan,Changan CX20,70.37,19,27,30,57,../../compcars_cctv/extracted/data_extracted/data/image/152/401
+112,405,Yidong,152,Changan,sedan,True,187,Changan,Yidong,94.29,33,35,38,73,../../compcars_cctv/extracted/data_extracted/data/image/152/405
+113,406,Yuexiang V3,152,Changan,sedan,True,191,Changan,Yuexiang V3,30.77,4,13,15,28,../../compcars_cctv/extracted/data_extracted/data/image/152/406
+114,407,Yuexiang V5,152,Changan,sedan,False,,,,85.71,12,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/152/407
+115,409,Yuexiang hatchback,152,Changan,hatchback,False,,,,71.43,10,14,17,31,../../compcars_cctv/extracted/data_extracted/data/image/152/409
+116,410,Yuexiang sedan,152,Changan,sedan,False,,,,36.36,12,33,35,68,../../compcars_cctv/extracted/data_extracted/data/image/152/410
+117,411,Zhishang XT,152,Changan,hatchback,False,,,,81.82,9,11,14,25,../../compcars_cctv/extracted/data_extracted/data/image/152/411
+118,412,Ruiping,152,Changan,sedan,True,189,Changan,Ruiping,20.0,2,10,12,22,../../compcars_cctv/extracted/data_extracted/data/image/152/412
+119,413,Zhixiang,152,Changan,sedan,False,,,,42.86,6,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/152/413
+120,419,Benben LOVE,152,Changan,hatchback,False,,,,71.43,10,14,15,29,../../compcars_cctv/extracted/data_extracted/data/image/152/419
+121,434,Cross Polo,73,Volkswagen,crossover,False,,,,84.62,11,13,15,28,../../compcars_cctv/extracted/data_extracted/data/image/73/434
+122,435,Polo hatchback,73,Volkswagen,hatchback,False,,,,54.84,34,62,63,125,../../compcars_cctv/extracted/data_extracted/data/image/73/435
+123,436,Polo sedan,73,Volkswagen,sedan,False,,,,20.0,3,15,17,32,../../compcars_cctv/extracted/data_extracted/data/image/73/436
+124,438,Cross Lavida,73,Volkswagen,crossover,True,59,Volkswagen,Cross Lavida,100.0,13,13,16,29,../../compcars_cctv/extracted/data_extracted/data/image/73/438
+125,439,Gran Lavida,73,Volkswagen,hatchback,True,72,Volkswagen,Gran Lavida,21.05,4,19,21,40,../../compcars_cctv/extracted/data_extracted/data/image/73/439
+126,440,Lavide,73,Volkswagen,sedan,True,71,Volkswagen,Lavide,51.92,27,52,57,109,../../compcars_cctv/extracted/data_extracted/data/image/73/440
+127,441,Passat,73,Volkswagen,sedan,True,67,Volkswagen,Passat,70.73,29,41,45,86,../../compcars_cctv/extracted/data_extracted/data/image/73/441
+128,442,Passat Lingyu,73,Volkswagen,sedan,False,,,,35.71,5,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/73/442
+129,443,Santana,73,Volkswagen,sedan,False,,,,28.57,4,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/73/443
+130,445,Touran,73,Volkswagen,MPV,True,69,Volkswagen,Touran,72.0,36,50,52,102,../../compcars_cctv/extracted/data_extracted/data/image/73/445
+131,446,Tiguan,73,Volkswagen,SUV,True,78,Volkswagen,Tiguan,62.07,18,29,32,61,../../compcars_cctv/extracted/data_extracted/data/image/73/446
+132,453,Volkswagen Eos,73,Volkswagen,hardtop convertible,False,,,,77.42,24,31,34,65,../../compcars_cctv/extracted/data_extracted/data/image/73/453
+133,458,Golf convertible ,73,Volkswagen,convertible,False,,,,100.0,10,10,11,21,../../compcars_cctv/extracted/data_extracted/data/image/73/458
+134,459,Golf estate,73,Volkswagen,estate,False,,,,56.25,9,16,19,35,../../compcars_cctv/extracted/data_extracted/data/image/73/459
+135,460,Phaeton,73,Volkswagen,sedan,True,64,Volkswagen,Phaeton,91.67,33,36,39,75,../../compcars_cctv/extracted/data_extracted/data/image/73/460
+136,461,Beetle,73,Volkswagen,fastback,True,60,Volkswagen,Beetle,72.09,31,43,47,90,../../compcars_cctv/extracted/data_extracted/data/image/73/461
+137,463,Multivan,73,Volkswagen,MPV,True,77,Volkswagen,Multivan,60.0,18,30,33,63,../../compcars_cctv/extracted/data_extracted/data/image/73/463
+138,464,Magotan estate,73,Volkswagen,estate,False,,,,41.67,5,12,15,27,../../compcars_cctv/extracted/data_extracted/data/image/73/464
+139,465,Scirocco,73,Volkswagen,hatchback,True,70,Volkswagen,Scirocco,63.08,41,65,68,133,../../compcars_cctv/extracted/data_extracted/data/image/73/465
+140,467,Touareg,73,Volkswagen,SUV,True,66,Volkswagen,Touareg,40.62,26,64,66,130,../../compcars_cctv/extracted/data_extracted/data/image/73/467
+141,469,Sharan,73,Volkswagen,MPV,True,76,Volkswagen,Sharan,44.44,4,9,12,21,../../compcars_cctv/extracted/data_extracted/data/image/73/469
+142,473,Variant,73,Volkswagen,estate,False,,,,29.41,5,17,20,37,../../compcars_cctv/extracted/data_extracted/data/image/73/473
+143,491,Tiguan abroad version,73,Volkswagen,SUV,True,65,Volkswagen,Tiguan abroad version,41.67,10,24,26,50,../../compcars_cctv/extracted/data_extracted/data/image/73/491
+144,500,Bora,73,Volkswagen,sedan,True,75,Volkswagen,Bora,29.17,21,72,75,147,../../compcars_cctv/extracted/data_extracted/data/image/73/500
+145,501,Golf,73,Volkswagen,hatchback,False,,,,60.92,53,87,88,175,../../compcars_cctv/extracted/data_extracted/data/image/73/501
+146,502,Golf GTI,73,Volkswagen,hatchback,False,,,,63.89,23,36,37,73,../../compcars_cctv/extracted/data_extracted/data/image/73/502
+147,503,Jetta,73,Volkswagen,sedan,True,61,Volkswagen,Jetta,64.81,35,54,58,112,../../compcars_cctv/extracted/data_extracted/data/image/73/503
+148,504,Magotan,73,Volkswagen,sedan,True,63,Volkswagen,Magotan,18.52,10,54,57,111,../../compcars_cctv/extracted/data_extracted/data/image/73/504
+149,505,Sagitar,73,Volkswagen,sedan,True,73,Volkswagen,Sagitar,57.38,35,61,64,125,../../compcars_cctv/extracted/data_extracted/data/image/73/505
+150,508,Volkswagen CC,73,Volkswagen,sedan,True,74,Volkswagen,Volkswagen CC,70.73,58,82,82,164,../../compcars_cctv/extracted/data_extracted/data/image/73/508
+151,509,DS 5,4,DS,hatchback,False,,,,73.81,31,42,44,86,../../compcars_cctv/extracted/data_extracted/data/image/4/509
+152,511,DS 5LS,4,DS,sedan,False,,,,46.15,6,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/4/511
+153,512,DS 3,4,DS,convertible,False,,,,76.32,29,38,42,80,../../compcars_cctv/extracted/data_extracted/data/image/4/512
+154,516,DS 4,4,DS,hatchback,False,,,,73.33,11,15,15,30,../../compcars_cctv/extracted/data_extracted/data/image/4/516
+155,553,Lingzhi,36,Dongfengfengxing,MPV,False,,,,100.0,10,10,13,23,../../compcars_cctv/extracted/data_extracted/data/image/36/553
+156,554,Jingyi,36,Dongfengfengxing,hatchback,False,,,,59.38,19,32,36,68,../../compcars_cctv/extracted/data_extracted/data/image/36/554
+157,557,Fengshen CROSS,35,Dongfengfengshen,hatchback,False,,,,75.0,21,28,31,59,../../compcars_cctv/extracted/data_extracted/data/image/35/557
+158,558,Fengshen H30,35,Dongfengfengshen,hatchback,False,,,,52.17,12,23,27,50,../../compcars_cctv/extracted/data_extracted/data/image/35/558
+159,559,Fengshen S30,35,Dongfengfengshen,sedan,False,,,,38.78,19,49,53,102,../../compcars_cctv/extracted/data_extracted/data/image/35/559
+160,563,Fengshen A60,35,Dongfengfengshen,sedan,True,192,Dongfengfengshen,Fengshen A60,68.18,15,22,24,46,../../compcars_cctv/extracted/data_extracted/data/image/35/563
+161,567,Shuaike,34,Dongfengfengdu,MPV,True,276,Dongfengfengdu,Shuaike,84.85,28,33,36,69,../../compcars_cctv/extracted/data_extracted/data/image/34/567
+162,586,Fiesta sedan,122,Ford,sedan,False,,,,73.33,22,30,32,62,../../compcars_cctv/extracted/data_extracted/data/image/122/586
+163,587,Classic Focus hatchback,122,Ford,hatchback,False,,,,50.0,19,38,41,79,../../compcars_cctv/extracted/data_extracted/data/image/122/587
+164,588,Classic Focus sedan,122,Ford,sedan,False,,,,36.73,18,49,50,99,../../compcars_cctv/extracted/data_extracted/data/image/122/588
+165,589,S-MAX,122,Ford,MPV,True,42,Ford,S-MAX,85.71,12,14,17,31,../../compcars_cctv/extracted/data_extracted/data/image/122/589
+166,590,New Focus hatchback,122,Ford,hatchback,False,,,,33.33,5,15,15,30,../../compcars_cctv/extracted/data_extracted/data/image/122/590
+167,591,New Focus sedan,122,Ford,sedan,False,,,,57.14,8,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/122/591
+168,593,Ecosport,122,Ford,unknown,True,44,Ford,Ecosport,86.21,25,29,30,59,../../compcars_cctv/extracted/data_extracted/data/image/122/593
+169,595,Mendeo Zhisheng,122,Ford,sedan,False,,,,35.48,11,31,32,63,../../compcars_cctv/extracted/data_extracted/data/image/122/595
+170,597,Fiesta hatchback,122,Ford,hatchback,False,,,,66.67,42,63,65,128,../../compcars_cctv/extracted/data_extracted/data/image/122/597
+171,600,Focus ST,122,Ford,hatchback,False,,,,73.68,14,19,21,40,../../compcars_cctv/extracted/data_extracted/data/image/122/600
+172,608,Mustang,122,Ford,sports,False,,,,74.14,43,58,62,120,../../compcars_cctv/extracted/data_extracted/data/image/122/608
+173,641,Feixiang,134,FIAT,sedan,True,56,FIAT,Feixiang,43.75,7,16,21,37,../../compcars_cctv/extracted/data_extracted/data/image/134/641
+174,642,Zhiyue,134,FIAT,hatchback,False,,,,15.38,2,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/134/642
+175,645,Bravo,134,FIAT,hatchback,False,,,,37.93,11,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/134/645
+176,661,FIAT 500,134,FIAT,hatchback,True,57,FIAT,FIAT 500,91.67,44,48,51,99,../../compcars_cctv/extracted/data_extracted/data/image/134/661
+177,671,Qiteng M70,121,Fuqiqiteng,minibus,False,,,,92.86,13,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/121/671
+178,674,Chuanqi GS5,87,Guangqichuanqi,SUV,True,45,Guangqichuanqi,Chuanqi GS5,83.33,25,30,34,64,../../compcars_cctv/extracted/data_extracted/data/image/87/674
+179,688,Haval H3,71,Haval,SUV,False,,,,92.75,64,69,71,140,../../compcars_cctv/extracted/data_extracted/data/image/71/688
+180,735,Wrangler,11,Jeep,SUV,True,266,Jeep,Wrangler,100.0,79,79,81,160,../../compcars_cctv/extracted/data_extracted/data/image/11/735
+181,736,Compass,11,Jeep,SUV,True,263,Jeep,Compass,72.13,44,61,64,125,../../compcars_cctv/extracted/data_extracted/data/image/11/736
+182,738,Patriot,11,Jeep,SUV,True,265,Jeep,Patriot,88.68,47,53,56,109,../../compcars_cctv/extracted/data_extracted/data/image/11/738
+183,747,Gaguar XJ,92,Jaguar,sedan,True,206,Jaguar,Gaguar XJ,54.24,32,59,61,120,../../compcars_cctv/extracted/data_extracted/data/image/92/747
+184,756,Gaguar XF,92,Jaguar,sedan,True,207,Jaguar,Gaguar XF,79.71,55,69,72,141,../../compcars_cctv/extracted/data_extracted/data/image/92/756
+185,763,Seville SLS,53,Cadillac,sedan,True,220,Cadillac,Seville SLS,47.92,23,48,50,98,../../compcars_cctv/extracted/data_extracted/data/image/53/763
+186,764,Cadillac XTS,53,Cadillac,unknown,True,218,Cadillac,Cadillac XTS,57.14,20,35,37,72,../../compcars_cctv/extracted/data_extracted/data/image/53/764
+187,765,Cadillac CTS,53,Cadillac,sedan,True,221,Cadillac,Cadillac CTS,65.08,41,63,66,129,../../compcars_cctv/extracted/data_extracted/data/image/53/765
+188,766,Cadillac ATS-L,53,Cadillac,sedan,False,,,,76.92,10,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/53/766
+189,770,Cadillac SRX,53,Cadillac,SUV,True,219,Cadillac,Cadillac SRX,85.19,46,54,56,110,../../compcars_cctv/extracted/data_extracted/data/image/53/770
+190,786,Wind Lang,160,Renault,sedan,True,205,Renault,Wind Lang,33.33,4,12,14,26,../../compcars_cctv/extracted/data_extracted/data/image/160/786
+191,787,Koleos,160,Renault,SUV,True,204,Renault,Koleos,81.25,52,64,66,130,../../compcars_cctv/extracted/data_extracted/data/image/160/787
+192,792,Latitude,160,Renault,sedan,False,,,,62.5,10,16,18,34,../../compcars_cctv/extracted/data_extracted/data/image/160/792
+193,807,Scenic,160,Renault,MPV,False,,,,55.56,10,18,22,40,../../compcars_cctv/extracted/data_extracted/data/image/160/807
+194,811,Landwind X8,155,Lufeng,SUV,True,121,Lufeng,Landwind X8,32.14,9,28,31,59,../../compcars_cctv/extracted/data_extracted/data/image/155/811
+195,814,Landwind X5,155,Lufeng,SUV,False,,,,64.29,9,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/155/814
+196,827,MINI,15,MINI,hatchback,False,,,,81.43,57,70,72,142,../../compcars_cctv/extracted/data_extracted/data/image/15/827
+197,828,MINI CLUBMAN,15,MINI,hatchback,False,,,,92.06,58,63,67,130,../../compcars_cctv/extracted/data_extracted/data/image/15/828
+198,829,MINI COUNTRYMAN,15,MINI,SUV,False,,,,80.39,41,51,55,106,../../compcars_cctv/extracted/data_extracted/data/image/15/829
+199,831,MINI PACEMAN,15,MINI,SUV,False,,,,97.56,40,41,42,83,../../compcars_cctv/extracted/data_extracted/data/image/15/831
+200,854,Teana,97,Nissan,sedan,True,165,Nissan,Teana,78.95,60,76,77,153,../../compcars_cctv/extracted/data_extracted/data/image/97/854
+201,855,New Sylphy,97,Nissan,sedan,False,,,,42.86,9,21,24,45,../../compcars_cctv/extracted/data_extracted/data/image/97/855
+202,856,Sylphy,97,Nissan,sedan,False,,,,64.52,20,31,34,65,../../compcars_cctv/extracted/data_extracted/data/image/97/856
+203,857,Sunshine,97,Nissan,sedan,False,,,,64.29,18,28,32,60,../../compcars_cctv/extracted/data_extracted/data/image/97/857
+204,859,Qashqai,97,Nissan,SUV,True,160,Nissan,Qashqai,45.83,33,72,73,145,../../compcars_cctv/extracted/data_extracted/data/image/97/859
+205,860,Livina,97,Nissan,hatchback,False,,,,50.0,12,24,29,53,../../compcars_cctv/extracted/data_extracted/data/image/97/860
+206,861,Tiida,97,Nissan,hatchback,True,161,Nissan,Tiida,66.67,14,21,25,46,../../compcars_cctv/extracted/data_extracted/data/image/97/861
+207,864,Ma Chi,97,Nissan,hatchback,True,158,Nissan,Ma Chi,42.86,9,21,23,44,../../compcars_cctv/extracted/data_extracted/data/image/97/864
+208,868,Nissan NV200,97,Nissan,MPV,True,163,Nissan,Nissan NV200,76.09,35,46,50,96,../../compcars_cctv/extracted/data_extracted/data/image/97/868
+209,872,Nissan GT-R,97,Nissan,sports,False,,,,93.75,60,64,64,128,../../compcars_cctv/extracted/data_extracted/data/image/97/872
+210,910,Fabia,95,Skoda,hatchback,True,208,Skoda,Fabia,79.03,49,62,65,127,../../compcars_cctv/extracted/data_extracted/data/image/95/910
+211,911,Octavia,95,Skoda,fastback,True,209,Skoda,Octavia,74.68,59,79,82,161,../../compcars_cctv/extracted/data_extracted/data/image/95/911
+212,913,Superb,95,Skoda,fastback,False,,,,35.71,5,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/95/913
+213,914,Yeti,95,Skoda,SUV,False,,,,73.33,11,15,15,30,../../compcars_cctv/extracted/data_extracted/data/image/95/914
+214,915,Haorui,95,Skoda,sedan,True,210,Skoda,Haorui,45.65,21,46,47,93,../../compcars_cctv/extracted/data_extracted/data/image/95/915
+215,917,Rapid,95,Skoda,sedan,True,211,Skoda,Rapid,56.1,23,41,45,86,../../compcars_cctv/extracted/data_extracted/data/image/95/917
+216,932,Superb Derivative,95,Skoda,estate,False,,,,69.23,18,26,29,55,../../compcars_cctv/extracted/data_extracted/data/image/95/932
+217,937,Kyron,68,Shuanglong,SUV,True,225,Shuanglong,Kyron,72.73,8,11,14,25,../../compcars_cctv/extracted/data_extracted/data/image/68/937
+218,953,WeaLink X5,80,Wealeak,SUV,False,,,,50.0,5,10,10,20,../../compcars_cctv/extracted/data_extracted/data/image/80/953
+219,955,i30,118,Hyundai ,hatchback,True,243,Hyundai ,i30,35.71,10,28,29,57,../../compcars_cctv/extracted/data_extracted/data/image/118/955
+220,956,ix35,118,Hyundai ,SUV,True,254,Hyundai ,ix35,82.61,19,23,25,48,../../compcars_cctv/extracted/data_extracted/data/image/118/956
+221,957,Avante,118,Hyundai ,sedan,True,248,Hyundai ,Avante,25.0,4,16,19,35,../../compcars_cctv/extracted/data_extracted/data/image/118/957
+222,958,Sonata,118,Hyundai ,sedan,False,,,,50.0,6,12,16,28,../../compcars_cctv/extracted/data_extracted/data/image/118/958
+223,959,Mistra,118,Hyundai ,sedan,True,253,Hyundai ,Mistra,10.0,1,10,13,23,../../compcars_cctv/extracted/data_extracted/data/image/118/959
+224,960,Moinca,118,Hyundai ,sedan,False,,,,78.57,11,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/118/960
+225,961,Santafe,118,Hyundai ,SUV,True,251,Hyundai ,Santafe,39.68,25,63,67,130,../../compcars_cctv/extracted/data_extracted/data/image/118/961
+226,962,Rena,118,Hyundai ,sedan,True,247,Hyundai ,Rena,40.91,9,22,24,46,../../compcars_cctv/extracted/data_extracted/data/image/118/962
+227,963,Verna,118,Hyundai ,hatchback,False,,,,81.48,22,27,28,55,../../compcars_cctv/extracted/data_extracted/data/image/118/963
+228,964,Sonata 8,118,Hyundai ,sedan,False,,,,80.95,17,21,24,45,../../compcars_cctv/extracted/data_extracted/data/image/118/964
+229,968,Elantra Yuedong,118,Hyundai ,sedan,False,,,,24.0,6,25,28,53,../../compcars_cctv/extracted/data_extracted/data/image/118/968
+230,976,Rohens,118,Hyundai ,sedan,False,,,,29.41,5,17,18,35,../../compcars_cctv/extracted/data_extracted/data/image/118/976
+231,980,Equus,118,Hyundai ,sedan,False,,,,52.38,11,21,24,45,../../compcars_cctv/extracted/data_extracted/data/image/118/980
+232,1004,Veloster,118,Hyundai ,hatchback,False,,,,92.59,25,27,29,56,../../compcars_cctv/extracted/data_extracted/data/image/118/1004
+233,1006,Infiniti Q50,131,Infiniti,sedan,False,,,,57.14,8,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/131/1006
+234,1010,Infiniti Q70L,131,Infiniti,sedan,False,,,,53.57,30,56,60,116,../../compcars_cctv/extracted/data_extracted/data/image/131/1010
+235,1012,Infiniti QX50,131,Infiniti,SUV,False,,,,66.04,35,53,55,108,../../compcars_cctv/extracted/data_extracted/data/image/131/1012
+236,1015,Infiniti QX70,131,Infiniti,SUV,False,,,,74.07,40,54,56,110,../../compcars_cctv/extracted/data_extracted/data/image/131/1015
+237,1016,Infiniti QX80,131,Infiniti,SUV,False,,,,60.87,14,23,25,48,../../compcars_cctv/extracted/data_extracted/data/image/131/1016
+238,1023,Infiniti G Class,131,Infiniti,sedan,True,120,Infiniti,Infiniti G Class,85.71,12,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/131/1023
+239,1027,Zotye 5008,45,Zoyte,SUV,False,,,,76.47,13,17,19,36,../../compcars_cctv/extracted/data_extracted/data/image/45/1027
+240,1065,Weizhi,27,Yiqi,sedan,True,16,Yiqi,Weizhi,50.0,7,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/27/1065
+241,1066,Weizhi V2,27,Yiqi,hatchback,False,,,,77.78,14,18,20,38,../../compcars_cctv/extracted/data_extracted/data/image/27/1066
+242,1068,Weizhi V5,27,Yiqi,sedan,False,,,,83.33,15,18,21,39,../../compcars_cctv/extracted/data_extracted/data/image/27/1068
+243,1070,Xiali N5,27,Yiqi,sedan,False,,,,62.5,20,32,35,67,../../compcars_cctv/extracted/data_extracted/data/image/27/1070
+244,1131,Chrysler 300C,50,Chrysler,sedan,True,166,Chrysler,Chrysler 300C,79.07,34,43,47,90,../../compcars_cctv/extracted/data_extracted/data/image/50/1131
+245,1134,Discovery,142,LAND-ROVER,SUV,True,256,LAND-ROVER,Discovery,94.12,64,68,72,140,../../compcars_cctv/extracted/data_extracted/data/image/142/1134
+246,1135,Range Rover,142,LAND-ROVER,SUV,True,258,LAND-ROVER,Range Rover,92.31,48,52,56,108,../../compcars_cctv/extracted/data_extracted/data/image/142/1135
+247,1137,Evoque,142,LAND-ROVER,SUV,False,,,,82.22,37,45,48,93,../../compcars_cctv/extracted/data_extracted/data/image/142/1137
+248,1138,Range Rover Sport,142,LAND-ROVER,SUV,False,,,,75.41,46,61,65,126,../../compcars_cctv/extracted/data_extracted/data/image/142/1138
+249,1159,Gallardo,51,Lamorghini ,sports,False,,,,96.49,55,57,60,117,../../compcars_cctv/extracted/data_extracted/data/image/51/1159
+250,1180,Forte,140,KIA,sedan,False,,,,60.87,28,46,51,97,../../compcars_cctv/extracted/data_extracted/data/image/140/1180
+251,1181,KIA K2 sedan,140,KIA,sedan,False,,,,61.9,13,21,24,45,../../compcars_cctv/extracted/data_extracted/data/image/140/1181
+252,1182,KIA K3,140,KIA,sedan,False,,,,42.86,6,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/140/1182
+253,1183,KIA K3S,140,KIA,hatchback,False,,,,54.55,6,11,15,26,../../compcars_cctv/extracted/data_extracted/data/image/140/1183
+254,1185,KIA K5,140,KIA,sedan,False,,,,73.33,22,30,33,63,../../compcars_cctv/extracted/data_extracted/data/image/140/1185
+255,1188,Sportage,140,KIA,SUV,False,,,,65.38,34,52,56,108,../../compcars_cctv/extracted/data_extracted/data/image/140/1188
+256,1189,Soul,140,KIA,hatchback,False,,,,79.66,47,59,63,122,../../compcars_cctv/extracted/data_extracted/data/image/140/1189
+257,1190,Sportage R,140,KIA,SUV,False,,,,79.07,34,43,47,90,../../compcars_cctv/extracted/data_extracted/data/image/140/1190
+258,1195,Borrego,140,KIA,SUV,True,148,KIA,Borrego,46.67,7,15,16,31,../../compcars_cctv/extracted/data_extracted/data/image/140/1195
+259,1199,Shuma,140,KIA,sports,False,,,,50.0,17,34,37,71,../../compcars_cctv/extracted/data_extracted/data/image/140/1199
+260,1200,Sorento,140,KIA,SUV,True,146,KIA,Sorento,62.5,35,56,57,113,../../compcars_cctv/extracted/data_extracted/data/image/140/1200
+261,1221,Kaizun,140,KIA,sedan,True,144,KIA,Kaizun,54.0,27,50,54,104,../../compcars_cctv/extracted/data_extracted/data/image/140/1221
+262,1222,Roewe 350,132,Roewe,sedan,True,233,Roewe,Roewe 350,81.36,48,59,61,120,../../compcars_cctv/extracted/data_extracted/data/image/132/1222
+263,1224,Roewe 750,132,Roewe,sedan,True,235,Roewe,Roewe 750,87.5,21,24,27,51,../../compcars_cctv/extracted/data_extracted/data/image/132/1224
+264,1229,Roewe 550,132,Roewe,sedan,False,,,,88.31,68,77,80,157,../../compcars_cctv/extracted/data_extracted/data/image/132/1229
+265,1236,Impreza hatchback,94,Subaru,hatchback,False,,,,44.0,11,25,27,52,../../compcars_cctv/extracted/data_extracted/data/image/94/1236
+266,1237,Impreza sedan,94,Subaru,sedan,False,,,,56.67,17,30,30,60,../../compcars_cctv/extracted/data_extracted/data/image/94/1237
+267,1246,MAXUS V80xs,29,Shangqidatong,minibus,True,255,Shangqidatong,MAXUS V80xs,100.0,12,12,14,26,../../compcars_cctv/extracted/data_extracted/data/image/29/1246
+268,1251,c-Elysee sedan,158,Citroen,sedan,False,,,,90.28,65,72,75,147,../../compcars_cctv/extracted/data_extracted/data/image/158/1251
+269,1253,Elysee,158,Citroen,sedan,False,,,,23.08,3,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/158/1253
+270,1255,Quatre hatchback,158,Citroen,hatchback,False,,,,70.18,40,57,58,115,../../compcars_cctv/extracted/data_extracted/data/image/158/1255
+271,1256,Quatre sedan,158,Citroen,sedan,False,,,,64.29,45,70,72,142,../../compcars_cctv/extracted/data_extracted/data/image/158/1256
+272,1257,Citroen C2,158,Citroen,hatchback,True,105,Citroen,Citroen C2,75.0,12,16,17,33,../../compcars_cctv/extracted/data_extracted/data/image/158/1257
+273,1258,Citroen C4L,158,Citroen,unknown,True,102,Citroen,Citroen C4L,65.62,21,32,35,67,../../compcars_cctv/extracted/data_extracted/data/image/158/1258
+274,1259,Citroen C5,158,Citroen,unknown,True,107,Citroen,Citroen C5,78.82,67,85,86,171,../../compcars_cctv/extracted/data_extracted/data/image/158/1259
+275,1313,Yongyuan A380,106,Jonway,SUV,False,,,,44.44,4,9,14,23,../../compcars_cctv/extracted/data_extracted/data/image/106/1313
+276,1321,Toyota RAV4,39,Toyota,SUV,True,84,Toyota,Toyota RAV4,51.72,30,58,61,119,../../compcars_cctv/extracted/data_extracted/data/image/39/1321
+277,1322,Crown,39,Toyota,sedan,True,91,Toyota,Crown,31.43,11,35,39,74,../../compcars_cctv/extracted/data_extracted/data/image/39/1322
+278,1325,Lcruiser,39,Toyota,SUV,False,,,,73.68,14,19,20,39,../../compcars_cctv/extracted/data_extracted/data/image/39/1325
+279,1326,Prado,39,Toyota,SUV,True,87,Toyota,Prado,90.38,47,52,56,108,../../compcars_cctv/extracted/data_extracted/data/image/39/1326
+280,1327,Prius,39,Toyota,hatchback,True,80,Toyota,Prius,100.0,9,9,13,22,../../compcars_cctv/extracted/data_extracted/data/image/39/1327
+281,1328,Reiz,39,Toyota,sedan,True,81,Toyota,Reiz,54.55,24,44,45,89,../../compcars_cctv/extracted/data_extracted/data/image/39/1328
+282,1329,Vios,39,Toyota,sedan,True,83,Toyota,Vios,63.83,30,47,48,95,../../compcars_cctv/extracted/data_extracted/data/image/39/1329
+283,1330,Huaguan,39,Toyota,sedan,True,88,Toyota,Huaguan,60.53,23,38,40,78,../../compcars_cctv/extracted/data_extracted/data/image/39/1330
+284,1332,Venza,39,Toyota,SUV,False,,,,54.55,12,22,25,47,../../compcars_cctv/extracted/data_extracted/data/image/39/1332
+285,1333,Alphard,39,Toyota,MPV,True,79,Toyota,Alphard,64.29,9,14,17,31,../../compcars_cctv/extracted/data_extracted/data/image/39/1333
+286,1335,Toyota 86,39,Toyota,sports,False,,,,60.71,17,28,32,60,../../compcars_cctv/extracted/data_extracted/data/image/39/1335
+287,1386,Camry,39,Toyota,sedan,True,89,Toyota,Camry,52.08,50,96,100,196,../../compcars_cctv/extracted/data_extracted/data/image/39/1386
+288,1387,Camry hybrid,39,Toyota,sedan,False,,,,69.23,9,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/39/1387
+289,1389,Yaris,39,Toyota,hatchback,True,92,Toyota,Yaris,76.19,32,42,46,88,../../compcars_cctv/extracted/data_extracted/data/image/39/1389
+290,1390,EZ,39,Toyota,MPV,True,94,Toyota,EZ,64.52,20,31,33,64,../../compcars_cctv/extracted/data_extracted/data/image/39/1390
+291,1410,Qoros 3,138,Qoros,sedan,False,,,,68.75,11,16,20,36,../../compcars_cctv/extracted/data_extracted/data/image/138/1410
+292,1417,Saboo GX5,88,GAC,SUV,False,,,,55.56,5,9,13,22,../../compcars_cctv/extracted/data_extracted/data/image/88/1417
+293,1441,Haima M3,114,Haima,sedan,True,154,Haima,Haima M3,75.0,18,24,25,49,../../compcars_cctv/extracted/data_extracted/data/image/114/1441
+294,1443,Haima S5,114,Haima,SUV,False,,,,57.14,8,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/114/1443
+295,1444,Haima S7,114,Haima,SUV,True,150,Haima,Haima S7,84.62,11,13,15,28,../../compcars_cctv/extracted/data_extracted/data/image/114/1444
+296,1445,Haimaqishi,114,Haima,SUV,False,,,,67.86,19,28,30,58,../../compcars_cctv/extracted/data_extracted/data/image/114/1445
+297,1446,Haydo,114,Haima,hatchback,True,152,Haima,Haydo,67.86,19,28,31,59,../../compcars_cctv/extracted/data_extracted/data/image/114/1446
+298,1447,Premacy,114,Haima,MPV,True,155,Haima,Premacy,65.0,26,40,44,84,../../compcars_cctv/extracted/data_extracted/data/image/114/1447
+299,1448,Qiubite,114,Haima,hatchback,True,153,Haima,Qiubite,20.69,6,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/114/1448
+300,1450,Family M5,114,Haima,sedan,False,,,,28.57,4,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/114/1450
+301,1452,Lusheng E70,64,Huatai,sedan,False,,,,60.0,9,15,19,34,../../compcars_cctv/extracted/data_extracted/data/image/64/1452
+302,1478,Geely SC7,69,Geely,sedan,False,,,,26.67,4,15,17,32,../../compcars_cctv/extracted/data_extracted/data/image/69/1478
+303,1483,King Kong sedan,69,Geely,sedan,False,,,,38.46,15,39,43,82,../../compcars_cctv/extracted/data_extracted/data/image/69/1483
+304,1486,Classic Imperial hatchback,69,Geely,hatchback,False,,,,45.71,16,35,38,73,../../compcars_cctv/extracted/data_extracted/data/image/69/1486
+305,1487,Classic Imperial sedan,69,Geely,sedan,False,,,,52.0,26,50,51,101,../../compcars_cctv/extracted/data_extracted/data/image/69/1487
+306,1494,Ziyoujian,69,Geely,sedan,True,241,Geely,Ziyoujian,42.11,8,19,23,42,../../compcars_cctv/extracted/data_extracted/data/image/69/1494
+307,1509,Geely EC8,69,Geely,sedan,False,,,,70.83,17,24,27,51,../../compcars_cctv/extracted/data_extracted/data/image/69/1509
+308,1516,Binyue,108,Jianghuai,sedan,False,,,,44.44,12,27,28,55,../../compcars_cctv/extracted/data_extracted/data/image/108/1516
+309,1521,Heyue RS,108,Jianghuai,MPV,False,,,,87.3,55,63,65,128,../../compcars_cctv/extracted/data_extracted/data/image/108/1521
+310,1526,Ruifeng M5,108,Jianghuai,MPV,False,,,,61.11,11,18,21,39,../../compcars_cctv/extracted/data_extracted/data/image/108/1526
+311,1528,Ruifeng S5,108,Jianghuai,SUV,False,,,,38.46,5,13,15,28,../../compcars_cctv/extracted/data_extracted/data/image/108/1528
+312,1530,Ruiying,108,Jianghuai,SUV,True,118,Jianghuai,Ruiying,66.67,14,21,22,43,../../compcars_cctv/extracted/data_extracted/data/image/108/1530
+313,1531,Tongyue,108,Jianghuai,sedan,False,,,,45.28,24,53,56,109,../../compcars_cctv/extracted/data_extracted/data/image/108/1531
+314,1543,Heyue,108,Jianghuai,sedan,True,116,Jianghuai,Heyue,24.44,11,45,46,91,../../compcars_cctv/extracted/data_extracted/data/image/108/1543
+315,1554,Dahaishi,148,Jinbei,minibus,False,,,,95.24,20,21,22,43,../../compcars_cctv/extracted/data_extracted/data/image/148/1554
+316,1565,Lexus CT,159,Lexus,hatchback,True,24,Lexus,Lexus CT,70.45,31,44,46,90,../../compcars_cctv/extracted/data_extracted/data/image/159/1565
+317,1566,Lexus ES hybrid,159,Lexus,sedan,False,,,,50.0,7,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/159/1566
+318,1567,Lexus GS,159,Lexus,sedan,True,18,Lexus,Lexus GS,39.39,13,33,35,68,../../compcars_cctv/extracted/data_extracted/data/image/159/1567
+319,1568,Lexus GS hybrid,159,Lexus,sedan,False,,,,41.86,18,43,46,89,../../compcars_cctv/extracted/data_extracted/data/image/159/1568
+320,1569,Lexus GX,159,Lexus,SUV,True,21,Lexus,Lexus GX,47.06,8,17,20,37,../../compcars_cctv/extracted/data_extracted/data/image/159/1569
+321,1570,Lexus IS,159,Lexus,sedan,True,19,Lexus,Lexus IS,62.5,20,32,35,67,../../compcars_cctv/extracted/data_extracted/data/image/159/1570
+322,1571,Lexus IS convertible ,159,Lexus,hardtop convertible,False,,,,100.0,24,24,28,52,../../compcars_cctv/extracted/data_extracted/data/image/159/1571
+323,1574,Lexus LS hybrid,159,Lexus,sedan,False,,,,70.59,12,17,20,37,../../compcars_cctv/extracted/data_extracted/data/image/159/1574
+324,1577,Lexus RX,159,Lexus,SUV,True,20,Lexus,Lexus RX,82.26,51,62,62,124,../../compcars_cctv/extracted/data_extracted/data/image/159/1577
+325,1578,Lexus RX hybrid,159,Lexus,SUV,False,,,,50.0,11,22,25,47,../../compcars_cctv/extracted/data_extracted/data/image/159/1578
+326,1587,Lexus ES,159,Lexus,sedan,True,22,Lexus,Lexus ES,28.57,4,14,17,31,../../compcars_cctv/extracted/data_extracted/data/image/159/1587
+327,1590,Lifan 520,55,Lifan,sedan,True,37,Lifan,Lifan 520,53.33,8,15,17,32,../../compcars_cctv/extracted/data_extracted/data/image/55/1590
+328,1595,Lifan 720,55,Lifan,sedan,False,,,,54.55,6,11,13,24,../../compcars_cctv/extracted/data_extracted/data/image/55/1595
+329,1601,Lifan 320,55,Lifan,hatchback,True,39,Lifan,Lifan 320,89.19,33,37,39,76,../../compcars_cctv/extracted/data_extracted/data/image/55/1601
+330,1602,Jingyue,133,Lotus,sedan,False,,,,92.31,12,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/133/1602
+331,1609,Atenza,162,MAZDA,sedan,False,,,,50.0,7,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/162/1609
+332,1611,Mazda CX7,162,MAZDA,SUV,True,140,MAZDA,Mazda CX7,33.33,8,24,27,51,../../compcars_cctv/extracted/data_extracted/data/image/162/1611
+333,1612,Ruiyi,162,MAZDA,sedan,False,,,,62.5,20,32,35,67,../../compcars_cctv/extracted/data_extracted/data/image/162/1612
+334,1613,Ruiyi coupe,162,MAZDA,fastback,False,,,,66.67,20,30,33,63,../../compcars_cctv/extracted/data_extracted/data/image/162/1613
+335,1614,Mazda 6,162,MAZDA,sedan,True,138,MAZDA,Mazda 6,50.0,19,38,40,78,../../compcars_cctv/extracted/data_extracted/data/image/162/1614
+336,1620,Mazda 3 abroad version,162,MAZDA,hatchback,False,,,,61.76,21,34,37,71,../../compcars_cctv/extracted/data_extracted/data/image/162/1620
+337,1629,Mazda 5,162,MAZDA,MPV,True,137,MAZDA,Mazda 5,93.75,30,32,33,65,../../compcars_cctv/extracted/data_extracted/data/image/162/1629
+338,1631,Mazda 2,162,MAZDA,hatchback,True,135,MAZDA,Mazda 2,76.6,36,47,47,94,../../compcars_cctv/extracted/data_extracted/data/image/162/1631
+339,1632,Mazda 2 sedan,162,MAZDA,sedan,False,,,,36.36,4,11,15,26,../../compcars_cctv/extracted/data_extracted/data/image/162/1632
+340,1633,Mazda 3,162,MAZDA,sedan,True,136,MAZDA,Mazda 3,34.48,10,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/162/1633
+341,1634,Mazda 3 Xingcheng hatchback,162,MAZDA,sedan,False,,,,93.75,15,16,16,32,../../compcars_cctv/extracted/data_extracted/data/image/162/1634
+342,1635,Mazda 3 Xingcheng sedan,162,MAZDA,sedan,False,,,,34.62,9,26,28,54,../../compcars_cctv/extracted/data_extracted/data/image/162/1635
+343,1636,Mazda CX-5,162,MAZDA,SUV,True,139,MAZDA,Mazda CX-5,86.21,25,29,33,62,../../compcars_cctv/extracted/data_extracted/data/image/162/1636
+344,1637,Axela sedan,162,MAZDA,sedan,False,,,,92.86,13,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/162/1637
+345,1652,Eastar Cross,75,Chrey,MPV,False,,,,57.14,8,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/75/1652
+346,1653,Fulwin 2 hatchback,75,Chrey,hatchback,False,,,,25.0,3,12,15,27,../../compcars_cctv/extracted/data_extracted/data/image/75/1653
+347,1654,Fulwin 2 sedan,75,Chrey,fastback,False,,,,75.0,12,16,20,36,../../compcars_cctv/extracted/data_extracted/data/image/75/1654
+348,1656,Chrey A3 hatchback,75,Chrey,hatchback,False,,,,93.1,27,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/75/1656
+349,1657,Chrey A3 sedan,75,Chrey,sedan,False,,,,88.24,15,17,20,37,../../compcars_cctv/extracted/data_extracted/data/image/75/1657
+350,1660,Chrey E5,75,Chrey,sedan,False,,,,62.96,17,27,30,57,../../compcars_cctv/extracted/data_extracted/data/image/75/1660
+351,1661,Chrey QQ,75,Chrey,hatchback,False,,,,54.55,6,11,14,25,../../compcars_cctv/extracted/data_extracted/data/image/75/1661
+352,1662,Chrey QQ3,75,Chrey,hatchback,False,,,,79.17,19,24,26,50,../../compcars_cctv/extracted/data_extracted/data/image/75/1662
+353,1665,Chrey X1,75,Chrey,SUV,False,,,,100.0,22,22,24,46,../../compcars_cctv/extracted/data_extracted/data/image/75/1665
+354,1668,Cowin 2,75,Chrey,fastback,False,,,,60.0,12,20,23,43,../../compcars_cctv/extracted/data_extracted/data/image/75/1668
+355,1669,Cowin 3,75,Chrey,sedan,False,,,,38.46,5,13,15,28,../../compcars_cctv/extracted/data_extracted/data/image/75/1669
+356,1671,Tiggo,75,Chrey,SUV,True,279,Chrey,Tiggo,90.2,46,51,52,103,../../compcars_cctv/extracted/data_extracted/data/image/75/1671
+357,1673,Tiggo 5,75,Chrey,SUV,False,,,,53.85,7,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/75/1673
+358,1683,Arrizo 7,75,Chrey,sedan,False,,,,50.0,7,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/75/1683
+359,1691,Ruiqi G5,120,Ruiqi,sedan,False,,,,77.78,21,27,30,57,../../compcars_cctv/extracted/data_extracted/data/image/120/1691
+360,1692,smart fortwo,26,smart,hatchback,False,,,,83.75,67,80,83,163,../../compcars_cctv/extracted/data_extracted/data/image/26/1692
+361,1701,Volvo C30,111,Volvo,hatchback,True,216,Volvo,Volvo C30,81.08,60,74,76,150,../../compcars_cctv/extracted/data_extracted/data/image/111/1701
+362,1702,Volvo S60,111,Volvo,sedan,True,213,Volvo,Volvo S60,62.71,37,59,61,120,../../compcars_cctv/extracted/data_extracted/data/image/111/1702
+363,1703,Volvo V40,111,Volvo,hatchback,False,,,,59.38,19,32,36,68,../../compcars_cctv/extracted/data_extracted/data/image/111/1703
+364,1704,Volvo V40 CrossCountry,111,Volvo,hatchback,False,,,,66.67,10,15,15,30,../../compcars_cctv/extracted/data_extracted/data/image/111/1704
+365,1705,Volvo V60,111,Volvo,estate,True,215,Volvo,Volvo V60,69.39,34,49,50,99,../../compcars_cctv/extracted/data_extracted/data/image/111/1705
+366,1706,Volvo XC60,111,Volvo,SUV,True,212,Volvo,Volvo XC60,81.0,81,100,105,205,../../compcars_cctv/extracted/data_extracted/data/image/111/1706
+367,1707,Volvo XC90 abroad version,111,Volvo,SUV,False,,,,86.25,69,80,82,162,../../compcars_cctv/extracted/data_extracted/data/image/111/1707
+368,1719,Volvo C70,111,Volvo,hardtop convertible,False,,,,79.31,23,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/111/1719
+369,1720,Volvo S40,111,Volvo,sedan,True,217,Volvo,Volvo S40,48.15,13,27,32,59,../../compcars_cctv/extracted/data_extracted/data/image/111/1720
+370,1721,Volvo S80L,111,Volvo,sedan,False,,,,66.67,44,66,69,135,../../compcars_cctv/extracted/data_extracted/data/image/111/1721
+371,1722,Volvo S60L,111,Volvo,sedan,False,,,,55.56,15,27,30,57,../../compcars_cctv/extracted/data_extracted/data/image/111/1722
+372,1786,Youyou,89,Karry,minibus,True,201,Karry,Youyou,80.0,8,10,13,23,../../compcars_cctv/extracted/data_extracted/data/image/89/1786
+373,1790,Alto,149,Suzuki,hatchback,True,101,Suzuki,Alto,95.83,46,48,50,98,../../compcars_cctv/extracted/data_extracted/data/image/149/1790
+374,1791,Cultus,149,Suzuki,sedan,True,95,Suzuki,Cultus,94.12,16,17,19,36,../../compcars_cctv/extracted/data_extracted/data/image/149/1791
+375,1793,Tianyu SX4 hatchback,149,Suzuki,hatchback,False,,,,55.0,33,60,60,120,../../compcars_cctv/extracted/data_extracted/data/image/149/1793
+376,1794,Tianyu SX4 sedan,149,Suzuki,hatchback,False,,,,53.85,7,13,16,29,../../compcars_cctv/extracted/data_extracted/data/image/149/1794
+377,1795,Tianyushangyue,149,Suzuki,sedan,False,,,,86.67,13,15,19,34,../../compcars_cctv/extracted/data_extracted/data/image/149/1795
+378,1796,Yuyan,149,Suzuki,hatchback,True,99,Suzuki,Yuyan,97.92,47,48,50,98,../../compcars_cctv/extracted/data_extracted/data/image/149/1796
+379,1799,Kazishi,149,Suzuki,sedan,True,98,Suzuki,Kazishi,48.15,13,27,30,57,../../compcars_cctv/extracted/data_extracted/data/image/149/1799
+380,1812,Bei Douxing,149,Suzuki,hatchback,True,97,Suzuki,Bei Douxing,80.95,34,42,44,86,../../compcars_cctv/extracted/data_extracted/data/image/149/1812
+381,1819,Linian S1,119,Everus,sedan,True,222,Everus,Linian S1,52.38,11,21,22,43,../../compcars_cctv/extracted/data_extracted/data/image/119/1819
+382,1827,MG3 SW,14,MG,hatchback,False,,,,92.86,13,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/14/1827
+383,1829,MG5,14,MG,hatchback,False,,,,53.85,14,26,27,53,../../compcars_cctv/extracted/data_extracted/data/image/14/1829
+384,1830,MG6 sedan,14,MG,sedan,False,,,,58.33,7,12,12,24,../../compcars_cctv/extracted/data_extracted/data/image/14/1830
+385,1831,MG6 hatchback,14,MG,fastback,False,,,,72.5,29,40,44,84,../../compcars_cctv/extracted/data_extracted/data/image/14/1831
+386,1832,MG7,14,MG,sedan,False,,,,64.29,9,14,17,31,../../compcars_cctv/extracted/data_extracted/data/image/14/1832
+387,1836,MG3,14,MG,hatchback,False,,,,74.42,32,43,45,88,../../compcars_cctv/extracted/data_extracted/data/image/14/1836
+388,1842,Antara,103,Opel,SUV,True,114,Opel,Antara,46.88,15,32,33,65,../../compcars_cctv/extracted/data_extracted/data/image/103/1842
+389,1843,Zafira,103,Opel,MPV,True,115,Opel,Zafira’,61.54,8,13,14,27,../../compcars_cctv/extracted/data_extracted/data/image/103/1843
+390,1845,GTC hatchback,103,Opel,hatchback,False,,,,48.57,17,35,37,72,../../compcars_cctv/extracted/data_extracted/data/image/103/1845
+391,1859,Venucia R50,70,Venucia,hatchback,True,281,Venucia,Venucia R50,57.89,11,19,20,39,../../compcars_cctv/extracted/data_extracted/data/image/70/1859
+392,1863,Venucia D50,70,Venucia,sedan,True,280,Venucia,Venucia D50,48.0,12,25,27,52,../../compcars_cctv/extracted/data_extracted/data/image/70/1863
+393,1866,Pajero,28,Mitsubishi,SUV,True,112,Mitsubishi,Pajero,81.82,63,77,80,157,../../compcars_cctv/extracted/data_extracted/data/image/28/1866
+394,1867,Grandis,28,Mitsubishi,MPV,True,110,Mitsubishi,Grandis,69.23,9,13,17,30,../../compcars_cctv/extracted/data_extracted/data/image/28/1867
+395,1871,Evo,28,Mitsubishi,sports,False,,,,32.35,11,34,37,71,../../compcars_cctv/extracted/data_extracted/data/image/28/1871
+396,1874,ASX abroad version,28,Mitsubishi,SUV,False,,,,62.96,17,27,29,56,../../compcars_cctv/extracted/data_extracted/data/image/28/1874
+397,1885,Outlander abroad version,28,Mitsubishi,SUV,True,111,Mitsubishi,Outlander abroad version,59.32,35,59,63,122,../../compcars_cctv/extracted/data_extracted/data/image/28/1885
+398,1886,Mitsubishi Fortis,28,Mitsubishi,sedan,False,,,,20.0,2,10,10,20,../../compcars_cctv/extracted/data_extracted/data/image/28/1886
+399,1889,Mitsubishi Lancer EX,28,Mitsubishi,sedan,False,,,,43.1,25,58,60,118,../../compcars_cctv/extracted/data_extracted/data/image/28/1889
+400,1893,SAAB D70,128,SAAB,sedan,False,,,,28.57,4,14,16,30,../../compcars_cctv/extracted/data_extracted/data/image/128/1893
+401,1899,Wulinghongguang,43,Wuling,minibus,True,172,Wuling,Wulinghongguang,96.88,31,32,34,66,../../compcars_cctv/extracted/data_extracted/data/image/43/1899
+402,1901,Wulingzhiguang,43,Wuling,minibus,False,,,,50.0,8,16,19,35,../../compcars_cctv/extracted/data_extracted/data/image/43/1901
+403,1904,Wulingrongguang,43,Wuling,minibus,False,,,,95.45,21,22,23,45,../../compcars_cctv/extracted/data_extracted/data/image/43/1904
+404,1905,AVEO hatchback,157,Chevy,hatchback,False,,,,55.56,15,27,28,55,../../compcars_cctv/extracted/data_extracted/data/image/157/1905
+405,1906,Trax,157,Chevy,SUV,False,,,,30.77,4,13,16,29,../../compcars_cctv/extracted/data_extracted/data/image/157/1906
+406,1907,Epica,157,Chevy,sedan,True,52,Chevy,Epica,47.22,17,36,38,74,../../compcars_cctv/extracted/data_extracted/data/image/157/1907
+407,1908,Cruze sedan,157,Chevy,sedan,False,,,,67.07,55,82,85,167,../../compcars_cctv/extracted/data_extracted/data/image/157/1908
+408,1909,Cruze hatchback,157,Chevy,fastback,False,,,,27.27,3,11,13,24,../../compcars_cctv/extracted/data_extracted/data/image/157/1909
+409,1910,Captiva,157,Chevy,SUV,True,54,Chevy,Captiva,66.67,32,48,50,98,../../compcars_cctv/extracted/data_extracted/data/image/157/1910
+410,1911,Aveo,157,Chevy,hatchback,True,51,Chevy,Aveo,33.33,5,15,20,35,../../compcars_cctv/extracted/data_extracted/data/image/157/1911
+411,1912,Lova,157,Chevy,sedan,True,53,Chevy,Lova,42.86,15,35,37,72,../../compcars_cctv/extracted/data_extracted/data/image/157/1912
+412,1913,Malibu,157,Chevy,unknown,True,55,Chevy,Malibu,49.09,27,55,58,113,../../compcars_cctv/extracted/data_extracted/data/image/157/1913
+413,1914,Sail hatchback,157,Chevy,hatchback,False,,,,69.57,16,23,24,47,../../compcars_cctv/extracted/data_extracted/data/image/157/1914
+414,1915,Sail sedan,157,Chevy,sedan,False,,,,80.49,33,41,42,83,../../compcars_cctv/extracted/data_extracted/data/image/157/1915
+415,1917,Aveo sedan,157,Chevy,sedan,False,,,,66.67,22,33,33,66,../../compcars_cctv/extracted/data_extracted/data/image/157/1917
+416,1946,Camaro,157,Chevy,sports,False,,,,84.62,44,52,54,106,../../compcars_cctv/extracted/data_extracted/data/image/157/1946
+417,1951,Zhonghua H330,38,Zhonghua,sedan,True,13,Zhonghua,Zhonghua H330,87.5,7,8,13,21,../../compcars_cctv/extracted/data_extracted/data/image/38/1951
+418,1952,Zhonghua H530,38,Zhonghua,sedan,True,14,Zhonghua,Zhonghua H530,50.0,11,22,24,46,../../compcars_cctv/extracted/data_extracted/data/image/38/1952
+419,1953,Zhonghua V5,38,Zhonghua,SUV,True,15,Zhonghua,Zhonghua V5,70.59,12,17,20,37,../../compcars_cctv/extracted/data_extracted/data/image/38/1953
+420,1954,Zhonghua Junjie,38,Zhonghua,sedan,True,12,Zhonghua,Zhonghua Junjie,26.92,7,26,29,55,../../compcars_cctv/extracted/data_extracted/data/image/38/1954
+421,1955,Zhonghua Junjie CROSS,38,Zhonghua,crossover,False,,,,55.56,15,27,29,56,../../compcars_cctv/extracted/data_extracted/data/image/38/1955
+422,1956,Zhonghua Junjie FRV,38,Zhonghua,hatchback,False,,,,53.33,16,30,30,60,../../compcars_cctv/extracted/data_extracted/data/image/38/1956
+423,1957,Zhonghua Junjie FSV,38,Zhonghua,sedan,False,,,,62.07,18,29,31,60,../../compcars_cctv/extracted/data_extracted/data/image/38/1957
+424,1958,Zhonghua Junjie Wagon,38,Zhonghua,estate,False,,,,60.87,14,23,24,47,../../compcars_cctv/extracted/data_extracted/data/image/38/1958
+425,1959,Zhonghua Zunchi,38,Zhonghua,sedan,False,,,,81.25,26,32,35,67,../../compcars_cctv/extracted/data_extracted/data/image/38/1959
+426,1961,Zhonghua H230,38,Zhonghua,sedan,False,,,,81.82,9,11,13,24,../../compcars_cctv/extracted/data_extracted/data/image/38/1961
+427,1962,Brabus S Class,84,Brabus,sedan,False,,,,16.67,3,18,22,40,../../compcars_cctv/extracted/data_extracted/data/image/84/1962
+428,1983,Grandtiger G3,37,Zxauto,pickup,False,,,,80.0,16,20,20,40,../../compcars_cctv/extracted/data_extracted/data/image/37/1983
+429,1984,Grandtiger TUV,37,Zxauto,pickup,False,,,,77.27,17,22,24,46,../../compcars_cctv/extracted/data_extracted/data/image/37/1984
+430,1993,Qijian A9,37,Zxauto,pickup,False,,,,75.0,9,12,15,27,../../compcars_cctv/extracted/data_extracted/data/image/37/1993

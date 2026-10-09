@@ -21,13 +21,17 @@ import numpy as np
 import pandas as pd
 import scipy.io as sio
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import paths  # machine-specific paths: see paths.sh / paths.local.sh
+
 SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-BASE_DIR = Path("/home/researchadmin/Econ")
+BASE_DIR = Path(paths.ECON_ROOT)
+EXT_DIR = Path(paths.EXT_DATASETS_DIR)
 OUTPUT_DIR = Path(__file__).resolve().parent / "splits_1235models"
-LABEL_MAP_PATH = BASE_DIR / "models" / "dataset_manifests" / "label_map_1235models.json"
+LABEL_MAP_PATH = Path(paths.PM_LABEL_MAP)
 
 MAX_PER_CLASS = 600  # Cap per class to prevent heavy Skoda/Octavia or Ford/Focus imbalance
 VAL_RATIO = 0.15
@@ -56,7 +60,7 @@ def load_target_classes():
 
 def gather_stanford_cars(make_to_models):
     items = []
-    devkit_dir = BASE_DIR / "external_datasets" / "stanford-cars" / "car_devkit" / "devkit"
+    devkit_dir = EXT_DIR / "stanford-cars" / "car_devkit" / "devkit"
     meta_path = devkit_dir / "cars_meta.mat"
     if not meta_path.exists():
         print("[Stanford Cars] devkit not found, skipping.")
@@ -86,7 +90,7 @@ def gather_stanford_cars(make_to_models):
                 for clean_mdl, (c, idx, mk, mdl) in sorted(make_to_models[m].items(), key=lambda x: len(x[0]), reverse=True):
                     if len(clean_mdl) >= 2 and clean_mdl in clean_rest:
                         fname = str(it["fname"][0])
-                        img_path = BASE_DIR / "external_datasets" / "stanford-cars" / img_folder / fname
+                        img_path = EXT_DIR / "stanford-cars" / img_folder / fname
                         if img_path.exists():
                             items.append({
                                 "image_path": str(img_path),
@@ -108,7 +112,7 @@ def gather_stanford_cars(make_to_models):
 
 def gather_compcars_sv(make_to_models):
     items = []
-    sv_root = BASE_DIR / "external_datasets" / "compcars_cctv" / "extracted" / "sv_data_extracted" / "sv_data"
+    sv_root = EXT_DIR / "compcars_cctv" / "extracted" / "sv_data_extracted" / "sv_data"
     meta_path = sv_root / "sv_make_model_name.mat"
     img_root = sv_root / "image"
     if not (meta_path.exists() and img_root.exists()):
@@ -151,7 +155,7 @@ def gather_compcars_sv(make_to_models):
 
 def gather_boxcars116k(make_to_models):
     items = []
-    bc_dir = BASE_DIR / "external_datasets" / "BoxCars116k"
+    bc_dir = EXT_DIR / "BoxCars116k"
     pkl_path = bc_dir / "dataset.pkl"
     img_root = bc_dir / "images"
     if not (pkl_path.exists() and img_root.exists()):

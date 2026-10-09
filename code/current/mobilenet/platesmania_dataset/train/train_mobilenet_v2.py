@@ -2,7 +2,7 @@
 """
 MobileNetV2 Training Pipeline on PlatesMania Dataset (PyTorch)
 ==============================================================
-Dataset: /home/researchadmin/Econ/resized_640x640/splits_filtered/
+Dataset: PlatesMania (paths come from paths.sh / paths.local.sh)
 Environment: pt-env (PyTorch 2.14 + CUDA, RTX 4090)
 """
 
@@ -47,6 +47,8 @@ if str(ROOT_MOBILENET_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_MOBILENET_DIR))
 
 import output_analysis as oa
+import paths
+from train_common import (resize_uint8, augment_batch, add_robustness_args, TrainObjective, ModelEMA, jitter_fraction)
 
 
 def parse_args():
@@ -55,13 +57,13 @@ def parse_args():
         default=None,
         help="Path containing train.csv, val.csv, test.csv, and optionally label_map.json")
     parser.add_argument("--csv-path", type=str,
-        default="/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv",
+        default=paths.PM_MANIFEST_CSV,
         help="Path to single unified dataset split CSV (if applicable)")
     parser.add_argument("--base-img-dir", type=str,
-        default="/home/researchadmin/Econ/resized_640x640",
+        default=paths.PM_IMG_DIR,
         help="Base image folder")
     parser.add_argument("--label-map-path", type=str,
-        default="/home/researchadmin/Econ/models/dataset_manifests/label_map_1235models.json",
+        default=paths.PM_LABEL_MAP,
         help="Path to label_map.json")
     parser.add_argument("--output-dir", type=str,
         default=str(DATASET_DIR / "output_mobilenet_v2"),
@@ -78,33 +80,23 @@ def parse_args():
     parser.add_argument("--crop-bottom-pct", type=float, default=0.0, help="Bottom watermark crop (default: 0.0)")
     parser.add_argument("--num-workers", type=int, default=6, help="DataLoader workers")
     parser.add_argument("--seed", type=int, default=42)
+    add_robustness_args(parser)
     return parser.parse_args()
 
 
 # ==============================================================================
 # Dataset Loader with Top Watermark Cropping
 # ==============================================================================
-def resize_uint8(img: torch.Tensor, size: int) -> torch.Tensor:
-    """Antialiased bilinear resize of a (3,H,W) uint8 tensor to (3,size,size).
-    Runs directly on uint8 (much cheaper than a float round-trip); falls back to float if unsupported by this torch build."""
-    try:
-        return nn.functional.interpolate(img.unsqueeze(0), size=(size, size), mode="bilinear",
-                                         align_corners=False, antialias=True).squeeze(0)
-    except (RuntimeError, NotImplementedError):
-        out = nn.functional.interpolate(img.unsqueeze(0).float(), size=(size, size), mode="bilinear",
-                                        align_corners=False, antialias=True)
-        return out.squeeze(0).round().clamp(0, 255).to(torch.uint8)
-
-
 class PlatesManiaDataset(Dataset):
     def __init__(self, df: pd.DataFrame, base_img_dir: Path, img_size: int = 512,
-                 crop_top_pct: float = 0.15, crop_bottom_pct: float = 0.0):
+                 crop_top_pct: float = 0.15, crop_bottom_pct: float = 0.0, crop_jitter: float = 0.0):
         col = "image_path" if "image_path" in df.columns else "image_rel_path"
         self.paths = [os.path.join(str(base_img_dir), p) if not os.path.isabs(p) else p for p in df[col].values]
         self.labels = df["label"].values.astype(np.int64)
         self.img_size = img_size
         self.crop_top_pct = crop_top_pct
         self.crop_bottom_pct = crop_bottom_pct
+        self.crop_jitter = crop_jitter  # >0 only for the train split: randomizes the crop (see train_common.jitter_fraction)
 
     def __len__(self):
         return len(self.paths)
@@ -114,8 +106,8 @@ class PlatesManiaDataset(Dataset):
         try:
             img = io.read_image(path, mode=io.ImageReadMode.RGB)
             _, h, w = img.shape
-            top = int(h * self.crop_top_pct)
-            bottom = max(top + 10, int(h * (1.0 - self.crop_bottom_pct)))
+            top = int(h * jitter_fraction(self.crop_top_pct, self.crop_jitter))
+            bottom = max(top + 10, int(h * (1.0 - jitter_fraction(self.crop_bottom_pct, self.crop_jitter))))
             cropped = img[:, top:bottom, :]
             return resize_uint8(cropped, self.img_size), self.labels[idx]
         except Exception as e:
@@ -129,55 +121,6 @@ def build_val_transform():
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=oa.IMAGENET_MEAN, std=oa.IMAGENET_STD)
     ])
-
-
-def _gray(x: torch.Tensor) -> torch.Tensor:
-    return 0.299 * x[:, 0:1] + 0.587 * x[:, 1:2] + 0.114 * x[:, 2:3]
-
-
-def augment_batch(imgs: torch.Tensor) -> torch.Tensor:
-    """Vectorized GPU augmentation: uint8 (B,3,H,W) -> normalized float32 (B,3,H,W).
-
-    Every image gets its own random draw, but with only a handful of batched kernels (a per-image loop over
-    torchvision v2 transforms made the Python main thread the bottleneck). Same ranges as before:
-    hflip p=0.5, rotate +-10 deg, translate +-6% of the size, scale 0.94-1.06 (zero fill), and
-    brightness/contrast/saturation factors in 1 +- 0.15 (random op order per batch).
-    """
-    B, dev = imgs.shape[0], imgs.device
-    x = imgs.float().div_(255.0)
-
-    # Horizontal flip
-    flip = torch.rand(B, device=dev) < 0.5
-    x = torch.where(flip[:, None, None, None], x.flip(-1), x)
-
-    # Affine (rotation + isotropic scale + translation) in one grid_sample. theta maps output -> input coordinates.
-    ang = (torch.rand(B, device=dev) * 2 - 1) * math.radians(10.0)
-    scale = 0.94 + torch.rand(B, device=dev) * 0.12
-    t = (torch.rand(B, 2, device=dev) * 2 - 1) * (0.06 * 2)  # +-6% of the image size, in [-1, 1] coordinates
-    c, s = torch.cos(ang) / scale, torch.sin(ang) / scale
-    theta = torch.zeros(B, 2, 3, device=dev)
-    theta[:, 0, 0], theta[:, 0, 1] = c, s
-    theta[:, 1, 0], theta[:, 1, 1] = -s, c
-    theta[:, 0, 2] = -(c * t[:, 0] + s * t[:, 1])
-    theta[:, 1, 2] = -(-s * t[:, 0] + c * t[:, 1])
-    grid = nn.functional.affine_grid(theta, list(x.shape), align_corners=False)
-    x = nn.functional.grid_sample(x, grid, mode="bilinear", padding_mode="zeros", align_corners=False)
-
-    # Colour jitter (brightness, contrast, saturation), per-image factors
-    for op in torch.randperm(3).tolist():
-        f = 0.85 + torch.rand(B, 1, 1, 1, device=dev) * 0.30
-        if op == 0:
-            x = (x * f).clamp_(0.0, 1.0)
-        elif op == 1:
-            m = _gray(x).mean(dim=(1, 2, 3), keepdim=True)
-            x = ((x - m) * f + m).clamp_(0.0, 1.0)
-        else:
-            g = _gray(x)
-            x = ((x - g) * f + g).clamp_(0.0, 1.0)
-
-    mean = torch.tensor(oa.IMAGENET_MEAN, device=dev).view(1, 3, 1, 1)
-    std = torch.tensor(oa.IMAGENET_STD, device=dev).view(1, 3, 1, 1)
-    return (x - mean) / std
 
 
 def create_model(num_classes: int, dropout: float = 0.25, unfreeze_layers: int = 5):
@@ -331,7 +274,8 @@ def main():
         test_df  = pd.read_csv(splits_dir / "test.csv")
     print(f"[Data] Train: {len(train_df):,} | Val: {len(val_df):,} | Test: {len(test_df):,}")
 
-    train_ds = PlatesManiaDataset(train_df, Path(args.base_img_dir), args.img_size, args.crop_top_pct, args.crop_bottom_pct)
+    train_ds = PlatesManiaDataset(train_df, Path(args.base_img_dir), args.img_size, args.crop_top_pct, args.crop_bottom_pct,
+                                  crop_jitter=args.crop_jitter)
     val_ds   = PlatesManiaDataset(val_df, Path(args.base_img_dir), args.img_size, args.crop_top_pct, args.crop_bottom_pct)
     test_ds  = PlatesManiaDataset(test_df, Path(args.base_img_dir), args.img_size, args.crop_top_pct, args.crop_bottom_pct)
 
@@ -370,7 +314,11 @@ def main():
     use_fused = (device.type == "cuda")
     optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4, fused=use_fused)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
-    criterion = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    criterion = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)  # plain CE for validation/test, so val loss stays comparable across runs
+    train_objective = TrainObjective(class_to_idx, args.label_smoothing, args.make_loss_weight, device)
+    ema = ModelEMA(model, args.ema_decay) if args.ema_decay > 0 else None
+    print(f"[Config] aug={args.aug_strength} | crop_jitter={args.crop_jitter} | label_smoothing={args.label_smoothing} | "
+          f"make_loss_weight={args.make_loss_weight} | ema_decay={args.ema_decay}")
     use_amp = (device.type == "cuda")
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
@@ -394,16 +342,18 @@ def main():
             n_valid = int(valid.sum().item())
             if n_valid == 0:
                 continue
-            imgs = augment_batch(imgs)
+            imgs = augment_batch(imgs, args.aug_strength)
 
             optimizer.zero_grad()
             with torch.amp.autocast(device_type=device.type, enabled=use_amp):
                 outputs = model(imgs)
-                loss = criterion(outputs, labels)
+                loss = train_objective(outputs, labels)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
+            if ema is not None:
+                ema.update(model)
 
             running_loss += loss.item() * n_valid
             correct += ((outputs.argmax(1) == labels) & valid).sum().item()
@@ -415,7 +365,8 @@ def main():
         train_loss = running_loss / total
         train_acc = correct / total
 
-        val_loss, val_acc = evaluate(model, val_loader, val_tf, criterion, device)
+        eval_model = ema.module if ema is not None else model
+        val_loss, val_acc = evaluate(eval_model, val_loader, val_tf, criterion, device)
 
         print(f"\n[Epoch {epoch+1:02d}] Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2%} || Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2%}")
         history.append({"epoch": epoch + 1, "train_loss": train_loss, "train_acc": train_acc, "val_loss": val_loss, "val_acc": val_acc})
@@ -424,13 +375,13 @@ def main():
             best_val_loss = val_loss
             best_val_acc = val_acc
             print(f"[*] New best validation loss: {best_val_loss:.4f} (Val Acc: {best_val_acc:.2%}). Exporting ONNX weights to {best_onnx_path}")
-            export_to_onnx(model, num_classes, args.img_size, best_onnx_path)
-            best_state = copy.deepcopy(model.state_dict())
+            export_to_onnx(eval_model, num_classes, args.img_size, best_onnx_path)
+            best_state = copy.deepcopy(eval_model.state_dict())
 
     # Final test-set evaluation with the best (lowest val loss) weights, the same ones exported to ONNX
     if best_state is not None:
-        model.load_state_dict(best_state)
-        test_loss, test_acc = evaluate(model, test_loader, val_tf, criterion, device)
+        eval_model.load_state_dict(best_state)
+        test_loss, test_acc = evaluate(eval_model, test_loader, val_tf, criterion, device)
         print(f"[Test] Loss: {test_loss:.4f} | Acc: {test_acc:.2%}")
         with open(reports_dir / "test_metrics.json", "w") as f:
             json.dump({"test_loss": test_loss, "test_acc": test_acc, "best_val_loss": best_val_loss, "best_val_acc": best_val_acc}, f, indent=2)

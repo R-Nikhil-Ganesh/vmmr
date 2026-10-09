@@ -1,0 +1,76 @@
+make_id,make_name,num_models,total_samples,correct_samples,accuracy_pct,macro_acc_pct,best_model,worst_model,rank
+84,Brabus,1,18,7,38.89,38.89,Brabus S Class (38.89%),Brabus S Class (38.89%),1
+106,Jonway,1,9,5,55.56,55.56,Yongyuan A380 (55.56%),Yongyuan A380 (55.56%),2
+80,Wealeak,1,10,6,60.0,60.0,WeaLink X5 (60.0%),WeaLink X5 (60.0%),3
+128,SAAB,1,14,9,64.29,64.29,SAAB D70 (64.29%),SAAB D70 (64.29%),4
+88,GAC,1,9,6,66.67,66.67,Saboo GX5 (66.67%),Saboo GX5 (66.67%),5
+103,Opel,3,80,54,67.5,71.12,Zafira (84.62%),GTC hatchback (60.0%),6
+45,Zoyte,1,17,12,70.59,70.59,Zotye 5008 (70.59%),Zotye 5008 (70.59%),7
+119,Everus,1,21,15,71.43,71.43,Linian S1 (71.43%),Linian S1 (71.43%),8
+94,Subaru,2,55,40,72.73,72.34,Impreza sedan (76.67%),Impreza hatchback (68.0%),9
+70,Venucia,2,44,32,72.73,73.47,Venucia R50 (78.95%),Venucia D50 (68.0%),10
+118,Hyundai ,14,326,242,74.23,71.33,Veloster (96.3%),Mistra (20.0%),11
+76,Besturn,4,186,143,76.88,77.55,Besturn X80 (96.43%),Besturn B90 (58.62%),12
+58,BAW,2,41,32,78.05,69.83,BAW E Series hatchback (89.66%),BAW E Series sedan  (50.0%),13
+81,BWM,18,799,630,78.85,74.62,BWM X1 (90.62%),BWM 2 Series (57.14%),14
+108,Jianghuai,7,240,190,79.17,79.52,Ruiying (95.24%),Binyue (66.67%),15
+95,Skoda,7,283,225,79.51,78.19,Fabia (87.1%),Haorui (63.04%),16
+69,Geely,6,182,146,80.22,76.82,Classic Imperial sedan (98.0%),Ziyoujian (47.37%),17
+35,Dongfengfengshen,4,122,98,80.33,82.14,Fengshen A60 (95.45%),Fengshen S30 (73.47%),18
+73,Volkswagen,30,1125,904,80.36,78.65,Cross Lavida (100.0%),Gran Lavida (42.11%),19
+28,Mitsubishi,7,278,224,80.58,75.08,Pajero (96.1%),Mitsubishi Fortis (50.0%),20
+100,Honda,7,270,219,81.11,79.41,Honda CR-V (91.43%),Spirior (68.18%),21
+138,Qoros,1,16,13,81.25,81.25,Qoros 3 (81.25%),Qoros 3 (81.25%),22
+68,Shuanglong,1,11,9,81.82,81.82,Kyron (81.82%),Kyron (81.82%),23
+39,Toyota,15,548,449,81.93,82.47,Prius (100.0%),Crown (48.57%),24
+92,Jaguar,2,128,106,82.81,83.44,Gaguar XJ (91.53%),Gaguar XF (75.36%),25
+159,Lexus,11,322,268,83.23,80.87,Lexus IS convertible  (100.0%),Lexus ES (64.29%),26
+155,Lufeng,2,42,35,83.33,82.14,Landwind X8 (85.71%),Landwind X5 (78.57%),27
+37,Zxauto,3,54,45,83.33,82.78,Grandtiger TUV (100.0%),Grandtiger G3 (65.0%),28
+77,Benz,13,614,513,83.55,82.22,Benz SLK Class (96.77%),Benz A Class (66.67%),29
+157,Chevy,13,471,394,83.65,80.83,Sail sedan (97.56%),Sail hatchback (69.57%),30
+55,Lifan,3,63,53,84.13,77.19,Lifan 320 (94.59%),Lifan 720 (63.64%),31
+78,Audi,18,891,752,84.4,83.12,Audi Q7 (95.77%),Audi A5 hatchback (57.69%),32
+114,Haima,8,190,161,84.74,85.79,Haima S7 (100.0%),Haimaqishi (75.0%),33
+38,Zhonghua,10,225,191,84.89,86.57,Zhonghua H330 (100.0%),Zhonghua V5 (76.47%),34
+140,KIA,12,431,366,84.92,81.66,Sportage (96.15%),KIA K3 (64.29%),35
+152,Changan,13,267,227,85.02,82.68,Zhishang XT (100.0%),Yuexiang V3 (46.15%),36
+102,Peugeot,15,450,385,85.56,85.83,Peugeot 308 (97.22%),Peugeot 207 hatchback (60.61%),37
+48,Porsche,4,212,184,86.79,86.37,Cayman (96.23%),Canyenne (79.07%),38
+122,Ford,11,360,313,86.94,86.11,Ecosport (96.55%),New Focus hatchback (73.33%),39
+162,MAZDA,14,376,327,86.97,86.14,Mazda 3 Xingcheng hatchback (100.0%),Mazda 2 sedan (45.45%),40
+14,MG,6,149,130,87.25,83.47,MG5 (100.0%),MG6 sedan (58.33%),41
+150,GreatWall,7,191,167,87.43,87.16,Great Wall M4 (100.0%),Wingle 5 (71.43%),42
+105,BYD,7,210,184,87.62,86.66,BYD F0 (97.78%),BYD F6 (76.19%),43
+134,FIAT,4,106,93,87.74,85.6,FIAT 500 (93.75%),Feixiang (81.25%),44
+53,Cadillac,5,213,187,87.79,84.79,Cadillac SRX (94.44%),Cadillac ATS-L (69.23%),45
+36,Dongfengfengxing,2,42,37,88.1,92.19,Lingzhi (100.0%),Jingyi (84.38%),46
+97,Nissan,10,404,356,88.12,86.67,Nissan GT-R (96.88%),Ma Chi (61.9%),47
+75,Chrey,14,283,251,88.69,86.91,Chrey A3 sedan (100.0%),Eastar Cross (71.43%),48
+158,Citroen,7,345,306,88.7,83.0,c-Elysee sedan (98.61%),Elysee (46.15%),49
+160,Renault,4,110,98,89.09,86.89,Scenic (94.44%),Wind Lang (75.0%),50
+4,DS,4,108,97,89.81,85.94,DS 5 (100.0%),DS 5LS (76.92%),51
+89,Karry,1,10,9,90.0,90.0,Youyou (90.0%),Youyou (90.0%),52
+111,Volvo,11,558,503,90.14,87.71,Volvo XC60 (98.0%),Volvo S60L (59.26%),53
+131,Infiniti,6,214,193,90.19,90.6,Infiniti G Class (100.0%),Infiniti Q70L (82.14%),54
+15,MINI,4,225,203,90.22,90.78,MINI CLUBMAN (96.83%),MINI (81.43%),55
+54,Buck,10,438,398,90.87,89.45,Buick GL8 Luxury Business (100.0%),Enclave (57.89%),56
+34,Dongfengfengdu,1,33,30,90.91,90.91,Shuaike (90.91%),Shuaike (90.91%),57
+132,Roewe,3,160,147,91.88,93.02,Roewe 750 (95.83%),Roewe 550 (88.31%),58
+133,Lotus,1,13,12,92.31,92.31,Jingyue (92.31%),Jingyue (92.31%),59
+120,Ruiqi,1,27,25,92.59,92.59,Ruiqi G5 (92.59%),Ruiqi G5 (92.59%),60
+149,Suzuki,8,270,250,92.59,90.46,Alto (100.0%),Kazishi (74.07%),61
+11,Jeep,3,193,179,92.75,92.14,Wrangler (98.73%),Compass (85.25%),62
+43,Wuling,3,70,65,92.86,91.19,Wulinghongguang (96.88%),Wulingzhiguang (81.25%),63
+121,Fuqiqiteng,1,14,13,92.86,92.86,Qiteng M70 (92.86%),Qiteng M70 (92.86%),64
+50,Chrysler,1,43,40,93.02,93.02,Chrysler 300C (93.02%),Chrysler 300C (93.02%),65
+27,Yiqi,4,82,77,93.9,91.86,Weizhi V5 (100.0%),Weizhi (78.57%),66
+148,Jinbei,1,21,20,95.24,95.24,Dahaishi (95.24%),Dahaishi (95.24%),67
+142,LAND-ROVER,4,226,216,95.58,95.47,Discovery (100.0%),Range Rover Sport (91.8%),68
+82,Baojun,3,118,113,95.76,96.78,Baojun 610 (100.0%),Baojun 630 (94.12%),69
+51,Lamorghini ,1,57,55,96.49,96.49,Gallardo (96.49%),Gallardo (96.49%),70
+71,Haval,1,69,67,97.1,97.1,Haval H3 (97.1%),Haval H3 (97.1%),71
+26,smart,1,80,78,97.5,97.5,smart fortwo (97.5%),smart fortwo (97.5%),72
+87,Guangqichuanqi,1,30,30,100.0,100.0,Chuanqi GS5 (100.0%),Chuanqi GS5 (100.0%),73
+64,Huatai,1,15,15,100.0,100.0,Lusheng E70 (100.0%),Lusheng E70 (100.0%),74
+29,Shangqidatong,1,12,12,100.0,100.0,MAXUS V80xs (100.0%),MAXUS V80xs (100.0%),75

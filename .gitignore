@@ -13,4 +13,6 @@ test_predictions.txt
 *env
 *logs/
 *log
-archive/
+archive/paths.local.sh
+*.btr
+/archive/

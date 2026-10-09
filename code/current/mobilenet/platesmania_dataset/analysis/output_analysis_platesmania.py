@@ -16,14 +16,15 @@ if str(ROOT_MOBILENET_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_MOBILENET_DIR))
 
 import output_analysis as _oa
+import paths
 
 # Configure analysis context specifically for PlatesMania
 _oa.set_context(
     model_path=DATASET_DIR / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.onnx",
     output_dir=DATASET_DIR / "output_mobilenet_v2",
-    test_csv_path=Path("/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv"),
+    test_csv_path=Path(paths.PM_MANIFEST_CSV),
     label_map_path=DATASET_DIR / "output_mobilenet_v2" / "models" / "label_map.json",
-    base_img_dir=Path("/home/researchadmin/Econ/resized_640x640"),
+    base_img_dir=Path(paths.PM_IMG_DIR),
     img_size=512,
     crop_top_pct=0.15,
     crop_bottom_pct=0.0

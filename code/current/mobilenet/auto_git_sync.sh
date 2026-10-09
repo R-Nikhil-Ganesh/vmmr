@@ -10,7 +10,7 @@ set -e
 
 TASK_DESC="${1:-MobileNetV2 Training Run}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel 2>/dev/null || echo "/home/researchadmin/Econ-n/repo-clone/vmmr")"
+REPO_ROOT="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel)"
 
 cd "${REPO_ROOT}"
 
@@ -22,7 +22,7 @@ echo "  Timestamp:  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=================================================================="
 
 # Stage all mobilenet files (code, configs, reports, plots, onnx models, manifests)
-git add -A code/current/mobilenet/
+git add -A code/current/mobilenet/ ':(exclude)*__pycache__*' ':(exclude)*.btr' ':(exclude)*paths.local.sh'
 
 # Check if there is anything to commit
 if git diff --staged --quiet; then

@@ -1,0 +1,14 @@
+{
+  "resolution": "640x640",
+  "res_dim": 640,
+  "batch_size": 8,
+  "epochs_trained": 20,
+  "best_val_acc_pct": 91.01,
+  "test_micro_acc_pct": 92.22,
+  "test_macro_mean_pct": 90.89,
+  "test_macro_median_pct": 93.33,
+  "total_correct": 13777,
+  "total_samples": 14939,
+  "training_time_min": 58.18,
+  "eval_time_sec": 63.85
+}

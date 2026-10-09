@@ -7,27 +7,26 @@ set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -f "/home/researchadmin/Econ-n/repo-clone/pt-env/bin/python" ]; then
-    PYTHON_BIN="/home/researchadmin/Econ-n/repo-clone/pt-env/bin/python"
-elif [ -f "${SCRIPT_DIR}/../../../../pt-env/bin/python" ]; then
-    PYTHON_BIN="$(cd "${SCRIPT_DIR}/../../../.." && pwd)/pt-env/bin/python"
-else
-    PYTHON_BIN="$(which python3)"
-fi
+# Machine-specific paths and Python interpreter (see paths.sh)
+source "${SCRIPT_DIR}/paths.sh"
+
 
 if [ ! -x "${PYTHON_BIN}" ]; then
     echo "[ERROR] Python binary not found or not executable: ${PYTHON_BIN}" >&2
     exit 1
 fi
 
-OUTPUT_DIR="${SCRIPT_DIR}/mixed_benchmark_results"
+# RUN_NAME=<name> evaluates the models trained with the same RUN_NAME and writes to mixed_benchmark_results_<name>
+OUTPUT_DIR="${SCRIPT_DIR}/mixed_benchmark_results${RUN_NAME:+_${RUN_NAME}}"
 mkdir -p "${OUTPUT_DIR}"
 
-PM_MODEL="${SCRIPT_DIR}/platesmania_dataset/output_mobilenet_v2/models/mobilenet_v2_best.onnx"
-PM_LABEL_MAP="${SCRIPT_DIR}/platesmania_dataset/output_mobilenet_v2/models/label_map.json"
+PM_RUN_DIR="${SCRIPT_DIR}/platesmania_dataset/output_${RUN_NAME:-mobilenet_v2}"
+EXT_RUN_DIR="${SCRIPT_DIR}/external_dataset/output_${RUN_NAME:+external_}${RUN_NAME:-mobilenet_v2_external}"
+PM_MODEL="${PM_RUN_DIR}/models/mobilenet_v2_best.onnx"
+PM_MODEL_LABEL_MAP="${PM_RUN_DIR}/models/label_map.json"
 
-EXT_MODEL="${SCRIPT_DIR}/external_dataset/output_mobilenet_v2_external/models/mobilenet_v2_best.onnx"
-EXT_LABEL_MAP="${SCRIPT_DIR}/external_dataset/output_mobilenet_v2_external/models/label_map.json"
+EXT_MODEL="${EXT_RUN_DIR}/models/mobilenet_v2_best.onnx"
+EXT_LABEL_MAP="${EXT_RUN_DIR}/models/label_map.json"
 
 echo "=================================================================="
 echo "  Running Cross-Domain & Mixed Benchmark Evaluation"
@@ -39,11 +38,11 @@ echo "=================================================================="
 
 ${PYTHON_BIN} -u "${SCRIPT_DIR}/evaluate_mixed.py" \
     --pm-model-path "${PM_MODEL}" \
-    --pm-label-map "${PM_LABEL_MAP}" \
+    --pm-label-map "${PM_MODEL_LABEL_MAP}" \
     --ext-model-path "${EXT_MODEL}" \
     --ext-label-map "${EXT_LABEL_MAP}" \
-    --pm-test-csv "/home/researchadmin/Econ/models/dataset_manifests/dataset_1235models_splits.csv" \
-    --pm-img-dir "/home/researchadmin/Econ/resized_640x640" \
+    --pm-test-csv "${PM_MANIFEST_CSV}" \
+    --pm-img-dir "${PM_IMG_DIR}" \
     --ext-test-csv "${SCRIPT_DIR}/external_dataset/splits_1235models/test.csv" \
     --output-dir "${OUTPUT_DIR}" \
     --img-size 512 \

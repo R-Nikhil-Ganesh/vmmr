@@ -1,0 +1,14 @@
+{
+  "resolution": "256x256",
+  "res_dim": 256,
+  "batch_size": 32,
+  "epochs_trained": 20,
+  "best_val_acc_pct": 84.36,
+  "test_micro_acc_pct": 86.22,
+  "test_macro_mean_pct": 84.78,
+  "test_macro_median_pct": 86.96,
+  "total_correct": 12881,
+  "total_samples": 14939,
+  "training_time_min": 16.47,
+  "eval_time_sec": 48.82
+}

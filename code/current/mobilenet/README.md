@@ -145,3 +145,39 @@ Generates:
 - **Backbone**: `torchvision.models.mobilenet_v2` (ImageNet pretrained, top 5 layers unfrozen).
 - **Automated ONNX Export**: Automatically serializes the best checkpoint to `.onnx` whenever validation loss reaches a new minimum. The graph exposes three outputs: `predictions` (logits), `embeddings` (1280-D, for t-SNE/PCA) and `class_maps` (per-class activation maps, for Grad-CAM).
 - **Diagnostic Engine**: Analytical Grad-CAM, 2D latent space projections (t-SNE & PCA), confusion matrices, and confidence calibration with rejection curves ($\tau = 0.70$).
+
+---
+
+## Moving to another server: `paths.sh`
+
+All machine-specific paths live in [`paths.sh`](paths.sh) (read by every `.sh` runner and, through [`paths.py`](paths.py), by the Python scripts). The defaults are the original server's values. On a new machine create `paths.local.sh` next to it (gitignored) with only what differs:
+
+```bash
+ECON_ROOT=/data/Econ                       # everything below is derived from it
+PYTHON_BIN=/opt/envs/pt-env/bin/python     # optional
+# PM_IMG_DIR, PM_MANIFEST_CSV, PM_LABEL_MAP, EXT_DATASETS_DIR, AUTO_GIT_PUSH can be set individually
+```
+
+Precedence: shell environment > `paths.local.sh` > defaults. Check the result with `python paths.py --check`.
+
+## Cross-dataset generalization options
+
+Both training scripts share [`train_common.py`](train_common.py) so they use identical augmentation and objectives. Every option defaults to the original behaviour; extra flags passed to a runner go straight to the trainer, and `RUN_NAME=<name>` keeps each experiment in its own folders.
+
+| Flag | Effect |
+|---|---|
+| `--aug-strength strong` | wide zoom/aspect (tight vs loose framing), blur, noise, random erasing, stronger colour jitter |
+| `--crop-jitter 0.5` | randomizes the train-split crop (PlatesMania top crop, External bbox margin / bottom crop); val/test unchanged |
+| `--label-smoothing 0.1` | smoothed cross-entropy (validation loss stays plain CE, so checkpoint selection is comparable) |
+| `--make-loss-weight 0.3` | auxiliary loss on P(make) = sum of P(model) over the make's models |
+| `--ema-decay 0.999` | EMA of the weights; validation, best-checkpoint selection and ONNX export use the EMA weights |
+
+```bash
+# ablation 1: augmentation only (run for both datasets, then evaluate with the same RUN_NAME)
+RUN_NAME=aug bash platesmania_dataset/train/run_train.sh --aug-strength strong --crop-jitter 0.5
+RUN_NAME=aug bash external_dataset/train/run_train_external.sh --aug-strength strong --crop-jitter 0.5
+RUN_NAME=aug bash run_eval_mixed.sh
+# ablation 2 adds:  --label-smoothing 0.1 --make-loss-weight 0.3      ablation 3 adds:  --ema-decay 0.999
+```
+
+`evaluate_mixed.py` also writes `class_coverage.csv` and `shared_class_summary.csv`: accuracy restricted to test images whose class has training images in **both** datasets (plain top-1 and top-1 with the argmax restricted to those classes). Use it to separate "the class was never seen" from "seen but misclassified under domain shift".

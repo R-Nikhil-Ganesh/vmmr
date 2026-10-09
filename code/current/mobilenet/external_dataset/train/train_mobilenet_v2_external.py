@@ -2,7 +2,7 @@
 """
 MobileNetV2 Training Pipeline on External Merged Dataset (PyTorch)
 ==================================================================
-Dataset: /home/researchadmin/Econ/external_datasets/merged_data
+Dataset: external merged splits (see external_dataset/prepare_external_1235models.py)
 Classes: 35 Vehicle Makes (BoxCars116k, Stanford Cars, CompCars CCTV/Web)
 Environment: pt-env (PyTorch 2.14 + CUDA, RTX 4090)
 """
@@ -47,6 +47,8 @@ if str(ROOT_MOBILENET_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_MOBILENET_DIR))
 
 import output_analysis as oa
+from train_common import (resize_uint8, augment_batch, add_robustness_args, TrainObjective, ModelEMA,
+                          jitter_fraction, jitter_bbox)
 
 
 def parse_args():
@@ -68,6 +70,7 @@ def parse_args():
     parser.add_argument("--crop-bottom-pct", type=float, default=0.0, help="Bottom watermark strip crop (default: 0.0)")
     parser.add_argument("--num-workers", type=int, default=6, help="DataLoader workers")
     parser.add_argument("--seed", type=int, default=42)
+    add_robustness_args(parser)
     return parser.parse_args()
 
 
@@ -75,11 +78,12 @@ def parse_args():
 # External Merged Dataset Loader
 # ==============================================================================
 class ExternalMergedDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, img_size: int = 512, crop_bottom_pct: float = 0.0):
+    def __init__(self, df: pd.DataFrame, img_size: int = 512, crop_bottom_pct: float = 0.0, crop_jitter: float = 0.0):
         self.paths = df["image_path"].values
         self.labels = df["label"].values.astype(np.int64)
         self.img_size = img_size
         self.crop_bottom_pct = crop_bottom_pct
+        self.crop_jitter = crop_jitter  # >0 only for the train split: randomizes the crop (see train_common)
         self.has_bbox = "bbox_x1" in df.columns
         if self.has_bbox:
             self.bboxes = df[["bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"]].values.astype(int)
@@ -100,39 +104,25 @@ class ExternalMergedDataset(Dataset):
                 y1 = max(0, min(y1, h - 1))
                 x2 = max(x1 + 1, min(x2, w))
                 y2 = max(y1 + 1, min(y2, h))
+                x1, y1, x2, y2 = jitter_bbox(x1, y1, x2, y2, w, h, self.crop_jitter)
                 cropped = img[:, y1:y2, x1:x2]
             else:
                 # Bottom border strip crop to strip web dealership stamps if configured
-                bottom_h = max(20, int(h * (1.0 - self.crop_bottom_pct)))
+                bottom_h = max(20, int(h * (1.0 - jitter_fraction(self.crop_bottom_pct, self.crop_jitter))))
                 cropped = img[:, :bottom_h, :]
 
-            resized = nn.functional.interpolate(
-                cropped.unsqueeze(0).float(),
-                size=(self.img_size, self.img_size),
-                mode="bilinear",
-                align_corners=False,
-                antialias=True
-            ).squeeze(0).round().clamp(0, 255).to(torch.uint8)
-            return resized, self.labels[idx]
+            return resize_uint8(cropped, self.img_size), self.labels[idx]
         except Exception as e:
             # Unreadable image: report it and mark it with IGNORE_INDEX so it is excluded from loss/accuracy
             print(f"[WARN] Failed to load image {path}: {e}", file=sys.stderr, flush=True)
             return torch.zeros((3, self.img_size, self.img_size), dtype=torch.uint8), IGNORE_INDEX
 
 
-def build_transforms():
-    train_gpu_transforms = v2.Compose([
-        v2.ToDtype(torch.float32, scale=True),
-        v2.RandomHorizontalFlip(p=0.5),
-        v2.RandomAffine(degrees=(-10, 10), translate=(0.06, 0.06), scale=(0.94, 1.06)),
-        v2.ColorJitter(brightness=0.15, contrast=0.15, saturation=0.15),
-        v2.Normalize(mean=oa.IMAGENET_MEAN, std=oa.IMAGENET_STD)
-    ])
-    val_test_gpu_transforms = v2.Compose([
+def build_val_transform():
+    return v2.Compose([
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean=oa.IMAGENET_MEAN, std=oa.IMAGENET_STD)
     ])
-    return train_gpu_transforms, val_test_gpu_transforms
 
 
 def create_model(num_classes: int, dropout: float = 0.25, unfreeze_layers: int = 5):
@@ -170,11 +160,6 @@ def set_train_mode(model: nn.Module, unfreeze_layers: int):
         for m in block.modules():
             if isinstance(m, nn.BatchNorm2d):
                 m.eval()
-
-
-def apply_per_sample(tf, imgs: torch.Tensor) -> torch.Tensor:
-    """Apply a random transform independently to every image (v2 transforms draw one set of params per call)."""
-    return torch.stack([tf(img) for img in imgs])
 
 
 def evaluate(model: nn.Module, loader: DataLoader, tf, criterion: nn.Module, device: torch.device):
@@ -274,7 +259,7 @@ def main():
     test_df  = pd.read_csv(splits_dir / "test.csv")
     print(f"[Data] Train: {len(train_df):,} | Val: {len(val_df):,} | Test: {len(test_df):,}")
 
-    train_ds = ExternalMergedDataset(train_df, args.img_size, args.crop_bottom_pct)
+    train_ds = ExternalMergedDataset(train_df, args.img_size, args.crop_bottom_pct, crop_jitter=args.crop_jitter)
     val_ds   = ExternalMergedDataset(val_df, args.img_size, args.crop_bottom_pct)
     test_ds  = ExternalMergedDataset(test_df, args.img_size, args.crop_bottom_pct)
 
@@ -283,23 +268,24 @@ def main():
         train_ds, batch_size=args.batch_size, shuffle=True,
         num_workers=args.num_workers, pin_memory=True,
         persistent_workers=(args.num_workers > 0),
-        prefetch_factor=2 if args.num_workers > 0 else None,
+        prefetch_factor=4 if args.num_workers > 0 else None,
         drop_last=True
     )
     val_loader   = DataLoader(
         val_ds, batch_size=args.eval_batch_size, shuffle=False,
         num_workers=args.num_workers, pin_memory=True,
         persistent_workers=(args.num_workers > 0),
-        prefetch_factor=2 if args.num_workers > 0 else None
+        prefetch_factor=4 if args.num_workers > 0 else None
     )
     test_loader  = DataLoader(
         test_ds, batch_size=args.eval_batch_size, shuffle=False,
         num_workers=args.num_workers, pin_memory=True,
         persistent_workers=(args.num_workers > 0),
-        prefetch_factor=2 if args.num_workers > 0 else None
+        prefetch_factor=4 if args.num_workers > 0 else None
     )
 
-    train_tf, val_tf = build_transforms()
+    val_tf = build_val_transform()
+    torch.backends.cudnn.benchmark = True
 
     model = create_model(num_classes=num_classes, dropout=args.dropout, unfreeze_layers=args.unfreeze_layers).to(device)
 
@@ -309,9 +295,13 @@ def main():
         {"params": trainable_backbone, "lr": args.backbone_lr},
         {"params": model.classifier.parameters(), "lr": args.lr}
     ]
-    optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4, fused=(device.type == "cuda"))
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
-    criterion = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    criterion = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)  # plain CE for validation/test, so val loss stays comparable across runs
+    train_objective = TrainObjective(class_to_idx, args.label_smoothing, args.make_loss_weight, device)
+    ema = ModelEMA(model, args.ema_decay) if args.ema_decay > 0 else None
+    print(f"[Config] aug={args.aug_strength} | crop_jitter={args.crop_jitter} | label_smoothing={args.label_smoothing} | "
+          f"make_loss_weight={args.make_loss_weight} | ema_decay={args.ema_decay}")
     use_amp = (device.type == "cuda")
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
@@ -335,16 +325,18 @@ def main():
             n_valid = int(valid.sum().item())
             if n_valid == 0:
                 continue
-            imgs = apply_per_sample(train_tf, imgs)
+            imgs = augment_batch(imgs, args.aug_strength)
 
             optimizer.zero_grad()
             with torch.amp.autocast(device_type=device.type, enabled=use_amp):
                 outputs = model(imgs)
-                loss = criterion(outputs, labels)
+                loss = train_objective(outputs, labels)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
+            if ema is not None:
+                ema.update(model)
 
             running_loss += loss.item() * n_valid
             correct += ((outputs.argmax(1) == labels) & valid).sum().item()
@@ -356,7 +348,8 @@ def main():
         train_loss = running_loss / total
         train_acc = correct / total
 
-        val_loss, val_acc = evaluate(model, val_loader, val_tf, criterion, device)
+        eval_model = ema.module if ema is not None else model
+        val_loss, val_acc = evaluate(eval_model, val_loader, val_tf, criterion, device)
 
         print(f"\n[Epoch {epoch+1:02d}] Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2%} || Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2%}")
         history.append({"epoch": epoch + 1, "train_loss": train_loss, "train_acc": train_acc, "val_loss": val_loss, "val_acc": val_acc})
@@ -365,13 +358,13 @@ def main():
             best_val_loss = val_loss
             best_val_acc = val_acc
             print(f"[*] New best validation loss: {best_val_loss:.4f} (Val Acc: {best_val_acc:.2%}). Exporting ONNX weights to {best_onnx_path}")
-            export_to_onnx(model, num_classes, args.img_size, best_onnx_path)
-            best_state = copy.deepcopy(model.state_dict())
+            export_to_onnx(eval_model, num_classes, args.img_size, best_onnx_path)
+            best_state = copy.deepcopy(eval_model.state_dict())
 
     # Final test-set evaluation with the best (lowest val loss) weights, the same ones exported to ONNX
     if best_state is not None:
-        model.load_state_dict(best_state)
-        test_loss, test_acc = evaluate(model, test_loader, val_tf, criterion, device)
+        eval_model.load_state_dict(best_state)
+        test_loss, test_acc = evaluate(eval_model, test_loader, val_tf, criterion, device)
         print(f"[Test] Loss: {test_loss:.4f} | Acc: {test_acc:.2%}")
         with open(reports_dir / "test_metrics.json", "w") as f:
             json.dump({"test_loss": test_loss, "test_acc": test_acc, "best_val_loss": best_val_loss, "best_val_acc": best_val_acc}, f, indent=2)
