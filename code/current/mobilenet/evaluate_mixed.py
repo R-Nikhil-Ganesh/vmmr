@@ -18,6 +18,7 @@ Dual-Level Metrics:
 
 import os
 import sys
+import gc
 import json
 import argparse
 from pathlib import Path
@@ -160,7 +161,7 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
             if not tensors:
                 continue
 
-            batch_tensor = torch.cat(tensors, dim=0).to(device)
+            batch_tensor = torch.cat(tensors, dim=0)
             logits = model(batch_tensor)
             probs = torch.softmax(logits, dim=-1).cpu().numpy()
 
@@ -271,10 +272,6 @@ def main():
         external_train_images=lambda d: d["label"].map(ext_train_counts).fillna(0).astype(int),
     ).to_csv(output_dir / "class_coverage.csv", index=False)
 
-    # Load models
-    model_a = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path).to(device)
-    model_b = oa.MobileNetV2Evaluator(num_classes=len(ext_lm), checkpoint_path=args.ext_model_path).to(device)
-
     # 1. Prepare PlatesMania test split
     df_pm = pd.read_csv(args.pm_test_csv)
     if "split" in df_pm.columns:
@@ -337,6 +334,7 @@ def main():
 
     # Benchmark Model A (PlatesMania)
     print("\n--- Evaluating Model A (PlatesMania) ---")
+    model_a = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path)
     res_a_pm = evaluate_model_on_split(model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model A on PlatesMania (In-Domain):     Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
 
@@ -352,8 +350,14 @@ def main():
         {"model": "Model A (PlatesMania)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_a_mix},
     ])
 
+    del model_a
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
     # Benchmark Model B (External)
     print("\n--- Evaluating Model B (External Merged) ---")
+    model_b = oa.MobileNetV2Evaluator(num_classes=len(ext_lm), checkpoint_path=args.ext_model_path)
     res_b_ext = evaluate_model_on_split(model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
     print(f"Model B on External    (In-Domain):     Make Acc={res_b_ext['make_accuracy']:.2%} | Model Acc={res_b_ext['model_accuracy']:.2%} | Make Macro F1={res_b_ext['make_macro_f1']:.2%}")
 
@@ -368,6 +372,11 @@ def main():
         {"model": "Model B (External)", "test_split": "PlatesMania (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_b_pm},
         {"model": "Model B (External)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_b_mix},
     ])
+
+    del model_b
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(output_dir / "mixed_benchmark_summary.csv", index=False)

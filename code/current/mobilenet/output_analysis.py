@@ -155,7 +155,7 @@ class MobileNetV2Evaluator(nn.Module):
         if "CUDAExecutionProvider" in available:
             cuda_options = {
                 "device_id": 0,
-                "arena_extend_strategy": "kNextPowerOfTwo",
+                "arena_extend_strategy": "kSameAsRequested",
                 "cudnn_conv_algo_search": "HEURISTIC",
                 "do_copy_in_default_stream": True,
             }
