@@ -1,12 +1,13 @@
 # Commands
 
-Run everything from `vmmr/code/current/mobilenet/`. There are four runners, all in `bash_scripts/`. **Each one starts in a detached tmux session by default** and keeps the pane open afterwards. Training and diagnostics are meant for the GPU server, where the data lives.
+Run everything from `vmmr/code/current/mobilenet/`. There are five runners, all in `bash_scripts/`. **Each one starts in a detached tmux session by default** and keeps the pane open afterwards. Training and diagnostics are meant for the GPU server, where the data lives.
 
 | I want to... | Command | tmux session |
 |---|---|---|
 | Train A, train B, then diagnostics + benchmark | `bash bash_scripts/run_all_pipeline.sh [trainer flags]` | `mobilenet_pipeline` |
 | Train Model A (PlatesMania) only | `bash bash_scripts/run_train_pm.sh [trainer flags]` | `train_pm` |
 | Train Model B (External) only | `bash bash_scripts/run_train_external.sh [trainer flags]` | `train_ext` |
+| Train Model C (PlatesMania + External merged) | `bash bash_scripts/run_train_merged.sh [flags]` | `train_merged` |
 | Diagnostics + cross-domain benchmark | `bash bash_scripts/run_diagnostics.sh [options]` | `diagnostics` |
 
 `bash_scripts/lib/` holds helpers that are not run directly: `paths.sh` (all machine paths), `tmux_wrap.sh`, `auto_git_sync.sh`.
@@ -84,6 +85,29 @@ RUN_NAME=aug bash bash_scripts/run_train_external.sh --aug-strength strong --cro
 bash bash_scripts/run_train_pm.sh --epochs 1 --num-workers 2            # quick sanity run
 ```
 
+## `run_train_merged.sh` (Model C: PlatesMania + External)
+
+A separate experiment: Model C trains on **both** datasets, while A and B stay single-dataset. Use it to see how far joint training gets compared with the cross-dataset numbers of A and B. Each image is cropped as in its own dataset (PlatesMania top 15%, External bbox / bottom 5%), and both share the 1,235-class label space (the script stops if the label maps differ).
+
+External has about 30k train images against about 1M for PlatesMania, so plain concatenation would make it negligible. The trainer therefore samples a fixed share of External images in every epoch. An epoch has as many samples as PlatesMania's train split (same cost as Model A). Checkpoints are selected on the **mean of the two validation losses** (each domain weighted equally), and the final test is reported per domain in `reports/test_metrics.json`.
+
+Output: `merged_dataset/output_mobilenet_v2_merged/` (or `output_merged_<RUN_NAME>`), same layout as A and B, with per-domain validation columns in `training_history.csv`.
+
+Takes all the generalization options and common trainer flags above, plus:
+
+| Flag | Default | What it does |
+|---|---|---|
+| `--ext-fraction F` | `0.2` | Share of External images per epoch. `0` = plain concatenation (about 3% External). At 0.2 each External image is drawn about 6 times per epoch, so combine with `--aug-strength strong` to limit memorizing. |
+| `--pm-crop-top-pct F` | `0.15` | PlatesMania top crop. |
+| `--ext-crop-bottom-pct F` | `0.05` | External bottom crop (used when no bbox). |
+| `--pm-csv-path`, `--pm-img-dir`, `--ext-splits-dir`, `--label-map-path` | from `paths.sh` | Locations. |
+
+```bash
+bash bash_scripts/run_train_merged.sh
+RUN_NAME=m50 bash bash_scripts/run_train_merged.sh --ext-fraction 0.5 --aug-strength strong --crop-jitter 0.5
+bash bash_scripts/run_diagnostics.sh --merged            # then diagnose it (add the same RUN_NAME)
+```
+
 ## `run_diagnostics.sh`
 
 Per model: classification reports (model level and make level), confusion matrices (model and make), calibration curve, t-SNE/PCA of the embeddings, `test_metrics.json`. Then the cross-domain benchmark (in-domain, out-of-domain, mixed; 5,000 images per dataset) with the shared-class view, written to `mixed_benchmark_results[_<RUN_NAME>]/` (`mixed_benchmark_summary.csv`, `shared_class_summary.csv`, `class_coverage.csv`, `cross_domain_comparison.png`).
@@ -96,8 +120,11 @@ Per model: classification reports (model level and make level), confusion matric
 | `--pm-only` | Only Model A diagnostics. |
 | `--ext-only` | Only Model B diagnostics. |
 | `--bench-only` | Only the cross-domain benchmark. |
+| `--merged` | Only Model C (see below). |
 
 Use the same `RUN_NAME` as the training run to diagnose that run's models.
+
+`--merged` diagnoses Model C: the PlatesMania and External test splits are reported separately (`merged_dataset/output_.../diagnostics_platesmania/` and `diagnostics_external/`), and the same 5,000-image benchmark as A/B is written to `.../benchmark/`. In that benchmark the "Model A" and "Model B" rows are both the merged model, so read the in-domain and out-of-domain labels as simply "PlatesMania test" and "External test".
 
 ```bash
 bash bash_scripts/run_diagnostics.sh

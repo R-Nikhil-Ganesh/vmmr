@@ -17,6 +17,9 @@ vmmr/code/current/mobilenet/
 │   │   └── output_analysis_platesmania.ipynb # Full diagnostic evaluation notebook
 │   └── output_mobilenet_v2/              # Model artifacts (.onnx), metrics, plots, logs
 │
+├── merged_dataset/                       # Model C: PlatesMania + External trained together
+│   └── train/train_mobilenet_v2_merged.py
+│
 ├── external_dataset/                     # External Merged Dataset Pipeline (Model B)
 │   ├── train/                            # Training subsystem
 │   │   ├── train_mobilenet_v2_external.py    # PyTorch training pipeline (35 Makes, 52,174 images)
@@ -33,6 +36,7 @@ vmmr/code/current/mobilenet/
 │   ├── run_diagnostics.sh                # diagnostics + cross-domain benchmark
 │   ├── run_train_pm.sh                   # train Model A
 │   ├── run_train_external.sh             # train Model B
+│   ├── run_train_merged.sh               # train Model C (PlatesMania + External)
 │   └── lib/                              # helpers, not run directly: paths.sh, tmux_wrap.sh, auto_git_sync.sh
 ├── (commands.md lives in bash_scripts/)
 ├── paths.py                              # Python side of the single path config (bash_scripts/lib/paths.sh)
@@ -53,6 +57,7 @@ cd vmmr/code/current/mobilenet
 bash bash_scripts/run_all_pipeline.sh     # train A, train B, diagnostics + benchmark (tmux: mobilenet_pipeline)
 bash bash_scripts/run_train_pm.sh         # Model A only   (tmux: train_pm)
 bash bash_scripts/run_train_external.sh   # Model B only   (tmux: train_ext)
+bash bash_scripts/run_train_merged.sh     # Model C, both datasets (tmux: train_merged)
 bash bash_scripts/run_diagnostics.sh      # diagnostics + benchmark (tmux: diagnostics)
 ```
 
