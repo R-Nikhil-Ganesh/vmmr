@@ -216,12 +216,14 @@ def load_and_preprocess_image(path: str, img_size: int = 512, crop_top_pct: floa
 class DiagnosticDataset(Dataset):
     """High-throughput image dataset using C-level libjpeg-turbo decoding and antialiased resize."""
     def __init__(self, paths: List[str], labels: np.ndarray, img_size: int = 512,
-                 crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0):
+                 crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0,
+                 bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]] = None):
         self.paths = paths
         self.labels = labels
         self.img_size = img_size
         self.crop_top_pct = crop_top_pct
         self.crop_bottom_pct = crop_bottom_pct
+        self.bboxes = bboxes
         self.mean_tensor = torch.tensor(IMAGENET_MEAN).view(3, 1, 1)
         self.std_tensor = torch.tensor(IMAGENET_STD).view(3, 1, 1)
 
@@ -231,7 +233,11 @@ class DiagnosticDataset(Dataset):
     def __getitem__(self, idx: int):
         path = self.paths[idx]
         label = self.labels[idx]
+        bbox = self.bboxes[idx] if self.bboxes is not None else None
         try:
+            if bbox is not None and bbox[0] >= 0:
+                t, _ = load_and_preprocess_image(path, self.img_size, self.crop_top_pct, self.crop_bottom_pct, bbox=bbox)
+                return t.squeeze(0), label, True
             img = io.read_image(path, mode=io.ImageReadMode.RGB)
             _, h, w = img.shape
             top = int(h * self.crop_top_pct)
@@ -249,7 +255,7 @@ class DiagnosticDataset(Dataset):
             return tensor, label, True
         except Exception:
             try:
-                t, _ = load_and_preprocess_image(path, self.img_size, self.crop_top_pct, self.crop_bottom_pct)
+                t, _ = load_and_preprocess_image(path, self.img_size, self.crop_top_pct, self.crop_bottom_pct, bbox=bbox)
                 return t.squeeze(0), label, True
             except Exception:
                 return torch.zeros((3, self.img_size, self.img_size), dtype=torch.float32), label, False
@@ -267,18 +273,28 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame,
         paths = [str(Path(context.base_img_dir) / p) if not os.path.isabs(p) else p for p in paths]
     labels = test_df["label"].values.astype(int)
 
+    bboxes = None
+    if "bbox_x1" in test_df.columns:
+        bboxes = [
+            (int(r["bbox_x1"]), int(r["bbox_y1"]), int(r["bbox_x2"]), int(r["bbox_y2"]))
+            if int(r["bbox_x1"]) >= 0 else None
+            for _, r in test_df.iterrows()
+        ]
+
     if max_samples is not None and len(paths) > max_samples:
         print(f"[Eval] Subsampling test set to {max_samples:,} samples for rapid diagnostic evaluation...")
         indices = np.random.RandomState(42).choice(len(paths), size=max_samples, replace=False)
         paths = [paths[i] for i in indices]
         labels = labels[indices]
+        if bboxes is not None:
+            bboxes = [bboxes[i] for i in indices]
 
     n_samples = len(paths)
     device_label = "GPU (CUDA)" if "CUDA" in model.active_provider else "CPU"
     print(f"[Eval] Running evaluation on {n_samples:,} samples using {device_label} "
           f"(batch_size={batch_size}, workers={num_workers}, provider={model.active_provider})...")
 
-    dataset = DiagnosticDataset(paths, labels, context.img_size, context.crop_top_pct, context.crop_bottom_pct)
+    dataset = DiagnosticDataset(paths, labels, context.img_size, context.crop_top_pct, context.crop_bottom_pct, bboxes=bboxes)
     loader = DataLoader(
         dataset,
         batch_size=batch_size,
@@ -482,7 +498,7 @@ def overlay_cam_on_image(img_pil: Image.Image, cam: np.ndarray, alpha: float = 0
 # 6. Latent Space Visualization (t-SNE & PCA)
 # ==============================================================================
 def plot_latent_space(embeddings: np.ndarray, labels: np.ndarray, out_path: Path, max_samples: int = 1500):
-    if len(embeddings) == 0:
+    if len(embeddings) < 5:
         return
     if len(embeddings) > max_samples:
         idx = np.random.choice(len(embeddings), max_samples, replace=False)
@@ -490,7 +506,8 @@ def plot_latent_space(embeddings: np.ndarray, labels: np.ndarray, out_path: Path
         labels = labels[idx]
 
     pca_2d = PCA(n_components=2).fit_transform(embeddings)
-    tsne_2d = TSNE(n_components=2, perplexity=30, random_state=42).fit_transform(embeddings)
+    perp = min(30, max(2, (len(embeddings) - 1) // 3))
+    tsne_2d = TSNE(n_components=2, perplexity=perp, random_state=42).fit_transform(embeddings)
 
     fig, axes = plt.subplots(1, 2, figsize=(16, 7))
     fig.suptitle("MobileNetV2 Latent Space Representation (1,280-D Penultimate Features)", fontsize=14, fontweight="bold")
@@ -598,6 +615,8 @@ def main():
     )
 
     test_df = pd.read_csv(context.test_csv_path)
+    if "split" in test_df.columns:
+        test_df = test_df[test_df["split"] == "test"].reset_index(drop=True)
     model = MobileNetV2Evaluator(num_classes=context.num_classes, checkpoint_path=args.model_path)
     
     y_true, y_pred, y_probs, embeddings = evaluate_test_dataset(
