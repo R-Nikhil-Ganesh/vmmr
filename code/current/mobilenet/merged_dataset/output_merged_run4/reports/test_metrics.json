@@ -1,0 +1,7 @@
+{
+  "best_val_loss_mean": 0.25931066964757776,
+  "test_loss_platesmania": 0.3449111945356118,
+  "test_acc_platesmania": 0.9105085055789282,
+  "test_loss_external": 0.15181032119102145,
+  "test_acc_external": 0.9694953756287522
+}
