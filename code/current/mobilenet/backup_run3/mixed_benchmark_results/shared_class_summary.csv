@@ -1,0 +1,7 @@
+model,test_split,model_accuracy,shared_frac_of_test,shared_n_images,shared_model_accuracy,shared_model_accuracy_restricted,shared_model_macro_f1_restricted,shared_make_accuracy,make_accuracy
+Model A (PlatesMania),PlatesMania (In-Domain),0.9206,0.3566,1783,0.9377453729669097,0.9613011777902412,0.9451477117558164,0.9803701626472238,0.9784
+Model A (PlatesMania),External (Out-of-Domain),0.206,1.0,5000,0.206,0.2502,0.2500932594704899,0.3976,0.3976
+Model A (PlatesMania),Mixed (Combined),0.5633,0.6783,6783,0.39834881320949433,0.43712221730797585,0.4879144122173636,0.5507887365472505,0.688
+Model B (External),External (In-Domain),0.934,1.0,5000,0.934,0.934,0.9265616844590497,0.9598,0.9598
+Model B (External),PlatesMania (Out-of-Domain),0.03,0.3566,1783,0.08412787436904094,0.08412787436904094,0.04847446332280652,0.20975883342680876,0.1318
+Model B (External),Mixed (Combined),0.482,0.6783,6783,0.7106000294854784,0.7106000294854784,0.6184552333781921,0.762641898864809,0.5458

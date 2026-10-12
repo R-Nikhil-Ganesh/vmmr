@@ -39,17 +39,24 @@ from torch.utils.data import DataLoader, ConcatDataset, WeightedRandomSampler
 CURRENT_DIR = Path(__file__).resolve().parent
 DATASET_DIR = CURRENT_DIR.parent
 ROOT_MOBILENET_DIR = DATASET_DIR.parent
-for sub in ["", "platesmania_dataset/train", "external_dataset/train"]:
-    p = str(ROOT_MOBILENET_DIR / sub) if sub else str(ROOT_MOBILENET_DIR)
-    if p not in sys.path:
-        sys.path.insert(0, p)
+if str(ROOT_MOBILENET_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_MOBILENET_DIR))
 
 import paths
-import train_mobilenet_v2 as pm_t            # PlatesMania trainer: dataset, model, eval, export
-import train_mobilenet_v2_external as ext_t  # External trainer: dataset
-from train_common import augment_batch, add_robustness_args, TrainObjective, ModelEMA
-
-IGNORE_INDEX = pm_t.IGNORE_INDEX
+from train_common import (
+    IGNORE_INDEX,
+    PlatesManiaDataset,
+    ExternalMergedDataset,
+    build_val_transform,
+    create_model,
+    set_train_mode,
+    evaluate,
+    export_to_onnx,
+    augment_batch,
+    add_robustness_args,
+    TrainObjective,
+    ModelEMA,
+)
 
 
 def parse_args():
@@ -57,8 +64,8 @@ def parse_args():
     parser.add_argument("--pm-csv-path", default=paths.PM_MANIFEST_CSV, help="PlatesMania manifest (split column)")
     parser.add_argument("--pm-img-dir", default=paths.PM_IMG_DIR)
     parser.add_argument("--label-map-path", default=paths.PM_LABEL_MAP, help="Shared 1,235-class label map")
-    parser.add_argument("--ext-splits-dir", default=str(ROOT_MOBILENET_DIR / "external_dataset" / "splits_1235models"))
-    parser.add_argument("--output-dir", default=str(DATASET_DIR / "output_mobilenet_v2_merged"))
+    parser.add_argument("--ext-splits-dir", default=str(DATASET_DIR / "splits_1235models"))
+    parser.add_argument("--output-dir", default=str(DATASET_DIR / "output_merged_run4"))
     parser.add_argument("--ext-fraction", type=float, default=0.2,
                         help="Share of External images per epoch (0 = plain concatenation, i.e. ~3%% External)")
     parser.add_argument("--pm-crop-top-pct", type=float, default=0.15)
@@ -115,10 +122,10 @@ def main():
     print(f"[Data] External    train/val/test: {len(ex['train']):,}/{len(ex['val']):,}/{len(ex['test']):,}")
 
     def pm_ds(split, jitter=0.0):
-        return pm_t.PlatesManiaDataset(pm[split], Path(args.pm_img_dir), args.img_size, args.pm_crop_top_pct, 0.0, crop_jitter=jitter)
+        return PlatesManiaDataset(pm[split], Path(args.pm_img_dir), args.img_size, args.pm_crop_top_pct, 0.0, crop_jitter=jitter)
 
     def ex_ds(split, jitter=0.0):
-        return ext_t.ExternalMergedDataset(ex[split], args.img_size, args.ext_crop_bottom_pct, crop_jitter=jitter)
+        return ExternalMergedDataset(ex[split], args.img_size, args.ext_crop_bottom_pct, crop_jitter=jitter)
 
     n_pm, n_ex = len(pm["train"]), len(ex["train"])
     train_ds = ConcatDataset([pm_ds("train", args.crop_jitter), ex_ds("train", args.crop_jitter)])
@@ -137,9 +144,9 @@ def main():
     test_loaders = {"pm": make_loader(pm_ds("test"), args.eval_batch_size, args.num_workers, shuffle=False),
                     "ext": make_loader(ex_ds("test"), args.eval_batch_size, args.num_workers, shuffle=False)}
 
-    val_tf = pm_t.build_val_transform()
+    val_tf = build_val_transform()
     torch.backends.cudnn.benchmark = True
-    model = pm_t.create_model(num_classes, args.dropout, args.unfreeze_layers).to(device)
+    model = create_model(num_classes, args.dropout, args.unfreeze_layers).to(device)
     param_groups = [{"params": [p for p in model.features.parameters() if p.requires_grad], "lr": args.backbone_lr},
                     {"params": model.classifier.parameters(), "lr": args.lr}]
     optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4, fused=(device.type == "cuda"))
@@ -157,7 +164,7 @@ def main():
     eval_model = model
 
     for epoch in range(args.epochs):
-        pm_t.set_train_mode(model, args.unfreeze_layers)
+        set_train_mode(model, args.unfreeze_layers)
         run_loss, correct, total = 0.0, 0, 0
         pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{args.epochs}")
         for imgs, labels in pbar:
@@ -183,8 +190,8 @@ def main():
         scheduler.step()
 
         eval_model = ema.module if ema is not None else model
-        vl_pm, va_pm = pm_t.evaluate(eval_model, val_loaders["pm"], val_tf, criterion, device)
-        vl_ex, va_ex = pm_t.evaluate(eval_model, val_loaders["ext"], val_tf, criterion, device)
+        vl_pm, va_pm = evaluate(eval_model, val_loaders["pm"], val_tf, criterion, device)
+        vl_ex, va_ex = evaluate(eval_model, val_loaders["ext"], val_tf, criterion, device)
         val_loss = (vl_pm + vl_ex) / 2
         print(f"\n[Epoch {epoch+1:02d}] Train Loss {run_loss/total:.4f} Acc {correct/total:.2%} || "
               f"Val PM {vl_pm:.4f}/{va_pm:.2%} | Val EXT {vl_ex:.4f}/{va_ex:.2%} | mean loss {val_loss:.4f}")
@@ -194,14 +201,14 @@ def main():
         if val_loss < best_val:
             best_val = val_loss
             print(f"[*] New best mean validation loss {best_val:.4f}. Exporting ONNX to {best_onnx_path}")
-            pm_t.export_to_onnx(eval_model, num_classes, args.img_size, best_onnx_path)
+            export_to_onnx(eval_model, num_classes, args.img_size, best_onnx_path)
             best_state = copy.deepcopy(eval_model.state_dict())
 
     if best_state is not None:
         eval_model.load_state_dict(best_state)
         metrics = {"best_val_loss_mean": best_val}
         for key, name in [("pm", "platesmania"), ("ext", "external")]:
-            tl, ta = pm_t.evaluate(eval_model, test_loaders[key], val_tf, criterion, device)
+            tl, ta = evaluate(eval_model, test_loaders[key], val_tf, criterion, device)
             metrics[f"test_loss_{name}"], metrics[f"test_acc_{name}"] = tl, ta
             print(f"[Test {name}] Loss {tl:.4f} | Acc {ta:.2%}")
         with open(reports_dir / "test_metrics.json", "w") as f:

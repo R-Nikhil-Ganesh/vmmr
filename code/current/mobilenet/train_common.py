@@ -11,14 +11,23 @@ Contents
   jitter_*                         helpers used by the datasets for crop-geometry jitter
 """
 
+import os
+import sys
 import copy
 import math
 import random
+from pathlib import Path
 from typing import Dict, Optional
 
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from torchvision import models
+import torchvision.io as io
+import torchvision.transforms.v2 as v2
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
@@ -254,3 +263,166 @@ class ModelEMA:
             e.mul_(d).add_(p.detach(), alpha=1 - d)
         for e, b in zip(self.module.buffers(), model.buffers()):
             e.copy_(b)
+
+
+# ==============================================================================
+# Shared Datasets, Model Builder, Evaluation & ONNX Export
+# ==============================================================================
+class PlatesManiaDataset(Dataset):
+    def __init__(self, df: pd.DataFrame, base_img_dir: Path, img_size: int = 512,
+                 crop_top_pct: float = 0.15, crop_bottom_pct: float = 0.0, crop_jitter: float = 0.0):
+        col = "image_path" if "image_path" in df.columns else "image_rel_path"
+        self.paths = [os.path.join(str(base_img_dir), p) if not os.path.isabs(p) else p for p in df[col].values]
+        self.labels = df["label"].values.astype(np.int64)
+        self.img_size = img_size
+        self.crop_top_pct = crop_top_pct
+        self.crop_bottom_pct = crop_bottom_pct
+        self.crop_jitter = crop_jitter
+
+    def __len__(self):
+        return len(self.paths)
+
+    def __getitem__(self, idx: int):
+        path = self.paths[idx]
+        try:
+            img = io.read_image(path, mode=io.ImageReadMode.RGB)
+            _, h, _ = img.shape
+            top = int(h * jitter_fraction(self.crop_top_pct, self.crop_jitter))
+            bottom = max(top + 10, int(h * (1.0 - jitter_fraction(self.crop_bottom_pct, self.crop_jitter))))
+            cropped = img[:, top:bottom, :]
+            return resize_uint8(cropped, self.img_size), self.labels[idx]
+        except Exception as e:
+            print(f"[WARN] Failed to load image {path}: {e}", file=sys.stderr, flush=True)
+            return torch.zeros((3, self.img_size, self.img_size), dtype=torch.uint8), IGNORE_INDEX
+
+
+class ExternalMergedDataset(Dataset):
+    def __init__(self, df: pd.DataFrame, img_size: int = 512, crop_bottom_pct: float = 0.0, crop_jitter: float = 0.0):
+        self.paths = df["image_path"].values
+        self.labels = df["label"].values.astype(np.int64)
+        self.img_size = img_size
+        self.crop_bottom_pct = crop_bottom_pct
+        self.crop_jitter = crop_jitter
+        self.has_bbox = "bbox_x1" in df.columns
+        if self.has_bbox:
+            self.bboxes = df[["bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"]].values.astype(int)
+
+    def __len__(self):
+        return len(self.paths)
+
+    def __getitem__(self, idx: int):
+        path = self.paths[idx]
+        try:
+            img = io.read_image(path, mode=io.ImageReadMode.RGB)
+            _, h, w = img.shape
+            if self.has_bbox and self.bboxes[idx][0] >= 0:
+                x1, y1, x2, y2 = self.bboxes[idx]
+                x1 = max(0, min(x1, w - 1))
+                y1 = max(0, min(y1, h - 1))
+                x2 = max(x1 + 1, min(x2, w))
+                y2 = max(y1 + 1, min(y2, h))
+                x1, y1, x2, y2 = jitter_bbox(x1, y1, x2, y2, w, h, self.crop_jitter)
+                cropped = img[:, y1:y2, x1:x2]
+            else:
+                bottom_h = max(20, int(h * (1.0 - jitter_fraction(self.crop_bottom_pct, self.crop_jitter))))
+                cropped = img[:, :bottom_h, :]
+            return resize_uint8(cropped, self.img_size), self.labels[idx]
+        except Exception as e:
+            print(f"[WARN] Failed to load image {path}: {e}", file=sys.stderr, flush=True)
+            return torch.zeros((3, self.img_size, self.img_size), dtype=torch.uint8), IGNORE_INDEX
+
+
+def build_val_transform():
+    return v2.Compose([
+        v2.ToDtype(torch.float32, scale=True),
+        v2.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+    ])
+
+
+def create_model(num_classes: int, dropout: float = 0.25, unfreeze_layers: int = 5):
+    model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT)
+    in_features = model.classifier[1].in_features
+    model.classifier = nn.Sequential(
+        nn.Dropout(p=dropout),
+        nn.Linear(in_features, num_classes)
+    )
+    for param in model.features.parameters():
+        param.requires_grad = False
+    for layer in model.features[-unfreeze_layers:]:
+        for param in layer.parameters():
+            param.requires_grad = True
+    for param in model.classifier.parameters():
+        param.requires_grad = True
+
+    n_frozen = sum(p.numel() for p in model.parameters() if not p.requires_grad)
+    n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"[Model] MobileNetV2: {n_frozen:,} frozen parameters, {n_trainable:,} trainable parameters (top {unfreeze_layers} backbone layers unlocked)")
+    return model
+
+
+def set_train_mode(model: nn.Module, unfreeze_layers: int):
+    """model.train(), but keep BatchNorm running stats of the frozen backbone blocks fixed."""
+    model.train()
+    n_frozen_blocks = max(0, len(model.features) - unfreeze_layers)
+    for block in model.features[:n_frozen_blocks]:
+        for m in block.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
+
+
+def evaluate(model: nn.Module, loader: DataLoader, tf, criterion: nn.Module, device: torch.device):
+    """Returns (loss, accuracy) over valid (readable) samples."""
+    model.eval()
+    loss_sum, correct, total = 0.0, 0, 0
+    with torch.inference_mode():
+        for imgs, labels in loader:
+            imgs, labels = imgs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+            valid = labels != IGNORE_INDEX
+            n_valid = int(valid.sum().item())
+            if n_valid == 0:
+                continue
+            imgs = tf(imgs)
+            with torch.amp.autocast(device_type=device.type, enabled=(device.type == "cuda")):
+                outputs = model(imgs)
+                loss = criterion(outputs, labels)
+            loss_sum += loss.item() * n_valid
+            correct += ((outputs.argmax(1) == labels) & valid).sum().item()
+            total += n_valid
+    return loss_sum / total, correct / total
+
+
+class OnnxExportWrapper(nn.Module):
+    """Exposes logits plus the pooled embeddings and per-class activation maps, so t-SNE and CAM work from ONNX."""
+    def __init__(self, model: nn.Module):
+        super().__init__()
+        self.model = model
+
+    def forward(self, x):
+        features = self.model.features(x)                                              # (B, 1280, H, W)
+        pooled = torch.flatten(nn.functional.adaptive_avg_pool2d(features, (1, 1)), 1)  # (B, 1280)
+        logits = self.model.classifier(pooled)                                         # (B, num_classes)
+        head_w = self.model.classifier[1].weight                                       # (num_classes, 1280)
+        class_maps = nn.functional.conv2d(features, head_w[:, :, None, None])          # (B, num_classes, H, W)
+        return logits, pooled, class_maps
+
+
+def export_to_onnx(model: nn.Module, num_classes: int, img_size: int, out_onnx_path: Path):
+    cpu_model = OnnxExportWrapper(copy.deepcopy(model).cpu()).eval()
+    dummy_input = torch.randn(1, 3, img_size, img_size, device="cpu")
+
+    out_onnx_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.onnx.export(
+        cpu_model,
+        dummy_input,
+        str(out_onnx_path),
+        export_params=True,
+        opset_version=13,
+        do_constant_folding=True,
+        input_names=["input_image"],
+        output_names=["predictions", "embeddings", "class_maps"],
+        dynamic_axes={"input_image": {0: "batch_size"}, "predictions": {0: "batch_size"},
+                      "embeddings": {0: "batch_size"}, "class_maps": {0: "batch_size"}},
+        dynamo=False
+    )
+    print(f"[ONNX] Exported model successfully to: {out_onnx_path}")
+

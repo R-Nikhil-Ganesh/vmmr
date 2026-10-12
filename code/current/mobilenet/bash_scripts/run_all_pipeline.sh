@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full pipeline: train Model A, train Model B, then diagnostics + cross-domain benchmark for both.
+# Full pipeline: train Model C (merged PlatesMania + External), then run per-domain diagnostics + mixed benchmark.
 # Runs in a tmux session by default. See commands.md.
 set -eo pipefail
 
@@ -10,21 +10,16 @@ run_in_tmux mobilenet_pipeline "${SCRIPT_DIR}/run_all_pipeline.sh" "$@"
 
 echo "=================================================================="
 echo "  MobileNetV2 end-to-end pipeline   started $(date)"
-echo "  Extra trainer flags (applied to both trainers): $*"
+echo "  Extra trainer flags: $*"
 echo "=================================================================="
 
-# Inside tmux already, so the sub-runners do not open further sessions.
-# Auto-push is done once at the end instead of after every step.
 export AUTO_GIT_PUSH_FINAL="${AUTO_GIT_PUSH:-1}"
 export AUTO_GIT_PUSH=0
 
-echo "=== [1/3] Train Model A (PlatesMania) ==="
-bash "${SCRIPT_DIR}/run_train_pm.sh" "$@"
+echo "=== [1/2] Train Model C (PlatesMania + External merged) ==="
+bash "${SCRIPT_DIR}/run_train_merged.sh" "$@"
 
-echo "=== [2/3] Train Model B (External) ==="
-bash "${SCRIPT_DIR}/run_train_external.sh" "$@"
-
-echo "=== [3/3] Diagnostics + cross-domain benchmark ==="
+echo "=== [2/2] Diagnostics + mixed benchmark ==="
 bash "${SCRIPT_DIR}/run_diagnostics.sh"
 
 echo "=================================================================="

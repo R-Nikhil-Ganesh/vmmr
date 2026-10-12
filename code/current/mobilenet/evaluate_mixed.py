@@ -60,16 +60,16 @@ MAKE_TO_IDX = {m: i for i, m in enumerate(TARGET_MAKES)}
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate MobileNetV2 Models on In-Domain, Out-of-Domain, and Mixed Benchmarks (Make + Model).")
     parser.add_argument("--pm-model-path", type=str,
-        default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "mobilenet_v2_best.onnx"),
-        help="Path to PlatesMania model (.onnx)")
+        default=str(CURRENT_DIR / "merged_dataset" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"),
+        help="Path to PlatesMania / Merged model (.onnx)")
     parser.add_argument("--pm-label-map", type=str,
-        default=str(CURRENT_DIR / "platesmania_dataset" / "output_mobilenet_v2" / "models" / "label_map.json"),
-        help="Path to PlatesMania label map")
+        default=str(CURRENT_DIR / "merged_dataset" / "output_merged_run4" / "models" / "label_map.json"),
+        help="Path to PlatesMania / Merged label map")
     parser.add_argument("--ext-model-path", type=str,
-        default=str(CURRENT_DIR / "external_dataset" / "output_mobilenet_v2_external" / "models" / "mobilenet_v2_best.onnx"),
-        help="Path to External model (.onnx)")
+        default=str(CURRENT_DIR / "merged_dataset" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"),
+        help="Path to External / Merged model (.onnx)")
     parser.add_argument("--ext-label-map", type=str,
-        default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "label_map.json"),
+        default=str(CURRENT_DIR / "merged_dataset" / "splits_1235models" / "label_map.json"),
         help="Path to External label map")
     parser.add_argument("--pm-test-csv", type=str,
         default=paths.PM_MANIFEST_CSV,
@@ -78,10 +78,10 @@ def parse_args():
         default=paths.PM_IMG_DIR,
         help="Base image folder for PlatesMania")
     parser.add_argument("--ext-test-csv", type=str,
-        default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "test.csv"),
+        default=str(CURRENT_DIR / "merged_dataset" / "splits_1235models" / "test.csv"),
         help="Path to External test CSV")
     parser.add_argument("--ext-train-csv", type=str,
-        default=str(CURRENT_DIR / "external_dataset" / "splits_1235models" / "train.csv"),
+        default=str(CURRENT_DIR / "merged_dataset" / "splits_1235models" / "train.csv"),
         help="External train CSV (used only to find which classes each model could have seen)")
     parser.add_argument("--output-dir", type=str,
         default=str(CURRENT_DIR / "mixed_benchmark_results"),
@@ -396,48 +396,72 @@ def main():
     print(f"[Datasets] PlatesMania Test: {len(pm_paths):,} | External Test: {len(ext_paths):,} | Mixed Test: {n_mixed:,}")
 
     results = []
-
-    # Benchmark Model A (PlatesMania)
-    print("\n--- Evaluating Model A (PlatesMania) ---")
-    model_a = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path)
-    res_a_pm, raw_a_pm = evaluate_model_on_split(
-        model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes,
-        args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
-        device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
-    )
-    print(f"Model A on PlatesMania (In-Domain):     Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
-
-    res_a_ext, raw_a_ext = evaluate_model_on_split(
-        model_a, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes,
-        args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size,
-        device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
-    )
-    print(f"Model A on External    (Out-of-Domain): Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
-
-    res_a_mix = combine_split_metrics(raw_a_pm, raw_a_ext, shared_classes=shared_cls)
-    print(f"Model A on Mixed       (Combined):      Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
-
-    results.extend([
-        {"model": "Model A (PlatesMania)", "test_split": "PlatesMania (In-Domain)", "domain_type": "In-Domain", **res_a_pm},
-        {"model": "Model A (PlatesMania)", "test_split": "External (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_a_ext},
-        {"model": "Model A (PlatesMania)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_a_mix},
-    ])
-
-    del model_a
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-
-    # Benchmark Model B (External) — reuse Model A evaluations if both slots point to the identical model & label map (e.g. --merged)
     same_model = (os.path.abspath(args.pm_model_path) == os.path.abspath(args.ext_model_path) and pm_lm == ext_lm)
-    print("\n--- Evaluating Model B (External Merged) ---")
+
     if same_model:
-        print("[Info] Model B checkpoint and label map are identical to Model A; reusing evaluated predictions.")
-        res_b_ext, res_b_pm, res_b_mix = res_a_ext, res_a_pm, res_a_mix
-        print(f"Model B on External    (In-Domain):     Make Acc={res_b_ext['make_accuracy']:.2%} | Model Acc={res_b_ext['model_accuracy']:.2%} | Make Macro F1={res_b_ext['make_macro_f1']:.2%}")
-        print(f"Model B on PlatesMania (Out-of-Domain): Make Acc={res_b_pm['make_accuracy']:.2%} | Model Acc={res_b_pm['model_accuracy']:.2%} | Make Macro F1={res_b_pm['make_macro_f1']:.2%}")
-        print(f"Model B on Mixed       (Combined):      Make Acc={res_b_mix['make_accuracy']:.2%} | Model Acc={res_b_mix['model_accuracy']:.2%} | Make Macro F1={res_b_mix['make_macro_f1']:.2%}")
+        print("\n--- Evaluating Model C (Merged) ---")
+        model_c = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path)
+        res_a_pm, raw_a_pm = evaluate_model_on_split(
+            model_c, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes,
+            args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
+            device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+        )
+        print(f"Model C on PlatesMania:      Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
+
+        res_a_ext, raw_a_ext = evaluate_model_on_split(
+            model_c, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes,
+            args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size,
+            device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+        )
+        print(f"Model C on External:         Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
+
+        res_a_mix = combine_split_metrics(raw_a_pm, raw_a_ext, shared_classes=shared_cls)
+        print(f"Model C on Mixed (Combined): Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
+
+        results.extend([
+            {"model": "Model C (Merged)", "test_split": "PlatesMania", "domain_type": "In-Domain", **res_a_pm},
+            {"model": "Model C (Merged)", "test_split": "External", "domain_type": "In-Domain", **res_a_ext},
+            {"model": "Model C (Merged)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_a_mix},
+        ])
+        res_b_pm = res_b_ext = res_b_mix = None
+        del model_c
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     else:
+        # Benchmark Model A (PlatesMania)
+        print("\n--- Evaluating Model A (PlatesMania) ---")
+        model_a = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path)
+        res_a_pm, raw_a_pm = evaluate_model_on_split(
+            model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes,
+            args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
+            device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+        )
+        print(f"Model A on PlatesMania (In-Domain):     Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
+
+        res_a_ext, raw_a_ext = evaluate_model_on_split(
+            model_a, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes,
+            args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size,
+            device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+        )
+        print(f"Model A on External    (Out-of-Domain): Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
+
+        res_a_mix = combine_split_metrics(raw_a_pm, raw_a_ext, shared_classes=shared_cls)
+        print(f"Model A on Mixed       (Combined):      Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
+
+        results.extend([
+            {"model": "Model A (PlatesMania)", "test_split": "PlatesMania (In-Domain)", "domain_type": "In-Domain", **res_a_pm},
+            {"model": "Model A (PlatesMania)", "test_split": "External (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_a_ext},
+            {"model": "Model A (PlatesMania)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_a_mix},
+        ])
+
+        del model_a
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        # Benchmark Model B (External)
+        print("\n--- Evaluating Model B (External Merged) ---")
         model_b = oa.MobileNetV2Evaluator(num_classes=len(ext_lm), checkpoint_path=args.ext_model_path)
         res_b_ext, raw_b_ext = evaluate_model_on_split(
             model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes,
@@ -461,11 +485,11 @@ def main():
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-    results.extend([
-        {"model": "Model B (External)", "test_split": "External (In-Domain)", "domain_type": "In-Domain", **res_b_ext},
-        {"model": "Model B (External)", "test_split": "PlatesMania (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_b_pm},
-        {"model": "Model B (External)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_b_mix},
-    ])
+        results.extend([
+            {"model": "Model B (External)", "test_split": "External (In-Domain)", "domain_type": "In-Domain", **res_b_ext},
+            {"model": "Model B (External)", "test_split": "PlatesMania (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_b_pm},
+            {"model": "Model B (External)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_b_mix},
+        ])
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(output_dir / "mixed_benchmark_summary.csv", index=False)
@@ -478,49 +502,60 @@ def main():
     print(f"\n[Shared classes: {len(shared_cls):,}] top-1 on test images whose class has train images in both datasets")
     print(shared_df.to_string(index=False, float_format=lambda v: f"{v:.2%}"))
 
-    # Plot dual comparison bar chart (Make Accuracy & Model Accuracy side by side)
+    plot_benchmark_comparison(output_dir, same_model, res_a_pm, res_a_ext, res_a_mix, res_b_pm, res_b_ext, res_b_mix)
+    print(f"\n[Done] Benchmark results and dual comparison charts saved to: {output_dir}")
+
+
+def plot_benchmark_comparison(output_dir: Path, same_model: bool, res_a_pm: Dict, res_a_ext: Dict, res_a_mix: Dict,
+                              res_b_pm: Optional[Dict] = None, res_b_ext: Optional[Dict] = None, res_b_mix: Optional[Dict] = None):
+    """Plots Make Accuracy and Fine-Grained Model Accuracy across PlatesMania, External, and Mixed splits."""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
     splits = ["PlatesMania Split", "External Split", "Mixed Split"]
     x = np.arange(len(splits))
-    width = 0.35
 
-    # 1. Make Accuracy Plot
     make_a_vals = [res_a_pm["make_accuracy"], res_a_ext["make_accuracy"], res_a_mix["make_accuracy"]]
-    make_b_vals = [res_b_pm["make_accuracy"], res_b_ext["make_accuracy"], res_b_mix["make_accuracy"]]
-    r1 = ax1.bar(x - width/2, [v * 100 for v in make_a_vals], width, label="Model A (PlatesMania)", color="#2563EB")
-    r2 = ax1.bar(x + width/2, [v * 100 for v in make_b_vals], width, label="Model B (External)", color="#16A34A")
+    model_a_vals = [res_a_pm["model_accuracy"], res_a_ext["model_accuracy"], res_a_mix["model_accuracy"]]
+
+    if same_model or res_b_pm is None:
+        width = 0.45
+        r1 = ax1.bar(x, [v * 100 for v in make_a_vals], width, label="Model C (Merged)", color="#2563EB")
+        r3 = ax2.bar(x, [v * 100 for v in model_a_vals], width, label="Model C (Merged)", color="#2563EB")
+        bars_ax1, bars_ax2 = list(r1), list(r3)
+    else:
+        width = 0.35
+        make_b_vals = [res_b_pm["make_accuracy"], res_b_ext["make_accuracy"], res_b_mix["make_accuracy"]]
+        model_b_vals = [res_b_pm["model_accuracy"], res_b_ext["model_accuracy"], res_b_mix["model_accuracy"]]
+        r1 = ax1.bar(x - width/2, [v * 100 for v in make_a_vals], width, label="Model A (PlatesMania)", color="#2563EB")
+        r2 = ax1.bar(x + width/2, [v * 100 for v in make_b_vals], width, label="Model B (External)", color="#16A34A")
+        r3 = ax2.bar(x - width/2, [v * 100 for v in model_a_vals], width, label="Model A (PlatesMania)", color="#2563EB")
+        r4 = ax2.bar(x + width/2, [v * 100 for v in model_b_vals], width, label="Model B (External)", color="#16A34A")
+        bars_ax1, bars_ax2 = list(r1) + list(r2), list(r3) + list(r4)
+
     ax1.set_ylabel("Make Accuracy (%)", fontsize=12)
     ax1.set_title("Make Accuracy (Marginalized over Models)", fontsize=13, fontweight="bold")
     ax1.set_xticks(x)
     ax1.set_xticklabels(splits, fontsize=10)
-    ax1.set_ylim(0, 105)
+    ax1.set_ylim(0, 110)
     ax1.grid(True, linestyle="--", alpha=0.4, axis="y")
-    ax1.legend(fontsize=10)
-    for r in r1 + r2:
+    ax1.legend(fontsize=10, loc="lower right")
+    for r in bars_ax1:
         h = r.get_height()
         ax1.annotate(f"{h:.1f}%", xy=(r.get_x() + r.get_width() / 2, h), xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=8, fontweight="bold")
 
-    # 2. Model Accuracy Plot
-    model_a_vals = [res_a_pm["model_accuracy"], res_a_ext["model_accuracy"], res_a_mix["model_accuracy"]]
-    model_b_vals = [res_b_pm["model_accuracy"], res_b_ext["model_accuracy"], res_b_mix["model_accuracy"]]
-    r3 = ax2.bar(x - width/2, [v * 100 for v in model_a_vals], width, label="Model A (PlatesMania)", color="#2563EB")
-    r4 = ax2.bar(x + width/2, [v * 100 for v in model_b_vals], width, label="Model B (External)", color="#16A34A")
     ax2.set_ylabel("Model Accuracy (%)", fontsize=12)
     ax2.set_title("Fine-Grained Model Accuracy (1,235 Classes)", fontsize=13, fontweight="bold")
     ax2.set_xticks(x)
     ax2.set_xticklabels(splits, fontsize=10)
-    ax2.set_ylim(0, 105)
+    ax2.set_ylim(0, 110)
     ax2.grid(True, linestyle="--", alpha=0.4, axis="y")
-    ax2.legend(fontsize=10)
-    for r in r3 + r4:
+    ax2.legend(fontsize=10, loc="lower right")
+    for r in bars_ax2:
         h = r.get_height()
         ax2.annotate(f"{h:.1f}%", xy=(r.get_x() + r.get_width() / 2, h), xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=8, fontweight="bold")
 
     plt.tight_layout()
     plt.savefig(str(output_dir / "cross_domain_comparison.png"), dpi=150)
     plt.close()
-
-    print(f"\n[Done] Benchmark results and dual comparison charts saved to: {output_dir}")
 
 
 if __name__ == "__main__":
