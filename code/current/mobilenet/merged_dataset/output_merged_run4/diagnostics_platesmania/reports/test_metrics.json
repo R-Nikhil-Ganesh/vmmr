@@ -1,16 +1,16 @@
 {
-  "test_accuracy": 0.9103804646058167,
-  "test_top5_accuracy": 0.9804371684653375,
-  "macro_f1": 0.8466519855054375,
-  "weighted_f1": 0.9090096854745583,
-  "macro_precision": 0.8700805947880628,
-  "macro_recall": 0.8383407891663167,
-  "cross_entropy_loss": 0.3451831340789795,
-  "num_evaluated_samples": 109340,
+  "test_accuracy": 0.9145987871692384,
+  "test_top5_accuracy": 0.9842862500114332,
+  "macro_f1": 0.8505436501364586,
+  "weighted_f1": 0.9126160200976586,
+  "macro_precision": 0.8728621613428303,
+  "macro_recall": 0.8431066302477388,
+  "cross_entropy_loss": 0.32175153493881226,
+  "num_evaluated_samples": 109331,
   "num_classes": 1235,
   "model_level": true,
   "num_makes": 35,
-  "make_accuracy": 0.97752880921895,
-  "make_accuracy_marginalized": 0.9777574538137919,
-  "make_macro_f1": 0.9657761202633568
+  "make_accuracy": 0.980911177982457,
+  "make_accuracy_marginalized": 0.9815057028656099,
+  "make_macro_f1": 0.9694874029835284
 }
