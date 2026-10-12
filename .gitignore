@@ -14,5 +14,6 @@ test_predictions.txt
 *logs/
 *log
 *paths.local.sh
+*scratch_test/
 *.btr
 /archive/
