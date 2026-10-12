@@ -349,7 +349,12 @@ def main():
         df_pm = df_pm.sample(n=args.max_eval_per_dataset, random_state=42).reset_index(drop=True)
 
     pm_col = "image_path" if "image_path" in df_pm.columns else "image_rel_path"
-    pm_paths = [os.path.join(args.pm_img_dir, p) if not os.path.isabs(p) else p for p in df_pm[pm_col].values]
+    strip_images = bool(args.pm_img_dir) and not os.path.isdir(os.path.join(args.pm_img_dir, "images"))
+    pm_paths = [
+        os.path.join(args.pm_img_dir, p[7:] if (strip_images and p.startswith("images/")) else p)
+        if not os.path.isabs(p) else p
+        for p in df_pm[pm_col].values
+    ]
     pm_make_names = _extract_make_names(df_pm)
     pm_make_indices = [MAKE_TO_IDX.get(m) for m in pm_make_names]
     pm_model_indices = df_pm["label"].values.astype(int).tolist()

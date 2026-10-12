@@ -272,7 +272,13 @@ class PlatesManiaDataset(Dataset):
     def __init__(self, df: pd.DataFrame, base_img_dir: Path, img_size: int = 512,
                  crop_top_pct: float = 0.15, crop_bottom_pct: float = 0.0, crop_jitter: float = 0.0):
         col = "image_path" if "image_path" in df.columns else "image_rel_path"
-        self.paths = [os.path.join(str(base_img_dir), p) if not os.path.isabs(p) else p for p in df[col].values]
+        base_str = str(base_img_dir)
+        strip_images = bool(base_str) and not os.path.isdir(os.path.join(base_str, "images"))
+        self.paths = [
+            os.path.join(base_str, p[7:] if (strip_images and p.startswith("images/")) else p)
+            if not os.path.isabs(p) else p
+            for p in df[col].values
+        ]
         self.labels = df["label"].values.astype(np.int64)
         self.img_size = img_size
         self.crop_top_pct = crop_top_pct

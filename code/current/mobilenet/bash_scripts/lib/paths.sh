@@ -37,12 +37,12 @@ fi
 : "${ECON_ROOT:=/home/researchadmin/Econ}"
 
 # PlatesMania
-: "${PM_IMG_DIR:=${ECON_ROOT}/resized_640x640}"
+: "${PM_IMG_DIR:=${ECON_ROOT}/resized_512}"
 : "${PM_MANIFEST_CSV:=${ECON_ROOT}/models/dataset_manifests/dataset_1235models_splits.csv}"
 : "${PM_LABEL_MAP:=${ECON_ROOT}/models/dataset_manifests/label_map_1235models.json}"
 
-# External datasets (raw sources used by external_dataset/prepare_external_1235models.py)
-: "${EXT_DATASETS_DIR:=${ECON_ROOT}/external_datasets}"
+# External datasets (used by merged_dataset/prepare_external_1235models.py)
+: "${EXT_DATASETS_DIR:=${ECON_ROOT}/external_resized_512}"
 
 # Python interpreter: <repo parent>/pt-env if present, else python3
 if [ -z "${PYTHON_BIN:-}" ]; then

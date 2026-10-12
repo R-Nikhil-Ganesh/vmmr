@@ -280,7 +280,13 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame,
 
     paths = test_df["image_path"].values if "image_path" in test_df.columns else test_df["image_rel_path"].values
     if context.base_img_dir:
-        paths = [str(Path(context.base_img_dir) / p) if not os.path.isabs(p) else p for p in paths]
+        base_str = str(context.base_img_dir)
+        strip_images = not os.path.isdir(os.path.join(base_str, "images"))
+        paths = [
+            os.path.join(base_str, p[7:] if (strip_images and p.startswith("images/")) else p)
+            if not os.path.isabs(p) else p
+            for p in paths
+        ]
     labels = test_df["label"].values.astype(int)
 
     bboxes = None
