@@ -172,16 +172,30 @@ class MobileNetV2Evaluator(nn.Module):
 
         self.embeddings: Optional[np.ndarray] = None
         self.class_maps: Optional[np.ndarray] = None
+        self.pred_key = (
+            "predictions" if "predictions" in self.output_names
+            else ("logits" if "logits" in self.output_names else self.output_names[0])
+        )
 
-    def forward(self, x):
+    def forward(self, x, return_embeddings: bool = True, return_cam: bool = False):
         if isinstance(x, torch.Tensor):
-            x_np = x.detach().cpu().numpy().astype(np.float32)
+            t_cpu = x.detach().cpu() if x.is_cuda else x.detach()
+            if t_cpu.dtype != torch.float32:
+                t_cpu = t_cpu.to(torch.float32)
+            x_np = t_cpu.contiguous().numpy()
         else:
-            x_np = x.astype(np.float32)
-        out = dict(zip(self.output_names, self.ort_session.run(None, {self.input_name: x_np})))
+            x_np = np.ascontiguousarray(x, dtype=np.float32)
+
+        req_outputs = [self.pred_key]
+        if return_embeddings and "embeddings" in self.output_names:
+            req_outputs.append("embeddings")
+        if return_cam and "class_maps" in self.output_names:
+            req_outputs.append("class_maps")
+
+        out = dict(zip(req_outputs, self.ort_session.run(req_outputs, {self.input_name: x_np})))
         self.embeddings = out.get("embeddings")
-        pred_key = "predictions" if "predictions" in out else ("logits" if "logits" in out else self.output_names[0])
-        preds = torch.from_numpy(out[pred_key])
+        self.class_maps = out.get("class_maps")
+        preds = torch.from_numpy(out[self.pred_key])
         if isinstance(x, torch.Tensor) and x.is_cuda:
             preds = preds.to(x.device)
         return preds
@@ -249,8 +263,8 @@ class DiagnosticDataset(Dataset):
                 align_corners=False,
                 antialias=True
             ).squeeze(0)
-            tensor = (res / 255.0 - self.mean_tensor) / self.std_tensor
-            return tensor, label, True
+            res.div_(255.0).sub_(self.mean_tensor).div_(self.std_tensor)
+            return res, label, True
         except Exception:
             try:
                 t, _ = load_and_preprocess_image(path, self.img_size, self.crop_top_pct, self.crop_bottom_pct, bbox=bbox)
@@ -260,10 +274,8 @@ class DiagnosticDataset(Dataset):
 
 
 def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame,
-                          batch_size: int = 64, num_workers: int = 6,
+                          batch_size: int = 64, num_workers: int = 10,
                           max_samples: Optional[int] = None):
-    device = context.device
-    model.to(device)
     model.eval()
 
     paths = test_df["image_path"].values if "image_path" in test_df.columns else test_df["image_rel_path"].values
@@ -273,10 +285,13 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame,
 
     bboxes = None
     if "bbox_x1" in test_df.columns:
+        bx1 = test_df["bbox_x1"].to_numpy(dtype=int)
+        by1 = test_df["bbox_y1"].to_numpy(dtype=int)
+        bx2 = test_df["bbox_x2"].to_numpy(dtype=int)
+        by2 = test_df["bbox_y2"].to_numpy(dtype=int)
         bboxes = [
-            (int(r["bbox_x1"]), int(r["bbox_y1"]), int(r["bbox_x2"]), int(r["bbox_y2"]))
-            if int(r["bbox_x1"]) >= 0 else None
-            for _, r in test_df.iterrows()
+            (int(x1), int(y1), int(x2), int(y2)) if x1 >= 0 else None
+            for x1, y1, x2, y2 in zip(bx1, by1, bx2, by2)
         ]
 
     if max_samples is not None and len(paths) > max_samples:
@@ -300,7 +315,7 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame,
         num_workers=num_workers,
         pin_memory=True,
         persistent_workers=(num_workers > 0),
-        prefetch_factor=2 if num_workers > 0 else None
+        prefetch_factor=4 if num_workers > 0 else None
     )
 
     all_preds = []
@@ -321,9 +336,8 @@ def evaluate_test_dataset(model: MobileNetV2Evaluator, test_df: pd.DataFrame,
                 batch_lbls = batch_lbls[valid_np]
                 n_failed += int(np.sum(~valid_np))
 
-            batch_imgs = batch_imgs.to(device, non_blocking=True)
-            logits = model(batch_imgs)
-            probs = torch.softmax(logits, dim=-1).cpu().numpy()
+            logits = model(batch_imgs, return_embeddings=True, return_cam=False)
+            probs = torch.softmax(logits, dim=-1).numpy()
             preds = np.argmax(probs, axis=1)
 
             all_preds.extend(preds)
@@ -471,7 +485,7 @@ def compute_gradcam(model: MobileNetV2Evaluator, image_tensor: torch.Tensor, cla
     """Class activation map L_c = ReLU(sum_k w_k^c * A^k), computed inside the ONNX graph as the `class_maps` output."""
     model.eval()
     with torch.no_grad():
-        model(image_tensor.to(context.device))
+        model(image_tensor, return_embeddings=False, return_cam=True)
     if model.class_maps is None:
         raise RuntimeError("ONNX model has no 'class_maps' output; re-export it with the current training script.")
 
@@ -596,7 +610,7 @@ def main():
     parser.add_argument("--crop-top-pct", type=float, default=context.crop_top_pct)
     parser.add_argument("--crop-bottom-pct", type=float, default=context.crop_bottom_pct)
     parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--num-workers", type=int, default=6, help="DataLoader workers (default: 6)")
+    parser.add_argument("--num-workers", type=int, default=10, help="DataLoader workers (default: 10)")
     parser.add_argument("--max-samples", type=int, default=None, help="Optional max test samples to evaluate (default: all)")
     args = parser.parse_args()
 

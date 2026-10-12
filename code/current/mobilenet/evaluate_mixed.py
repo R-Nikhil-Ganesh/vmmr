@@ -36,6 +36,7 @@ from tqdm import tqdm
 
 import torch
 import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
 
 torch.set_float32_matmul_precision("high")
 
@@ -87,6 +88,7 @@ def parse_args():
         help="Destination directory for benchmark tables and plots")
     parser.add_argument("--img-size", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--num-workers", type=int, default=10, help="DataLoader workers (default: 10)")
     parser.add_argument("--max-eval-per-dataset", type=int, default=5000,
         help="Max samples to evaluate per dataset to keep Mixed benchmark balanced")
     return parser.parse_args()
@@ -105,85 +107,44 @@ def build_make_projection_matrix(model_label_map: Dict[str, int]) -> np.ndarray:
     return proj
 
 
-def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indices: List[int],
-                            true_model_indices: Optional[List[int]] = None,
-                            proj_matrix: Optional[np.ndarray] = None,
-                            bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]] = None,
-                            img_size: int = 512,
-                            crop_top: float = 0.0, crop_bottom: float = 0.0,
-                            batch_size: int = 64, device: str = "cuda",
-                            shared_classes: Optional[List[int]] = None) -> Dict[str, Any]:
-    """Make-level and Model-level evaluation.
+class MixedBenchmarkDataset(Dataset):
+    """Multi-worker dataset calling oa.load_and_preprocess_image for bit-exact preprocessing."""
+    def __init__(self, paths: List[str], make_indices: List[int],
+                 model_indices: Optional[List[int]],
+                 bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]],
+                 img_size: int, crop_top: Any, crop_bottom: Any):
+        self.paths = paths
+        self.make_indices = make_indices
+        self.model_indices = model_indices
+        self.bboxes = bboxes
+        self.img_size = img_size
+        self.crop_top = crop_top
+        self.crop_bottom = crop_bottom
+        self.is_top_list = isinstance(crop_top, (list, tuple))
+        self.is_bot_list = isinstance(crop_bottom, (list, tuple))
 
-    shared_classes: label indices that have train images in BOTH datasets. When given, the result also contains
-    metrics on test images of those classes only: the model's plain top-1 (shared_model_accuracy) and top-1 with the
-    argmax restricted to the shared outputs (shared_model_accuracy_restricted), which removes the penalty for
-    predicting a class that the other dataset never contains."""
-    model.eval()
-    model.to(device)
+    def __len__(self):
+        return len(self.paths)
 
-    all_pred_makes = []
-    all_true_makes = []
-    all_pred_models = []
-    all_true_models = []
-    all_pred_restricted = []
+    def __getitem__(self, idx: int):
+        p = self.paths[idx]
+        ct = self.crop_top[idx] if self.is_top_list else self.crop_top
+        cb = self.crop_bottom[idx] if self.is_bot_list else self.crop_bottom
+        bb = self.bboxes[idx] if self.bboxes is not None else None
+        mk_lbl = int(self.make_indices[idx])
+        md_lbl = int(self.model_indices[idx]) if self.model_indices is not None else -1
+        try:
+            t, _ = oa.load_and_preprocess_image(p, self.img_size, ct, cb, bbox=bb)
+            return t.squeeze(0), mk_lbl, md_lbl, True
+        except Exception:
+            return torch.zeros((3, self.img_size, self.img_size), dtype=torch.float32), mk_lbl, md_lbl, False
+
+
+def compute_split_metrics(all_pred_makes: List[int], all_true_makes: List[int],
+                          all_pred_models: List[int], all_true_models: List[int],
+                          all_pred_restricted: List[int],
+                          shared_classes: Optional[List[int]] = None) -> Dict[str, Any]:
     shared_arr = np.array(shared_classes, dtype=int) if shared_classes else None
-    n_failed = 0
-
-    n_samples = len(paths)
-    pbar = tqdm(range(0, n_samples, batch_size), desc="  Evaluating", unit="batch", leave=False)
-    with torch.no_grad():
-        for i in pbar:
-            b_paths = paths[i:i + batch_size]
-            b_make_labels = true_make_indices[i:i + batch_size]
-            b_model_labels = true_model_indices[i:i + batch_size] if true_model_indices is not None else None
-            b_bboxes = bboxes[i:i + batch_size] if bboxes is not None else None
-
-            tensors = []
-            valid_idx = []
-            is_top_list = isinstance(crop_top, (list, tuple))
-            is_bot_list = isinstance(crop_bottom, (list, tuple))
-            for j, p in enumerate(b_paths):
-                idx_g = i + j
-                ct = crop_top[idx_g] if is_top_list else crop_top
-                cb = crop_bottom[idx_g] if is_bot_list else crop_bottom
-                bb = b_bboxes[j] if b_bboxes is not None else None
-                try:
-                    t, _ = oa.load_and_preprocess_image(p, img_size, ct, cb, bbox=bb)
-                    tensors.append(t)
-                    valid_idx.append(j)
-                except Exception as e:
-                    n_failed += 1
-                    continue
-
-            if not tensors:
-                continue
-
-            batch_tensor = torch.cat(tensors, dim=0)
-            logits = model(batch_tensor)
-            probs = torch.softmax(logits, dim=-1).cpu().numpy()
-
-            # 1. Model predictions (1235 classes)
-            pred_models = np.argmax(probs, axis=1)
-            all_pred_models.extend(pred_models)
-            if shared_arr is not None:
-                all_pred_restricted.extend(shared_arr[np.argmax(probs[:, shared_arr], axis=1)])
-            if b_model_labels is not None:
-                all_true_models.extend([b_model_labels[k] for k in valid_idx])
-
-            # 2. Make predictions (marginalized over models)
-            if proj_matrix is not None:
-                make_probs = probs @ proj_matrix
-            else:
-                make_probs = probs
-
-            pred_makes = np.argmax(make_probs, axis=1)
-            all_pred_makes.extend(pred_makes)
-            all_true_makes.extend([b_make_labels[k] for k in valid_idx])
-
-    if n_failed:
-        print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded.")
-
     y_pred_make = np.array(all_pred_makes)
     y_true_make = np.array(all_true_makes)
 
@@ -191,7 +152,7 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
     _, _, make_macro_f1, _ = precision_recall_fscore_support(y_true_make, y_pred_make, average="macro", zero_division=0)
     _, _, make_weighted_f1, _ = precision_recall_fscore_support(y_true_make, y_pred_make, average="weighted", zero_division=0)
 
-    res = {
+    res: Dict[str, Any] = {
         "make_accuracy": make_acc,
         "make_macro_f1": float(make_macro_f1),
         "make_weighted_f1": float(make_weighted_f1)
@@ -229,6 +190,118 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
                 res[k] = None
 
     return res
+
+
+def combine_split_metrics(raw_a: Dict[str, List[int]], raw_b: Dict[str, List[int]],
+                          shared_classes: Optional[List[int]] = None) -> Dict[str, Any]:
+    return compute_split_metrics(
+        raw_a["pred_makes"] + raw_b["pred_makes"],
+        raw_a["true_makes"] + raw_b["true_makes"],
+        raw_a["pred_models"] + raw_b["pred_models"],
+        raw_a["true_models"] + raw_b["true_models"],
+        raw_a["pred_restricted"] + raw_b["pred_restricted"],
+        shared_classes=shared_classes,
+    )
+
+
+def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indices: List[int],
+                            true_model_indices: Optional[List[int]] = None,
+                            proj_matrix: Optional[np.ndarray] = None,
+                            bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]] = None,
+                            img_size: int = 512,
+                            crop_top: Any = 0.0, crop_bottom: Any = 0.0,
+                            batch_size: int = 64, device: str = "cuda",
+                            shared_classes: Optional[List[int]] = None,
+                            num_workers: int = 10,
+                            return_raw: bool = False):
+    """Make-level and Model-level evaluation using a multi-worker DataLoader."""
+    model.eval()
+
+    all_pred_makes: List[int] = []
+    all_true_makes: List[int] = []
+    all_pred_models: List[int] = []
+    all_true_models: List[int] = []
+    all_pred_restricted: List[int] = []
+    shared_arr = np.array(shared_classes, dtype=int) if shared_classes else None
+    n_failed = 0
+
+    n_samples = len(paths)
+    dataset = MixedBenchmarkDataset(paths, true_make_indices, true_model_indices, bboxes, img_size, crop_top, crop_bottom)
+    loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=True,
+        persistent_workers=(num_workers > 0),
+        prefetch_factor=4 if num_workers > 0 else None,
+    )
+
+    pbar = tqdm(loader, desc="  Evaluating", unit="batch", leave=False)
+    with torch.no_grad():
+        for batch_tensor, b_make_labels, b_model_labels, valid_mask in pbar:
+            valid_np = valid_mask.numpy()
+            if not np.any(valid_np):
+                n_failed += len(valid_np)
+                continue
+            if not np.all(valid_np):
+                batch_tensor = batch_tensor[valid_np]
+                b_make_labels = b_make_labels[valid_np]
+                b_model_labels = b_model_labels[valid_np]
+                n_failed += int(np.sum(~valid_np))
+
+            if isinstance(model, oa.MobileNetV2Evaluator):
+                logits = model(batch_tensor, return_embeddings=False, return_cam=False)
+                probs = torch.softmax(logits, dim=-1).numpy()
+            else:
+                logits = model(batch_tensor.to(device, non_blocking=True))
+                probs = torch.softmax(logits, dim=-1).cpu().numpy()
+
+            # 1. Model predictions (1235 classes)
+            pred_models = np.argmax(probs, axis=1)
+            all_pred_models.extend(pred_models.tolist())
+            if shared_arr is not None:
+                all_pred_restricted.extend(shared_arr[np.argmax(probs[:, shared_arr], axis=1)].tolist())
+            if true_model_indices is not None:
+                all_true_models.extend(b_model_labels.numpy().tolist())
+
+            # 2. Make predictions (marginalized over models)
+            if proj_matrix is not None:
+                make_probs = probs @ proj_matrix
+            else:
+                make_probs = probs
+
+            pred_makes = np.argmax(make_probs, axis=1)
+            all_pred_makes.extend(pred_makes.tolist())
+            all_true_makes.extend(b_make_labels.numpy().tolist())
+
+    if n_failed:
+        print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded.")
+
+    res = compute_split_metrics(
+        all_pred_makes, all_true_makes, all_pred_models, all_true_models, all_pred_restricted,
+        shared_classes=shared_classes,
+    )
+    if return_raw:
+        raw = {
+            "pred_makes": all_pred_makes,
+            "true_makes": all_true_makes,
+            "pred_models": all_pred_models,
+            "true_models": all_true_models,
+            "pred_restricted": all_pred_restricted,
+        }
+        return res, raw
+    return res
+
+
+def _extract_make_names(df: pd.DataFrame) -> List[str]:
+    if "make" in df.columns:
+        makes = df["make"].fillna("").astype(str).str.strip().tolist()
+        if all(makes):
+            return makes
+        cls_makes = df["class_name"].astype(str).str.split("/").str[0].tolist()
+        return [m if m else cm for m, cm in zip(makes, cls_makes)]
+    return df["class_name"].astype(str).str.split("/").str[0].tolist()
 
 
 def main():
@@ -270,16 +343,14 @@ def main():
         external_train_images=lambda d: d["label"].map(ext_train_counts).fillna(0).astype(int),
     ).to_csv(output_dir / "class_coverage.csv", index=False)
 
-    # 1. Prepare PlatesMania test split
-    df_pm = pd.read_csv(args.pm_test_csv)
-    if "split" in df_pm.columns:
-        df_pm = df_pm[df_pm["split"] == "test"].reset_index(drop=True)
+    # 1. Prepare PlatesMania test split (reuse df_pm_all instead of re-reading 1.1M-row CSV)
+    df_pm = df_pm_all[df_pm_all["split"] == "test"].reset_index(drop=True) if "split" in df_pm_all.columns else df_pm_all
     if len(df_pm) > args.max_eval_per_dataset:
         df_pm = df_pm.sample(n=args.max_eval_per_dataset, random_state=42).reset_index(drop=True)
 
     pm_col = "image_path" if "image_path" in df_pm.columns else "image_rel_path"
     pm_paths = [os.path.join(args.pm_img_dir, p) if not os.path.isabs(p) else p for p in df_pm[pm_col].values]
-    pm_make_names = [str(r["make"]).strip() if "make" in r and pd.notna(r["make"]) else str(r["class_name"]).split("/")[0] for _, r in df_pm.iterrows()]
+    pm_make_names = _extract_make_names(df_pm)
     pm_make_indices = [MAKE_TO_IDX.get(m) for m in pm_make_names]
     pm_model_indices = df_pm["label"].values.astype(int).tolist()
 
@@ -297,16 +368,19 @@ def main():
         df_ext = df_ext.sample(n=args.max_eval_per_dataset, random_state=42).reset_index(drop=True)
 
     ext_paths = df_ext["image_path"].tolist()
-    ext_make_names = [str(r["make"]).strip() if "make" in r and pd.notna(r["make"]) else str(r["class_name"]).split("/")[0] for _, r in df_ext.iterrows()]
+    ext_make_names = _extract_make_names(df_ext)
     ext_make_indices = [MAKE_TO_IDX.get(m) for m in ext_make_names]
     ext_model_indices = df_ext["label"].values.astype(int).tolist()
 
     ext_bboxes = None
     if "bbox_x1" in df_ext.columns:
+        bx1 = df_ext["bbox_x1"].to_numpy(dtype=int)
+        by1 = df_ext["bbox_y1"].to_numpy(dtype=int)
+        bx2 = df_ext["bbox_x2"].to_numpy(dtype=int)
+        by2 = df_ext["bbox_y2"].to_numpy(dtype=int)
         ext_bboxes = [
-            (int(r["bbox_x1"]), int(r["bbox_y1"]), int(r["bbox_x2"]), int(r["bbox_y2"]))
-            if int(r["bbox_x1"]) >= 0 else None
-            for _, r in df_ext.iterrows()
+            (int(x1), int(y1), int(x2), int(y2)) if x1 >= 0 else None
+            for x1, y1, x2, y2 in zip(bx1, by1, bx2, by2)
         ]
 
     ext_keep = [i for i, m in enumerate(ext_make_indices) if m is not None]
@@ -318,28 +392,29 @@ def main():
     else:
         ext_bboxes = [None] * len(ext_paths)
 
-    # 3. Prepare Mixed test split
-    mixed_paths = pm_paths + ext_paths
-    mixed_make_indices = pm_make_indices + ext_make_indices
-    mixed_model_indices = pm_model_indices + ext_model_indices
-    mixed_bboxes = pm_bboxes + ext_bboxes
-    mixed_crop_top = [0.15] * len(pm_paths) + [0.0] * len(ext_paths)
-    mixed_crop_bot = [0.0] * len(pm_paths) + [0.05] * len(ext_paths)
-
-    print(f"[Datasets] PlatesMania Test: {len(pm_paths):,} | External Test: {len(ext_paths):,} | Mixed Test: {len(mixed_paths):,}")
+    n_mixed = len(pm_paths) + len(ext_paths)
+    print(f"[Datasets] PlatesMania Test: {len(pm_paths):,} | External Test: {len(ext_paths):,} | Mixed Test: {n_mixed:,}")
 
     results = []
 
     # Benchmark Model A (PlatesMania)
     print("\n--- Evaluating Model A (PlatesMania) ---")
     model_a = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path)
-    res_a_pm = evaluate_model_on_split(model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
+    res_a_pm, raw_a_pm = evaluate_model_on_split(
+        model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes,
+        args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
+        device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+    )
     print(f"Model A on PlatesMania (In-Domain):     Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
 
-    res_a_ext = evaluate_model_on_split(model_a, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
+    res_a_ext, raw_a_ext = evaluate_model_on_split(
+        model_a, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes,
+        args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size,
+        device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+    )
     print(f"Model A on External    (Out-of-Domain): Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
 
-    res_a_mix = evaluate_model_on_split(model_a, mixed_paths, mixed_make_indices, mixed_model_indices, pm_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
+    res_a_mix = combine_split_metrics(raw_a_pm, raw_a_ext, shared_classes=shared_cls)
     print(f"Model A on Mixed       (Combined):      Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
 
     results.extend([
@@ -353,28 +428,44 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-    # Benchmark Model B (External)
+    # Benchmark Model B (External) — reuse Model A evaluations if both slots point to the identical model & label map (e.g. --merged)
+    same_model = (os.path.abspath(args.pm_model_path) == os.path.abspath(args.ext_model_path) and pm_lm == ext_lm)
     print("\n--- Evaluating Model B (External Merged) ---")
-    model_b = oa.MobileNetV2Evaluator(num_classes=len(ext_lm), checkpoint_path=args.ext_model_path)
-    res_b_ext = evaluate_model_on_split(model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes, args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
-    print(f"Model B on External    (In-Domain):     Make Acc={res_b_ext['make_accuracy']:.2%} | Model Acc={res_b_ext['model_accuracy']:.2%} | Make Macro F1={res_b_ext['make_macro_f1']:.2%}")
+    if same_model:
+        print("[Info] Model B checkpoint and label map are identical to Model A; reusing evaluated predictions.")
+        res_b_ext, res_b_pm, res_b_mix = res_a_ext, res_a_pm, res_a_mix
+        print(f"Model B on External    (In-Domain):     Make Acc={res_b_ext['make_accuracy']:.2%} | Model Acc={res_b_ext['model_accuracy']:.2%} | Make Macro F1={res_b_ext['make_macro_f1']:.2%}")
+        print(f"Model B on PlatesMania (Out-of-Domain): Make Acc={res_b_pm['make_accuracy']:.2%} | Model Acc={res_b_pm['model_accuracy']:.2%} | Make Macro F1={res_b_pm['make_macro_f1']:.2%}")
+        print(f"Model B on Mixed       (Combined):      Make Acc={res_b_mix['make_accuracy']:.2%} | Model Acc={res_b_mix['model_accuracy']:.2%} | Make Macro F1={res_b_mix['make_macro_f1']:.2%}")
+    else:
+        model_b = oa.MobileNetV2Evaluator(num_classes=len(ext_lm), checkpoint_path=args.ext_model_path)
+        res_b_ext, raw_b_ext = evaluate_model_on_split(
+            model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes,
+            args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size,
+            device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+        )
+        print(f"Model B on External    (In-Domain):     Make Acc={res_b_ext['make_accuracy']:.2%} | Model Acc={res_b_ext['model_accuracy']:.2%} | Make Macro F1={res_b_ext['make_macro_f1']:.2%}")
 
-    res_b_pm = evaluate_model_on_split(model_b, pm_paths, pm_make_indices, pm_model_indices, ext_proj, pm_bboxes, args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
-    print(f"Model B on PlatesMania (Out-of-Domain): Make Acc={res_b_pm['make_accuracy']:.2%} | Model Acc={res_b_pm['model_accuracy']:.2%} | Make Macro F1={res_b_pm['make_macro_f1']:.2%}")
+        res_b_pm, raw_b_pm = evaluate_model_on_split(
+            model_b, pm_paths, pm_make_indices, pm_model_indices, ext_proj, pm_bboxes,
+            args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
+            device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
+        )
+        print(f"Model B on PlatesMania (Out-of-Domain): Make Acc={res_b_pm['make_accuracy']:.2%} | Model Acc={res_b_pm['model_accuracy']:.2%} | Make Macro F1={res_b_pm['make_macro_f1']:.2%}")
 
-    res_b_mix = evaluate_model_on_split(model_b, mixed_paths, mixed_make_indices, mixed_model_indices, ext_proj, mixed_bboxes, args.img_size, crop_top=mixed_crop_top, crop_bottom=mixed_crop_bot, batch_size=args.batch_size, device=device, shared_classes=shared_cls)
-    print(f"Model B on Mixed       (Combined):      Make Acc={res_b_mix['make_accuracy']:.2%} | Model Acc={res_b_mix['model_accuracy']:.2%} | Make Macro F1={res_b_mix['make_macro_f1']:.2%}")
+        res_b_mix = combine_split_metrics(raw_b_pm, raw_b_ext, shared_classes=shared_cls)
+        print(f"Model B on Mixed       (Combined):      Make Acc={res_b_mix['make_accuracy']:.2%} | Model Acc={res_b_mix['model_accuracy']:.2%} | Make Macro F1={res_b_mix['make_macro_f1']:.2%}")
+
+        del model_b
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     results.extend([
         {"model": "Model B (External)", "test_split": "External (In-Domain)", "domain_type": "In-Domain", **res_b_ext},
         {"model": "Model B (External)", "test_split": "PlatesMania (Out-of-Domain)", "domain_type": "Out-of-Domain", **res_b_pm},
         {"model": "Model B (External)", "test_split": "Mixed (Combined)", "domain_type": "Mixed", **res_b_mix},
     ])
-
-    del model_b
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
 
     results_df = pd.DataFrame(results)
     results_df.to_csv(output_dir / "mixed_benchmark_summary.csv", index=False)

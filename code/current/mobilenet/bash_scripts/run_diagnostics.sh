@@ -45,7 +45,7 @@ if [ "${RUN_PM}" -eq 1 ]; then
         --model-path "${PM_RUN_DIR}/models/mobilenet_v2_best.onnx" \
         --label-map "${PM_RUN_DIR}/models/label_map.json" \
         --output-dir "${PM_RUN_DIR}" \
-        --batch-size 64 --num-workers 6 "${MAX_SAMPLES[@]}"
+        --batch-size 64 --num-workers 10 "${MAX_SAMPLES[@]}"
 fi
 
 if [ "${RUN_EXT}" -eq 1 ]; then
@@ -54,7 +54,7 @@ if [ "${RUN_EXT}" -eq 1 ]; then
         --model-path "${EXT_RUN_DIR}/models/mobilenet_v2_best.onnx" \
         --label-map "${EXT_RUN_DIR}/models/label_map.json" \
         --output-dir "${EXT_RUN_DIR}" \
-        --batch-size 64 --num-workers 6 "${MAX_SAMPLES[@]}"
+        --batch-size 64 --num-workers 10 "${MAX_SAMPLES[@]}"
 fi
 
 if [ "${RUN_BENCH}" -eq 1 ]; then
@@ -68,7 +68,7 @@ if [ "${RUN_BENCH}" -eq 1 ]; then
         --pm-test-csv "${PM_MANIFEST_CSV}" --pm-img-dir "${PM_IMG_DIR}" \
         --ext-test-csv "${MOBILENET_DIR}/external_dataset/splits_1235models/test.csv" \
         --output-dir "${BENCH_DIR}" \
-        --img-size 512 --batch-size 64 --max-eval-per-dataset 5000
+        --img-size 512 --batch-size 64 --num-workers 10 --max-eval-per-dataset 5000
 fi
 
 if [ "${RUN_MERGED}" -eq 1 ]; then
@@ -78,11 +78,11 @@ if [ "${RUN_MERGED}" -eq 1 ]; then
     "${PYTHON_BIN}" -u "${MOBILENET_DIR}/platesmania_dataset/analysis/output_analysis_platesmania.py" \
         --test-csv "${PM_MANIFEST_CSV}" --base-img-dir "${PM_IMG_DIR}" \
         --model-path "${M_MODEL}" --label-map "${M_MAP}" --output-dir "${MERGED_RUN_DIR}/diagnostics_platesmania" \
-        --batch-size 64 --num-workers 6 "${MAX_SAMPLES[@]}"
+        --batch-size 64 --num-workers 10 "${MAX_SAMPLES[@]}"
     echo; echo "=== Model C (merged) on the External test split ==="
     "${PYTHON_BIN}" -u "${MOBILENET_DIR}/external_dataset/analysis/output_analysis_external.py" \
         --model-path "${M_MODEL}" --label-map "${M_MAP}" --output-dir "${MERGED_RUN_DIR}/diagnostics_external" \
-        --batch-size 64 --num-workers 6 "${MAX_SAMPLES[@]}"
+        --batch-size 64 --num-workers 10 "${MAX_SAMPLES[@]}"
     # Same benchmark as A/B, with the merged model in both slots ("Model A" and "Model B" rows are the same model),
     # so the 5,000-image numbers and shared-class view compare directly with Run 3.
     echo; echo "=== Model C benchmark (same 5,000-image samples as A/B) ==="
@@ -93,7 +93,7 @@ if [ "${RUN_MERGED}" -eq 1 ]; then
         --pm-test-csv "${PM_MANIFEST_CSV}" --pm-img-dir "${PM_IMG_DIR}" \
         --ext-test-csv "${MOBILENET_DIR}/external_dataset/splits_1235models/test.csv" \
         --output-dir "${MERGED_RUN_DIR}/benchmark" \
-        --img-size 512 --batch-size 64 --max-eval-per-dataset 5000
+        --img-size 512 --batch-size 64 --num-workers 10 --max-eval-per-dataset 5000
 fi
 
 echo; echo "  Diagnostics finished   $(date '+%Y-%m-%d %H:%M:%S')"
