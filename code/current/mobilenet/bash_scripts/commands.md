@@ -29,6 +29,7 @@ A second launch with a session name that is already running is refused (it print
 | `AUTO_GIT_PUSH=0` | Do not commit and push results when finished (default `1`: commits `code/current/mobilenet/` and pushes). |
 | `CUDA_VISIBLE_DEVICES=1` | Choose the GPU. |
 | `ECON_ROOT`, `PM_IMG_DIR`, `PM_MANIFEST_CSV`, `PM_LABEL_MAP`, `EXT_DATASETS_DIR`, `PYTHON_BIN` | Override a path for one run. Permanent per-server values go in the gitignored `bash_scripts/lib/paths.local.sh`. |
+| `ANNOT_OUT_DIR`, `QWEN_MODEL_DIR` | Annotation output root (default `${ECON_ROOT}/annotation_runs`) and the Qwen3-VL model id or local directory (see `run_annotate.sh`). |
 
 Example: `RUN_NAME=run5 AUTO_GIT_PUSH=0 bash bash_scripts/run_train_merged.sh --aug-strength strong`
 
@@ -85,6 +86,34 @@ bash bash_scripts/run_diagnostics.sh --quick
 ```
 
 ---
+
+## `run_annotate.sh` (make/model + color annotation and HTML viewer)
+
+Annotates **test-split** images (unseen by Model C) with make and model (merged Model C, ONNX) and color (Qwen3-VL-4B, scored over a fixed color list), then builds a self-contained `viewer.html`. tmux session `annotate`.
+
+```bash
+bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color     # smoke test, no Qwen
+bash bash_scripts/run_annotate.sh --max-samples 200                  # smoke test with Qwen
+RUN_NAME=run4 bash bash_scripts/run_annotate.sh --max-samples 20000  # real run (per domain)
+```
+
+Needs `pip install -U "transformers>=4.57" accelerate` for Qwen (use `PYTHON_BIN` to point at a separate env); `umap-learn` is optional (falls back to t-SNE). Output goes to `${ANNOT_OUT_DIR}/<RUN_NAME or run4>/` (default `${ECON_ROOT}/annotation_runs`), outside git, so no auto-push: `annotations.csv`, `embeddings.npy`, `color_cache.csv`, `viewer.html`. The color stage resumes from `color_cache.csv`.
+
+| Option | Meaning |
+|---|---|
+| `--domain both\|pm\|ext` | Which dataset(s) (default both) |
+| `--max-samples N` | Random subsample per domain (default: all test images, 109k + 6k) |
+| `--skip-color` | make/model only |
+| `--color-head NAME` | `qwen3vl` (default) or `classical` (no-model baseline) |
+| `--qwen-model ID_OR_DIR` | Default `$QWEN_MODEL_DIR` (`Qwen/Qwen3-VL-4B-Instruct`); a local directory for offline servers |
+| `--color-batch-size N` | Qwen batch (default 16) |
+| `--reuse-model-stage` | Skip the ONNX stage if `annotations.csv` and `embeddings.npy` exist (e.g. to redo color only) |
+| `--coords-max N` | Rows that get 2-D embedding coordinates (default 20000, half per domain) |
+| `--max-points N` | Points with thumbnails embedded in the viewer (default 3000; the file grows with it) |
+| `--review-conf` / `--review-color-conf` | Confidence thresholds below which a row is flagged `needs_review` (0.70 / 0.50) |
+| `--no-viewer` | Skip building the HTML |
+
+To rebuild only the viewer: `python annotation/build_viewer.py --annotations <dir>/annotations.csv --max-points 5000`.
 
 ## Building the External Splits
 

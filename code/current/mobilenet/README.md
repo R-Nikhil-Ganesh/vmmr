@@ -28,6 +28,7 @@ vmmr/code/current/mobilenet/
 ├── bash_scripts/                         # Shell runners (tmux by default); see bash_scripts/commands.md
 │   ├── run_all_pipeline.sh               # train Model C -> diagnostics + mixed benchmark
 │   ├── run_train_merged.sh               # train Model C (PlatesMania + External)
+│   ├── run_annotate.sh                   # annotate make/model/color + HTML viewer
 │   ├── run_diagnostics.sh                # per-domain diagnostics + mixed benchmark
 │   └── lib/                              # helpers: paths.sh, tmux_wrap.sh, auto_git_sync.sh
 ├── paths.py                              # Python side of the single path config (bash_scripts/lib/paths.sh)
@@ -46,6 +47,7 @@ All commands, arguments and examples are in [commands.md](bash_scripts/commands.
 cd vmmr/code/current/mobilenet
 bash bash_scripts/run_all_pipeline.sh     # train Model C, then diagnostics + mixed benchmark (tmux: mobilenet_pipeline)
 bash bash_scripts/run_train_merged.sh     # train Model C only (tmux: train_merged)
+bash bash_scripts/run_annotate.sh         # annotate test images, build viewer.html (tmux: annotate)
 bash bash_scripts/run_diagnostics.sh      # per-domain diagnostics + mixed benchmark (tmux: diagnostics)
 ```
 

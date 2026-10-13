@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 MOBILENET_DIR = Path(__file__).resolve().parent
-KEYS = ["REPO_ROOT", "ECON_ROOT", "PM_IMG_DIR", "PM_MANIFEST_CSV", "PM_LABEL_MAP", "EXT_DATASETS_DIR", "PYTHON_BIN", "AUTO_GIT_PUSH"]
+KEYS = ["REPO_ROOT", "ECON_ROOT", "PM_IMG_DIR", "PM_MANIFEST_CSV", "PM_LABEL_MAP", "EXT_DATASETS_DIR", "PYTHON_BIN", "AUTO_GIT_PUSH", "ANNOT_OUT_DIR", "QWEN_MODEL_DIR"]
 
 
 def _resolve() -> dict:
@@ -40,13 +40,15 @@ PM_LABEL_MAP = _VALUES["PM_LABEL_MAP"]
 EXT_DATASETS_DIR = _VALUES["EXT_DATASETS_DIR"]
 PYTHON_BIN = _VALUES["PYTHON_BIN"]
 AUTO_GIT_PUSH = _VALUES["AUTO_GIT_PUSH"]
+ANNOT_OUT_DIR = _VALUES["ANNOT_OUT_DIR"]
+QWEN_MODEL_DIR = _VALUES["QWEN_MODEL_DIR"]
 
 
 if __name__ == "__main__":
     ok = True
     for k in KEYS:
         v = _VALUES[k]
-        if k == "AUTO_GIT_PUSH":
+        if k in ("AUTO_GIT_PUSH", "ANNOT_OUT_DIR", "QWEN_MODEL_DIR"):   # not required to exist yet
             print(f"  {k:18s} {v}")
             continue
         exists = bool(v) and Path(v).exists()

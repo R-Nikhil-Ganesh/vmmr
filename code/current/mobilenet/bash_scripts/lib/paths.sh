@@ -20,7 +20,7 @@ _PATHS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Precedence: shell environment > paths.local.sh > defaults below.
 if [ -f "${_PATHS_DIR}/paths.local.sh" ]; then
     _SAVED=""
-    for _k in ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH REPO_ROOT; do
+    for _k in ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH REPO_ROOT ANNOT_OUT_DIR QWEN_MODEL_DIR; do
         if [ -n "${!_k+x}" ]; then _SAVED="${_SAVED} ${_k}=$(printf '%q' "${!_k}")"; fi
     done
     # shellcheck disable=SC1091
@@ -44,6 +44,10 @@ fi
 # External datasets (used by merged_dataset/prepare_external_1235models.py)
 : "${EXT_DATASETS_DIR:=${ECON_ROOT}/external_resized_512}"
 
+# Annotation tool (annotation/): outputs live outside the git tree; Qwen3-VL is a Hugging Face id or a local directory
+: "${ANNOT_OUT_DIR:=${ECON_ROOT}/annotation_runs}"
+: "${QWEN_MODEL_DIR:=Qwen/Qwen3-VL-4B-Instruct}"
+
 # Python interpreter: <repo parent>/pt-env if present, else python3
 if [ -z "${PYTHON_BIN:-}" ]; then
     if [ -x "$(dirname "${REPO_ROOT}")/pt-env/bin/python" ]; then
@@ -56,4 +60,4 @@ fi
 # Commit and push results when a runner finishes (1 = on, 0 = off)
 : "${AUTO_GIT_PUSH:=1}"
 
-export MOBILENET_DIR REPO_ROOT ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH
+export MOBILENET_DIR REPO_ROOT ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH ANNOT_OUT_DIR QWEN_MODEL_DIR
