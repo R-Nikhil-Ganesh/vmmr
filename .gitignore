@@ -20,4 +20,3 @@ test_predictions.txt
 *plotly.min.js
 **/annotation_runs*/**/*.npy
 **/annotation_runs*/**/color_cache.csv
-CLAUDE.md
