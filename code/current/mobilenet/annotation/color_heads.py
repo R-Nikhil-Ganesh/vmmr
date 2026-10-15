@@ -44,7 +44,8 @@ class Qwen3VLHead(ColorHead):
     PROMPT = ("What is the main body color of the vehicle in this image? Answer with exactly one word from this list: "
               + ", ".join(COLORS) + ".")
 
-    def __init__(self, model_id: str = "Qwen/Qwen3-VL-8B-Instruct", device: str = "cuda", max_side: int = 448, **_):
+    def __init__(self, model_id: str = "Qwen/Qwen3-VL-8B-Instruct", device: str = "cuda", max_side: int = 336,
+                 load_in_4bit: bool = True, **_):
         import torch
         from transformers import AutoProcessor
         try:
@@ -55,14 +56,32 @@ class Qwen3VLHead(ColorHead):
         self.torch, self.device, self.max_side = torch, device, max_side
         self.processor = AutoProcessor.from_pretrained(model_id)
         self.processor.tokenizer.padding_side = "left"
-        load_kw = {"torch_dtype": torch.bfloat16}
-        if device == "cuda" and torch.cuda.is_available():
+
+        load_kw = {"torch_dtype": torch.bfloat16, "attn_implementation": "sdpa"}
+        if load_in_4bit and device == "cuda" and torch.cuda.is_available():
+            try:
+                from transformers import BitsAndBytesConfig
+                load_kw["quantization_config"] = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_compute_dtype=torch.bfloat16,
+                    bnb_4bit_use_double_quant=True,
+                )
+                load_kw["device_map"] = "auto"
+                print(f"[color] 4-bit NF4 quantization enabled (bitsandbytes)")
+            except Exception as e:
+                print(f"[color] 4-bit quantization failed ({e}), falling back to bfloat16")
+                load_kw["device_map"] = "auto"
+        elif device == "cuda" and torch.cuda.is_available():
             load_kw["device_map"] = "auto"
+
         try:
             self.model = ModelCls.from_pretrained(model_id, **load_kw)
         except TypeError:
+            load_kw.pop("attn_implementation", None)
             load_kw["dtype"] = load_kw.pop("torch_dtype", torch.bfloat16)
             self.model = ModelCls.from_pretrained(model_id, **load_kw)
+
         if not hasattr(self.model, "hf_device_map"):
             self.model.to(device)
         self.model.eval()
@@ -74,7 +93,8 @@ class Qwen3VLHead(ColorHead):
             self.first_ids.append(ids[0])
         if len(set(self.first_ids)) != len(COLORS):
             raise RuntimeError(f"Color words share a first token, scoring would be ambiguous: {self.first_ids}")
-        print(f"[color] Qwen3-VL loaded from {model_id} on {device}")
+        mem = torch.cuda.memory_allocated() / (1024**3) if torch.cuda.is_available() else 0
+        print(f"[color] Qwen3-VL loaded from {model_id} on {device} (VRAM: {mem:.2f} GB, max_side={max_side})")
 
     def predict(self, images):
         torch = self.torch

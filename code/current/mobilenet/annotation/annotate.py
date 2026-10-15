@@ -47,7 +47,9 @@ def parse_args():
     p.add_argument("--skip-color", action="store_true")
     p.add_argument("--color-head", default="qwen3vl")
     p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-8B-Instruct")
-    p.add_argument("--color-batch-size", type=int, default=8)
+    p.add_argument("--color-batch-size", type=int, default=16)
+    p.add_argument("--qwen-max-side", type=int, default=336, help="Max image dimension for Qwen (default: 336 for fast inference)")
+    p.add_argument("--no-4bit", action="store_true", help="Disable 4-bit quantization and use bfloat16")
     p.add_argument("--review-conf", type=float, default=0.70, help="model confidence below this -> needs_review")
     p.add_argument("--review-color-conf", type=float, default=0.50, help="color confidence below this -> needs_review")
     p.add_argument("--max-points", type=int, default=15000, help="points (with thumbnails) embedded in the viewer")
@@ -304,7 +306,8 @@ def stage_color(df, out_dir, args):
     print(f"[color] {len(df) - len(todo):,} cached, {len(todo):,} to do (head={args.color_head})")
 
     if len(todo):
-        head = build_head(args.color_head, model_id=args.qwen_model)
+        head = build_head(args.color_head, model_id=args.qwen_model, max_side=args.qwen_max_side,
+                          load_in_4bit=not args.no_4bit)
         new, t0 = [], time.time()
         recs = todo.to_dict("records")
         for i in range(0, len(recs), args.color_batch_size):
@@ -312,7 +315,7 @@ def stage_color(df, out_dir, args):
             imgs, keep = [], []
             for r in chunk:
                 try:
-                    imgs.append(load_crop(r["path"], r["domain"], parse_bbox(r), max_side=448))
+                    imgs.append(load_crop(r["path"], r["domain"], parse_bbox(r), max_side=args.qwen_max_side))
                     keep.append(r)
                 except Exception as e:
                     print(f"[color] cannot read {r['path']}: {e}")
