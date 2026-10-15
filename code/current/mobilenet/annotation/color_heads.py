@@ -1,13 +1,11 @@
 """
-Pluggable color heads. A head implements
+Color head using Qwen3-VL. A head implements
 
     predict(images: list[PIL.Image]) -> list[(color: str, confidence: float)]
 
-and is registered under a name so annotate.py can pick one with --color-head. Colors come from COLORS.
-
-  classical   no model, mean HSV of the central region: a cheap baseline (and the local test stub)
-  qwen3vl     Qwen3-VL zero-shot; the answer is scored over the fixed color list (next-token probability among
-              the options), so the output is always a valid color and the confidence is a real probability
+Colors come from COLORS. Qwen3-VL zero-shot answers are scored over the fixed color list
+(next-token probability among the options), so the output is always a valid color and the
+confidence is a real probability.
 """
 
 from typing import Callable, Dict, List, Tuple
@@ -41,58 +39,33 @@ class ColorHead:
         raise NotImplementedError
 
 
-@register("classical")
-class ClassicalHead(ColorHead):
-    """Mean color of the central 50% of the crop, mapped to the nearest named color. Weak (reflections, plates,
-    background), kept only as a baseline."""
-
-    # name -> (h in [0,360), s, v) prototypes
-    _PROTOS = {
-        "white": (0, 0.03, 0.95), "black": (0, 0.05, 0.10), "silver": (0, 0.03, 0.72), "gray": (0, 0.03, 0.45),
-        "red": (0, 0.85, 0.65), "blue": (220, 0.8, 0.55), "green": (120, 0.7, 0.45), "yellow": (55, 0.85, 0.9),
-        "orange": (28, 0.9, 0.9), "brown": (25, 0.7, 0.35), "beige": (40, 0.25, 0.8), "gold": (45, 0.6, 0.7),
-    }
-
-    def predict(self, images):
-        out = []
-        for im in images:
-            w, h = im.size
-            c = im.crop((w // 4, h // 4, 3 * w // 4, 3 * h // 4)).resize((32, 32))
-            hsv = np.array(c.convert("HSV"), dtype=np.float32).reshape(-1, 3)
-            hh, ss, vv = hsv[:, 0] * 360 / 255, hsv[:, 1] / 255, hsv[:, 2] / 255
-            best, scores = None, {}
-            for name, (ph, ps, pv) in self._PROTOS.items():
-                dh = np.minimum(np.abs(hh - ph), 360 - np.abs(hh - ph)) / 180
-                wgt = np.minimum(ss, ps) + 0.05                      # hue only matters for saturated colors
-                d = (wgt * dh) ** 2 + (ss - ps) ** 2 + (vv - pv) ** 2
-                scores[name] = float(np.exp(-d.mean() * 8))
-            best = max(scores, key=scores.get)
-            tot = sum(scores.values()) or 1.0
-            out.append((best, scores[best] / tot))
-        return out
-
-
 @register("qwen3vl")
 class Qwen3VLHead(ColorHead):
     PROMPT = ("What is the main body color of the vehicle in this image? Answer with exactly one word from this list: "
               + ", ".join(COLORS) + ".")
 
-    def __init__(self, model_id: str = "Qwen/Qwen3-VL-4B-Instruct", device: str = "cuda", max_side: int = 448, **_):
+    def __init__(self, model_id: str = "Qwen/Qwen3-VL-8B-Instruct", device: str = "cuda", max_side: int = 448, **_):
         import torch
         from transformers import AutoProcessor
         try:
             from transformers import Qwen3VLForConditionalGeneration as ModelCls
         except ImportError as e:
-            raise ImportError("Qwen3-VL needs a recent transformers: pip install -U 'transformers>=4.57' accelerate") from e
+            raise ImportError("Qwen3-VL needs a recent transformers with Qwen3VL support: pip install -U 'transformers>=4.57' accelerate") from e
 
         self.torch, self.device, self.max_side = torch, device, max_side
         self.processor = AutoProcessor.from_pretrained(model_id)
         self.processor.tokenizer.padding_side = "left"
+        load_kw = {"torch_dtype": torch.bfloat16}
+        if device == "cuda" and torch.cuda.is_available():
+            load_kw["device_map"] = "auto"
         try:
-            self.model = ModelCls.from_pretrained(model_id, dtype=torch.bfloat16)
+            self.model = ModelCls.from_pretrained(model_id, **load_kw)
         except TypeError:
-            self.model = ModelCls.from_pretrained(model_id, torch_dtype=torch.bfloat16)
-        self.model.to(device).eval()
+            load_kw["dtype"] = load_kw.pop("torch_dtype", torch.bfloat16)
+            self.model = ModelCls.from_pretrained(model_id, **load_kw)
+        if not hasattr(self.model, "hf_device_map"):
+            self.model.to(device)
+        self.model.eval()
 
         tok = self.processor.tokenizer
         self.first_ids = []

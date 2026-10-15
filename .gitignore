@@ -17,3 +17,6 @@ test_predictions.txt
 *scratch_test/
 *.btr
 /archive/
+*plotly.min.js
+**/annotation_runs*/**/*.npy
+**/annotation_runs*/**/color_cache.csv

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Annotate test images with make, model (merged Model C, ONNX) and color (pluggable head, default Qwen3-VL-4B), then
+Annotate test images with make, model (merged Model C, ONNX) and color (pluggable head, default Qwen3-VL-8B), then
 build the self-contained HTML viewer.
 
 Stages (each writes into --output-dir; the color stage resumes from color_cache.csv):
   1. make/model   ONNX Runtime: top-3 classes, model confidence, make by marginalization, 1280-d embedding
   2. coordinates  2-D embedding (UMAP if installed, else PCA -> t-SNE) for a subset of rows
-  3. color        --color-head (qwen3vl | classical), scored over a fixed color list
+  3. color        --color-head (default: qwen3vl), scored over a fixed color list
   4. viewer       build_viewer.build() -> viewer.html
 
 Outputs: annotations.csv (one row per image), embeddings.npy (float16, row-aligned with annotations.csv),
@@ -45,8 +45,8 @@ def parse_args():
     p.add_argument("--coords-max", type=int, default=20000, help="rows that get 2-D coordinates (half per domain)")
     p.add_argument("--skip-color", action="store_true")
     p.add_argument("--color-head", default="qwen3vl")
-    p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-4B-Instruct")
-    p.add_argument("--color-batch-size", type=int, default=16)
+    p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-8B-Instruct")
+    p.add_argument("--color-batch-size", type=int, default=8)
     p.add_argument("--review-conf", type=float, default=0.70, help="model confidence below this -> needs_review")
     p.add_argument("--review-color-conf", type=float, default=0.50, help="color confidence below this -> needs_review")
     p.add_argument("--max-points", type=int, default=3000, help="points (with thumbnails) embedded in the viewer")
@@ -63,19 +63,67 @@ def _subsample(df, n, seed):
     return df.reset_index(drop=True)
 
 
+def _resolve_pm_path(raw_path: str, base_dir: str) -> str:
+    p = Path(raw_path)
+    if p.is_file():
+        return str(p)
+    base = Path(base_dir) if base_dir else Path(".")
+    raw_str = str(raw_path)
+    for marker in ("resized_512", "images"):
+        if marker in raw_str:
+            rel = raw_str.split(marker, 1)[1].lstrip("/")
+            cand = base / rel
+            if cand.is_file():
+                return str(cand)
+            if rel.startswith("images/"):
+                cand_no_img = base / rel[7:]
+                if cand_no_img.is_file():
+                    return str(cand_no_img)
+            strip = not (base / "images").is_dir() and base.is_dir()
+            return str(base / (rel[7:] if (strip and rel.startswith("images/")) else rel))
+    strip = not (base / "images").is_dir() and base.is_dir()
+    clean_rel = raw_str[7:] if (strip and raw_str.startswith("images/")) else raw_str
+    cand = base / clean_rel
+    if cand.is_file():
+        return str(cand)
+    cand_img = base / "images" / clean_rel
+    if cand_img.is_file():
+        return str(cand_img)
+    return str(cand)
+
+
+def _resolve_ext_path(raw_path: str, ext_base_dir: str) -> str:
+    p = Path(raw_path)
+    if p.is_file():
+        return str(p)
+    base = Path(ext_base_dir) if ext_base_dir else Path(".")
+    raw_str = str(raw_path)
+    marker = "external_resized_512"
+    if marker in raw_str:
+        rel = raw_str.split(marker, 1)[1].lstrip("/")
+        cand = base / rel
+        if cand.is_file():
+            return str(cand)
+        if rel.startswith("images/"):
+            cand_no_img = base / rel[7:]
+            if cand_no_img.is_file():
+                return str(cand_no_img)
+            if not (base / "images").is_dir() and base.is_dir():
+                return str(cand_no_img)
+        return str(cand)
+    cand = base / raw_str.lstrip("/")
+    if cand.is_file():
+        return str(cand)
+    return str(cand) if not p.is_absolute() else raw_str
+
+
 def pm_table(split, n, seed):
     df = pd.read_csv(paths.PM_MANIFEST_CSV)
     if "split" in df.columns:
         df = df[df["split"] == split]
     col = "image_path" if "image_path" in df.columns else "image_rel_path"
     base = paths.PM_IMG_DIR
-    strip = not Path(base, "images").is_dir()
-    out = []
-    for p in df[col].astype(str):
-        if Path(p).is_absolute():
-            out.append(p)
-        else:
-            out.append(str(Path(base, p[7:] if (strip and p.startswith("images/")) else p)))
+    out = [_resolve_pm_path(p, base) for p in df[col].astype(str)]
     res = pd.DataFrame({"path": out, "gt_label": df["label"].astype(int).values,
                         "bbox_x1": -1, "bbox_y1": -1, "bbox_x2": -1, "bbox_y2": -1, "source": "platesmania"})
     res.insert(0, "domain", "platesmania")
@@ -84,8 +132,11 @@ def pm_table(split, n, seed):
 
 def ext_table(split, n, seed):
     df = pd.read_csv(MOBILENET_DIR / "merged_dataset" / "splits_1235models" / f"{split}.csv")
-    res = df[["image_path", "label", "bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2", "source"]].rename(
-        columns={"image_path": "path", "label": "gt_label"})
+    base = paths.EXT_DATASETS_DIR
+    out = [_resolve_ext_path(p, base) for p in df["image_path"].astype(str)]
+    res = df[["label", "bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2", "source"]].rename(
+        columns={"label": "gt_label"})
+    res.insert(0, "path", out)
     res.insert(0, "domain", "external")
     return _subsample(res, n, seed)
 
@@ -160,6 +211,7 @@ def stage_model(table, label_map, args):
     out["correct_model"] = out["pred_class"] == out["gt_class"]
     out["correct_make"] = out["pred_make"] == out["gt_make"]
     out.insert(0, "image_id", np.arange(len(out)))
+    out.insert(2, "filename", out["path"].map(lambda p: Path(p).name))
     return out.drop(columns=["pred_idx", "gt_label"]), np.stack(embs)
 
 
@@ -178,7 +230,10 @@ def stage_coords(df, emb, args):
         chosen.append(idx)
     chosen = np.concatenate(chosen)
     if len(chosen) < 5:
+        angles = np.linspace(0, 2 * np.pi, len(chosen), endpoint=False)
         df["x"] = np.nan; df["y"] = np.nan
+        df.loc[chosen, "x"] = np.cos(angles)
+        df.loc[chosen, "y"] = np.sin(angles)
         return df
     x = emb[chosen].astype(np.float32)
     x = PCA(n_components=min(50, x.shape[1], len(chosen) - 1), random_state=args.seed).fit_transform(x)

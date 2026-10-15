@@ -45,8 +45,8 @@ fi
 : "${EXT_DATASETS_DIR:=${ECON_ROOT}/external_resized_512}"
 
 # Annotation tool (annotation/): outputs live outside the git tree; Qwen3-VL is a Hugging Face id or a local directory
-: "${ANNOT_OUT_DIR:=${ECON_ROOT}/annotation_runs}"
-: "${QWEN_MODEL_DIR:=Qwen/Qwen3-VL-4B-Instruct}"
+: "${ANNOT_OUT_DIR:=${MOBILENET_DIR}/annotation_runs}"
+: "${QWEN_MODEL_DIR:=Qwen/Qwen3-VL-8B-Instruct}"
 
 # Python interpreter: <repo parent>/pt-env if present, else python3
 if [ -z "${PYTHON_BIN:-}" ]; then

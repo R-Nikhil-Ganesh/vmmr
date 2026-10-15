@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Annotate test images with make/model (merged Model C) and color (Qwen3-VL-4B), then build the HTML viewer.
+# Annotate test images with make/model (merged Model C) and color (Qwen3-VL-8B), then build the HTML viewer.
 # Runs in a tmux session by default. Output goes outside the git tree: ${ANNOT_OUT_DIR}/<RUN_NAME or run4>/.
 set -eo pipefail
 

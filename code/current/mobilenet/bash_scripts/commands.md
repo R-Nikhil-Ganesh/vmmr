@@ -89,7 +89,7 @@ bash bash_scripts/run_diagnostics.sh --quick
 
 ## `run_annotate.sh` (make/model + color annotation and HTML viewer)
 
-Annotates **test-split** images (unseen by Model C) with make and model (merged Model C, ONNX) and color (Qwen3-VL-4B, scored over a fixed color list), then builds a self-contained `viewer.html`. tmux session `annotate`.
+Annotates **test-split** images (unseen by Model C) with make and model (merged Model C, ONNX) and color (Qwen3-VL-8B, scored over a fixed color list), then builds a self-contained `viewer.html`. tmux session `annotate`.
 
 ```bash
 bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color     # smoke test, no Qwen
@@ -104,9 +104,9 @@ Needs `pip install -U "transformers>=4.57" accelerate` for Qwen (use `PYTHON_BIN
 | `--domain both\|pm\|ext` | Which dataset(s) (default both) |
 | `--max-samples N` | Random subsample per domain (default: all test images, 109k + 6k) |
 | `--skip-color` | make/model only |
-| `--color-head NAME` | `qwen3vl` (default) or `classical` (no-model baseline) |
-| `--qwen-model ID_OR_DIR` | Default `$QWEN_MODEL_DIR` (`Qwen/Qwen3-VL-4B-Instruct`); a local directory for offline servers |
-| `--color-batch-size N` | Qwen batch (default 16) |
+| `--color-head NAME` | `qwen3vl` (default) |
+| `--qwen-model ID_OR_DIR` | Default `$QWEN_MODEL_DIR` (`Qwen/Qwen3-VL-8B-Instruct`); a local directory for offline servers |
+| `--color-batch-size N` | Qwen batch (default 8) |
 | `--reuse-model-stage` | Skip the ONNX stage if `annotations.csv` and `embeddings.npy` exist (e.g. to redo color only) |
 | `--coords-max N` | Rows that get 2-D embedding coordinates (default 20000, half per domain) |
 | `--max-points N` | Points with thumbnails embedded in the viewer (default 3000; the file grows with it) |
