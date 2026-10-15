@@ -35,21 +35,22 @@ def parse_args():
     p.add_argument("--model-path", required=True)
     p.add_argument("--label-map", required=True)
     p.add_argument("--output-dir", required=True)
+    p.add_argument("--cache-from", default=None, help="Directory of previous run to reuse test predictions and color cache from")
     p.add_argument("--domain", choices=["both", "pm", "ext"], default="both")
-    p.add_argument("--split", default="test", help="split to annotate (default: test; unseen by the model)")
+    p.add_argument("--split", default="test", help="split to annotate ('test', 'val', 'train', or 'all')")
     p.add_argument("--max-samples", type=int, default=None, help="random subsample per domain")
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--batch-size", type=int, default=64)
+    p.add_argument("--batch-size", type=int, default=128)
     p.add_argument("--num-workers", type=int, default=10)
     p.add_argument("--reuse-model-stage", action="store_true", help="skip stage 1 if annotations.csv/embeddings.npy exist")
-    p.add_argument("--coords-max", type=int, default=20000, help="rows that get 2-D coordinates (half per domain)")
+    p.add_argument("--coords-max", type=int, default=30000, help="rows that get 2-D coordinates (half per domain)")
     p.add_argument("--skip-color", action="store_true")
     p.add_argument("--color-head", default="qwen3vl")
     p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-8B-Instruct")
     p.add_argument("--color-batch-size", type=int, default=8)
     p.add_argument("--review-conf", type=float, default=0.70, help="model confidence below this -> needs_review")
     p.add_argument("--review-color-conf", type=float, default=0.50, help="color confidence below this -> needs_review")
-    p.add_argument("--max-points", type=int, default=3000, help="points (with thumbnails) embedded in the viewer")
+    p.add_argument("--max-points", type=int, default=15000, help="points (with thumbnails) embedded in the viewer")
     p.add_argument("--no-viewer", action="store_true")
     return p.parse_args()
 
@@ -119,22 +120,43 @@ def _resolve_ext_path(raw_path: str, ext_base_dir: str) -> str:
 
 def pm_table(split, n, seed):
     df = pd.read_csv(paths.PM_MANIFEST_CSV)
-    if "split" in df.columns:
+    if split != "all" and "split" in df.columns:
         df = df[df["split"] == split]
     col = "image_path" if "image_path" in df.columns else "image_rel_path"
     base = paths.PM_IMG_DIR
     out = [_resolve_pm_path(p, base) for p in df[col].astype(str)]
-    res = pd.DataFrame({"path": out, "gt_label": df["label"].astype(int).values,
-                        "bbox_x1": -1, "bbox_y1": -1, "bbox_x2": -1, "bbox_y2": -1, "source": "platesmania"})
+    split_vals = df["split"].astype(str).values if "split" in df.columns else np.full(len(df), split)
+    res = pd.DataFrame({
+        "path": out,
+        "split": split_vals,
+        "gt_label": df["label"].astype(int).values,
+        "bbox_x1": -1, "bbox_y1": -1, "bbox_x2": -1, "bbox_y2": -1,
+        "source": "platesmania",
+    })
     res.insert(0, "domain", "platesmania")
     return _subsample(res, n, seed)
 
 
 def ext_table(split, n, seed):
-    df = pd.read_csv(MOBILENET_DIR / "merged_dataset" / "splits_1235models" / f"{split}.csv")
+    splits_dir = MOBILENET_DIR / "merged_dataset" / "splits_1235models"
+    if split == "all":
+        parts = []
+        for s in ("train", "val", "test"):
+            p = splits_dir / f"{s}.csv"
+            if p.exists():
+                sdf = pd.read_csv(p)
+                sdf["split"] = s
+                parts.append(sdf)
+        df = pd.concat(parts, ignore_index=True) if parts else pd.read_csv(splits_dir / "all_splits.csv")
+        if "split" not in df.columns:
+            df["split"] = "all"
+    else:
+        df = pd.read_csv(splits_dir / f"{split}.csv")
+        df["split"] = split
+
     base = paths.EXT_DATASETS_DIR
     out = [_resolve_ext_path(p, base) for p in df["image_path"].astype(str)]
-    res = df[["label", "bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2", "source"]].rename(
+    res = df[["split", "label", "bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2", "source"]].rename(
         columns={"label": "gt_label"})
     res.insert(0, "path", out)
     res.insert(0, "domain", "external")
@@ -162,11 +184,18 @@ def stage_model(table, label_map, args):
     model.eval()
 
     rows, embs = [], []
+    total_imgs = len(table)
+    embs = np.empty((total_imgs, 1280), dtype=np.float16)
+
     for domain, cfg in DOMAINS.items():
         sub = table[table["domain"] == domain]
         if sub.empty:
             continue
-        bboxes = [parse_bbox(r) for r in sub.to_dict("records")]
+        if domain == "platesmania":
+            bboxes = None
+        else:
+            bboxes = [tuple(b) if b[0] >= 0 else None for b in sub[["bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"]].values]
+
         ds = oa.DiagnosticDataset(sub["path"].tolist(), sub["gt_label"].values.astype(int), 512,
                                   cfg["crop_top_pct"], cfg["crop_bottom_pct"], bboxes=bboxes)
         loader = DataLoader(ds, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers,
@@ -189,7 +218,8 @@ def stage_model(table, label_map, args):
                 emb = model.embeddings
                 mprob = probs @ proj
                 top3 = np.argsort(-probs, axis=1)[:, :3]
-                for j, tid in enumerate(batch_ids[vm]):
+                valid_ids = batch_ids[vm]
+                for j, tid in enumerate(valid_ids):
                     t = top3[j]
                     rows.append({
                         "row": int(tid), "pred_idx": int(t[0]),
@@ -197,7 +227,7 @@ def stage_model(table, label_map, args):
                         "top3": "|".join(f"{idx_to_class[int(c)]}:{probs[j, c]:.3f}" for c in t),
                         "pred_make": makes[int(mprob[j].argmax())], "make_conf": float(mprob[j].max()),
                     })
-                    embs.append(emb[j].astype(np.float16))
+                    embs[tid] = emb[j].astype(np.float16)
         if failed:
             print(f"[{domain}] {failed} unreadable images skipped")
 
@@ -212,7 +242,8 @@ def stage_model(table, label_map, args):
     out["correct_make"] = out["pred_make"] == out["gt_make"]
     out.insert(0, "image_id", np.arange(len(out)))
     out.insert(2, "filename", out["path"].map(lambda p: Path(p).name))
-    return out.drop(columns=["pred_idx", "gt_label"]), np.stack(embs)
+    valid_rows = res.index.values
+    return out.drop(columns=["pred_idx", "gt_label"]), embs[valid_rows]
 
 
 # ------------------------------------------------------------------------------
@@ -258,9 +289,18 @@ def stage_coords(df, emb, args):
 def stage_color(df, out_dir, args):
     from color_heads import build_head
     cache_path = out_dir / "color_cache.csv"
+
+    # Seed color cache from cache_from if destination does not exist
+    if not cache_path.exists() and args.cache_from:
+        src_cache = Path(args.cache_from) / "color_cache.csv"
+        if src_cache.exists():
+            import shutil
+            shutil.copy2(src_cache, cache_path)
+            print(f"[color] Seeded color cache with {src_cache}")
+
     cache = pd.read_csv(cache_path) if cache_path.exists() else pd.DataFrame(columns=["path", "domain", "color", "color_conf"])
-    done = set(zip(cache["path"], cache["domain"]))
-    todo = df[[(p, d) not in done for p, d in zip(df["path"], df["domain"])]]
+    done = set(zip(cache["path"].astype(str), cache["domain"].astype(str)))
+    todo = df[[(str(p), str(d)) not in done for p, d in zip(df["path"], df["domain"])]]
     print(f"[color] {len(df) - len(todo):,} cached, {len(todo):,} to do (head={args.color_head})")
 
     if len(todo):
@@ -279,13 +319,21 @@ def stage_color(df, out_dir, args):
             if imgs:
                 for r, (c, p) in zip(keep, head.predict(imgs)):
                     new.append({"path": r["path"], "domain": r["domain"], "color": c, "color_conf": p})
-            if (i // args.color_batch_size) % 50 == 49 or i + args.color_batch_size >= len(recs):
-                cache = pd.concat([cache, pd.DataFrame(new)], ignore_index=True) if len(cache) else pd.DataFrame(new)
-                cache.to_csv(cache_path, index=False)
+            # Append every 500 images or at the final batch
+            if len(new) >= 500 or i + args.color_batch_size >= len(recs):
+                df_new = pd.DataFrame(new)
+                is_empty = not cache_path.exists() or cache_path.stat().st_size == 0
+                df_new.to_csv(cache_path, mode="a", header=is_empty, index=False)
                 new = []
                 rate = (i + len(chunk)) / (time.time() - t0)
-                print(f"[color] {i + len(chunk):,}/{len(recs):,} ({rate:.1f} img/s)")
-    return df.merge(cache.drop_duplicates(["path", "domain"]), on=["path", "domain"], how="left")
+                rem = (len(recs) - (i + len(chunk))) / max(rate, 0.1)
+                hrs = int(rem // 3600)
+                mins = int((rem % 3600) // 60)
+                print(f"[color] {i + len(chunk):,}/{len(recs):,} ({rate:.1f} img/s, ~{hrs}h {mins}m remaining)")
+
+    cache = pd.read_csv(cache_path).drop_duplicates(["path", "domain"])
+    df = df.drop(columns=[c for c in ("color", "color_conf") if c in df.columns])
+    return df.merge(cache[["path", "domain", "color", "color_conf"]], on=["path", "domain"], how="left")
 
 
 def finalize(df, args):
@@ -306,6 +354,9 @@ def main():
         df, emb = pd.read_csv(ann_path), np.load(emb_path)
         df = df.drop(columns=[c for c in ("color", "color_conf") if c in df.columns])
         print(f"[model] reusing {len(df):,} rows from {ann_path}")
+    elif ann_path.exists() and emb_path.exists():
+        df, emb = pd.read_csv(ann_path), np.load(emb_path)
+        print(f"[model] Reusing existing {len(df):,} rows from {ann_path}")
     else:
         tables = []
         if args.domain in ("both", "pm"):
@@ -314,10 +365,59 @@ def main():
             tables.append(ext_table(args.split, args.max_samples, args.seed))
         table = pd.concat(tables, ignore_index=True)
         print(f"[model] {len(table):,} {args.split} images ({table['domain'].value_counts().to_dict()})")
-        df, emb = stage_model(table, label_map, args)
+
+        # Cache reuse logic
+        if args.cache_from:
+            c_dir = Path(args.cache_from)
+            c_ann, c_emb_file = c_dir / "annotations.csv", c_dir / "embeddings.npy"
+            if c_ann.exists() and c_emb_file.exists():
+                print(f"[cache] Checking cached predictions and embeddings from {c_dir}")
+                c_df = pd.read_csv(c_ann)
+                c_emb = np.load(c_emb_file)
+
+                c_keys = set(zip(c_df["path"].astype(str), c_df["domain"].astype(str)))
+                table_keys = list(zip(table["path"].astype(str), table["domain"].astype(str)))
+                cached_mask = np.array([k in c_keys for k in table_keys])
+
+                cached_table = table[cached_mask].reset_index(drop=True)
+                uncached_table = table[~cached_mask].reset_index(drop=True)
+                print(f"[cache] {len(cached_table):,} images found in cache, {len(uncached_table):,} uncached images to process")
+
+                c_idx_map = {k: i for i, k in enumerate(zip(c_df["path"].astype(str), c_df["domain"].astype(str)))}
+                cached_indices = [c_idx_map[k] for k in zip(cached_table["path"].astype(str), cached_table["domain"].astype(str))]
+                cached_df_subset = c_df.iloc[cached_indices].copy().reset_index(drop=True)
+                cached_emb_subset = c_emb[cached_indices]
+                if "split" not in cached_df_subset.columns and "split" in cached_table.columns:
+                    cached_df_subset["split"] = cached_table["split"].values
+
+                # Seed color cache if not present
+                src_color = c_dir / "color_cache.csv"
+                dst_color = out_dir / "color_cache.csv"
+                if src_color.exists() and not dst_color.exists():
+                    import shutil
+                    shutil.copy2(src_color, dst_color)
+                    print(f"[cache] Seeded color cache with {src_color}")
+
+                if len(uncached_table) > 0:
+                    uncached_df, uncached_emb = stage_model(uncached_table, label_map, args)
+                    drop_cols = [c for c in ("image_id", "x", "y", "color", "color_conf", "needs_review") if c in cached_df_subset.columns]
+                    clean_cached = cached_df_subset.drop(columns=drop_cols)
+                    clean_uncached = uncached_df.drop(columns=[c for c in ("image_id", "x", "y") if c in uncached_df.columns], errors="ignore")
+                    df = pd.concat([clean_cached, clean_uncached], ignore_index=True)
+                    df.insert(0, "image_id", np.arange(len(df)))
+                    emb = np.vstack([cached_emb_subset, uncached_emb])
+                else:
+                    df = cached_df_subset
+                    emb = cached_emb_subset
+            else:
+                print(f"[cache] Cache directory {c_dir} missing annotations.csv or embeddings.npy; running full stage 1")
+                df, emb = stage_model(table, label_map, args)
+        else:
+            df, emb = stage_model(table, label_map, args)
+
         df = stage_coords(df, emb, args)
         np.save(emb_path, emb)
-    df.to_csv(ann_path, index=False)
+        df.to_csv(ann_path, index=False)
 
     if not args.skip_color:
         df = stage_color(df, out_dir, args)

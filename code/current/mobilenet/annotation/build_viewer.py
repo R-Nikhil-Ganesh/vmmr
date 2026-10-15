@@ -63,6 +63,7 @@ def record(r, with_thumb, side):
     d = {
         "id": int(r["image_id"]), "domain": r["domain"], "x": f("x", 4), "y": f("y", 4),
         "file": fname,
+        "split": str(r.get("split", "") or ""),
         "gt": r["gt_class"], "gt_make": r["gt_make"],
         "pred": r.get("pred_class") or f"{r['pred_make']}/{r['pred_model']}",
         "make": r["pred_make"], "make_conf": f("make_conf"),
@@ -76,7 +77,7 @@ def record(r, with_thumb, side):
 
 
 def summary(df):
-    s = {"n": int(len(df)), "domains": {}}
+    s = {"n": int(len(df)), "domains": {}, "splits": {}}
     for dom, g in list(df.groupby("domain")) + [("all", df)]:
         e = {"n": int(len(g)), "make_acc": round(float(g["correct_make"].mean()), 4),
              "model_acc": round(float(g["correct_model"].mean()), 4),
@@ -86,10 +87,13 @@ def summary(df):
             e["colors"] = {k: int(v) for k, v in g["color"].value_counts().items()}
             e["mean_color_conf"] = round(float(g["color_conf"].mean()), 4)
         s["domains"][dom] = e
+    if "split" in df.columns:
+        for sp, g in df.groupby("split"):
+            s["splits"][sp] = int(len(g))
     return s
 
 
-def build(df, out_path, max_points=3000, review_n=120, seed=42):
+def build(df, out_path, max_points=15000, review_n=120, seed=42):
     df = df.reset_index(drop=True)
     if "color" not in df.columns:
         df["color"] = np.nan; df["color_conf"] = np.nan
@@ -101,11 +105,21 @@ def build(df, out_path, max_points=3000, review_n=120, seed=42):
         conf = np.minimum(conf, df["color_conf"].fillna(1.0))
     rev = df.loc[conf.sort_values().index[:review_n]]
 
+    from concurrent.futures import ThreadPoolExecutor
+    recs = pts.to_dict("records")
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        points_data = list(pool.map(lambda r: record(r, True, 144), recs))
+
+    rev_recs = rev.to_dict("records")
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        review_data = list(pool.map(lambda r: record(r, True, 200), rev_recs))
+
     payload = {
         "summary": summary(df),
-        "points": [record(r, True, 144) for r in pts.to_dict("records")],
-        "review": [record(r, True, 200) for r in rev.to_dict("records")],
+        "points": points_data,
+        "review": review_data,
         "has_color": bool(df["color"].notna().any()),
+        "has_split": bool("split" in df.columns and df["split"].notna().any()),
     }
     data = json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
     out_path = Path(out_path)
@@ -124,7 +138,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--annotations", required=True)
     ap.add_argument("--output", default=None)
-    ap.add_argument("--max-points", type=int, default=3000)
+    ap.add_argument("--max-points", type=int, default=15000)
     ap.add_argument("--review-n", type=int, default=120)
     a = ap.parse_args()
     out = a.output or str(Path(a.annotations).with_name("viewer.html"))
@@ -173,10 +187,11 @@ select,input[type=range]{font:inherit;background:var(--panel);color:var(--text);
 <nav><button id="t1" class="on">Explore</button><button id="t2">Review low-confidence</button></nav>
 <div id="explore">
  <div class="bar">
-  <label>Color by<select id="by"><option value="gt_make">Ground-truth make</option><option value="make">Predicted make</option><option value="color">Color</option><option value="domain">Domain</option><option value="ok_model">Model correct</option></select></label>
+  <label>Color by<select id="by"><option value="gt_make">Ground-truth make</option><option value="make">Predicted make</option><option value="color">Color</option><option value="split">Split</option><option value="domain">Domain</option><option value="ok_model">Model correct</option></select></label>
   <label>Tool<select id="tool"><option value="pan">Pan</option><option value="select">Box Select</option><option value="lasso">Lasso Select</option></select></label>
   <label>Domain<select id="fd"><option value="">all</option></select></label>
   <label>Make (predicted)<select id="fm"><option value="">all</option></select></label>
+  <label id="lsp">Split<select id="fs"><option value="">all</option></select></label>
   <label id="lc">Color<select id="fc"><option value="">all</option></select></label>
   <label>Min model confidence <span id="cv">0.00</span><input id="fconf" type="range" min="0" max="1" step="0.05" value="0"></label>
   <label><span>Needs review</span><input id="frev" type="checkbox"></label>
@@ -192,21 +207,28 @@ select,input[type=range]{font:inherit;background:var(--panel);color:var(--text);
 const D=__DATA__;
 const $=id=>document.getElementById(id);
 const COLORS={white:"#f5f5f4",black:"#1c1917",silver:"#c0c0c0",gray:"#78716c",red:"#dc2626",blue:"#2563eb",green:"#16a34a",yellow:"#facc15",orange:"#f97316",brown:"#78350f",beige:"#d6c3a1",gold:"#ca8a04",other:"#a855f7"};
+const SPLIT_COLORS={train:"#3b82f6",val:"#10b981",test:"#f59e0b"};
 const uniq=(a)=>[...new Set(a.filter(v=>v!=null))].sort();
 function hue(i,n){return `hsl(${Math.round(360*i/Math.max(n,1))},62%,52%)`}
 
 // summary
 const S=D.summary.domains;
-$("stats").innerHTML=Object.entries(S).map(([k,v])=>`<div class="stat"><b>${k}: ${v.n.toLocaleString()}</b>make ${(100*v.make_acc).toFixed(1)}% · model ${(100*v.model_acc).toFixed(1)}% · conf ${v.mean_model_conf.toFixed(2)} · review ${v.review.toLocaleString()}${v.mean_color_conf!=null?` · color conf ${v.mean_color_conf.toFixed(2)}`:""}</div>`).join("");
+let statsHtml=Object.entries(S).map(([k,v])=>`<div class="stat"><b>${k}: ${v.n.toLocaleString()}</b>make ${(100*v.make_acc).toFixed(1)}% · model ${(100*v.model_acc).toFixed(1)}% · conf ${v.mean_model_conf.toFixed(2)} · review ${v.review.toLocaleString()}${v.mean_color_conf!=null?` · color conf ${v.mean_color_conf.toFixed(2)}`:""}</div>`).join("");
+if(D.summary.splits && Object.keys(D.summary.splits).length){
+  const spStr=Object.entries(D.summary.splits).map(([k,v])=>`${k}: ${v.toLocaleString()}`).join(" · ");
+  statsHtml += `<div class="stat"><b>splits</b>${spStr}</div>`;
+}
+$("stats").innerHTML=statsHtml;
 
 // filters
 for(const d of uniq(D.points.map(p=>p.domain)))$("fd").add(new Option(d,d));
 for(const m of uniq(D.points.map(p=>p.make)))$("fm").add(new Option(m,m));
+if(D.has_split){for(const s of uniq(D.points.map(p=>p.split)))$("fs").add(new Option(s,s))}else{$("lsp").classList.add("hide");const opt=$("by").querySelector("[value=split]");if(opt)opt.remove()}
 if(D.has_color){for(const c of uniq(D.points.map(p=>p.color)))$("fc").add(new Option(c,c))}else{$("lc").classList.add("hide");$("by").querySelector("[value=color]").remove()}
 
 function filtered(){
-  const d=$("fd").value,m=$("fm").value,c=$("fc").value,mc=+$("fconf").value,r=$("frev").checked;
-  return D.points.filter(p=>p.x!=null&&(!d||p.domain==d)&&(!m||p.make==m)&&(!c||p.color==c)&&(p.model_conf>=mc)&&(!r||p.review));
+  const d=$("fd").value,m=$("fm").value,c=$("fc").value,sp=$("fs")?$("fs").value:"",mc=+$("fconf").value,r=$("frev").checked;
+  return D.points.filter(p=>p.x!=null&&(!d||p.domain==d)&&(!m||p.make==m)&&(!c||p.color==c)&&(!sp||p.split==sp)&&(p.model_conf>=mc)&&(!r||p.review));
 }
 
 let selectedPoints = null;
@@ -225,6 +247,7 @@ function renderSingleContent(p){
  <span>make</span><span>${p.make} ${mark(p.ok_make)} <span class="muted">${(100*p.make_conf).toFixed(0)}%</span></span>
  <span>model</span><span>${p.model} ${mark(p.ok_model)} <span class="muted">${(100*p.model_conf).toFixed(0)}%</span></span>
  <span>domain</span><span>${p.domain}</span>
+ ${p.split?`<span>split</span><span>${p.split}</span>`:""}
  ${p.color?`<span>color</span><span>${p.color} <span class="muted">${(100*p.color_conf).toFixed(0)}%</span></span>`:""}
  <span>top 3</span><span class="muted">${p.top3&&typeof p.top3==="string"?p.top3.split("|").join("<br>"):(p.top3||"")}</span>
  ${p.review?`<span>flag</span><span class="no">needs review</span>`:""}</div>`;
@@ -371,7 +394,7 @@ function draw(){
   const names=Object.keys(groups).sort();
   const traces=names.map((k,i)=>{const g=groups[k];
     return {type:"scattergl",mode:"markers",name:k,x:g.map(p=>p.x),y:g.map(p=>p.y),customdata:g.map(p=>p.id),hoverinfo:"none",
-      marker:{size:6,color:by=="ok_model"?(k=="correct"?"#16a34a":"#dc2626"):by=="color"?COLORS[k]||"#999":hue(i,names.length),line:{width:by=="color"?0.6:0,color:"#888"}}};
+      marker:{size:6,color:by=="ok_model"?(k=="correct"?"#16a34a":"#dc2626"):by=="color"?COLORS[k]||"#999":by=="split"?SPLIT_COLORS[k]||hue(i,names.length):hue(i,names.length),line:{width:by=="color"?0.6:0,color:"#888"}}};
   });
   const dark=matchMedia("(prefers-color-scheme: dark)").matches;
   const fg=dark?"#f5f5f4":"#1c1917";
@@ -401,10 +424,7 @@ $("tool").addEventListener("change", ()=>{
   Plotly.relayout("plot", {dragmode: $("tool").value});
 });
 
-["by","fd","fm","fc","fconf","frev"].forEach(id=>$(id).addEventListener("input", ()=>{
-  clearSelection();
-  draw();
-}));
+["by","fd","fm","fs","fc","fconf","frev"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", ()=>{ clearSelection(); draw(); }); });
 
 // review tab
 $("review").innerHTML=D.review.map(p=>`<div class="card">${p.img?`<img src="${p.img}">`:""}<div>

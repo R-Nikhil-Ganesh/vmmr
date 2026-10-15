@@ -10,14 +10,27 @@ run_in_tmux annotate "${SCRIPT_DIR}/run_annotate.sh" "$@"
 
 [ -x "${PYTHON_BIN}" ] || { echo "[ERROR] Python not found or not executable: ${PYTHON_BIN}" >&2; exit 1; }
 
-# RUN_NAME=<name> uses merged_dataset/output_merged_<name> (defaults to output_merged_run4)
-MERGED_RUN_DIR="${MOBILENET_DIR}/merged_dataset/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run4}"
-OUT_DIR="${ANNOT_OUT_DIR}/${RUN_NAME:-run4}"
+# MODEL_RUN=<name> sets which model checkpoint to evaluate (defaults to run4)
+# RUN_NAME=<name> sets the annotation output folder name (defaults to run5)
+MODEL_RUN="${MODEL_RUN:-run4}"
+RUN_NAME="${RUN_NAME:-run5}"
+MERGED_RUN_DIR="${MOBILENET_DIR}/merged_dataset/output_merged_${MODEL_RUN}"
+OUT_DIR="${ANNOT_OUT_DIR}/${RUN_NAME}"
+
+# Cache directory to reuse (defaults to run4 if available)
+CACHE_DIR="${CACHE_FROM:-${ANNOT_OUT_DIR}/run4}"
+CACHE_FLAG=""
+if [ -d "${CACHE_DIR}" ] && [ -f "${CACHE_DIR}/annotations.csv" ]; then
+    CACHE_FLAG="--cache-from ${CACHE_DIR}"
+fi
 
 echo "=================================================================="
 echo "  Annotation (make/model + color)   $(date '+%Y-%m-%d %H:%M:%S')"
 echo "  Model:  ${MERGED_RUN_DIR}/models/mobilenet_v2_best.onnx"
 echo "  Output: ${OUT_DIR}"
+if [ -n "${CACHE_FLAG}" ]; then
+    echo "  Cache:  ${CACHE_DIR}"
+fi
 echo "  Python: ${PYTHON_BIN}"
 echo "=================================================================="
 
@@ -26,6 +39,7 @@ echo "=================================================================="
     --label-map "${MERGED_RUN_DIR}/models/label_map.json" \
     --output-dir "${OUT_DIR}" \
     --qwen-model "${QWEN_MODEL_DIR}" \
+    ${CACHE_FLAG} \
     "$@"
 
 echo; echo "  Done. Viewer: ${OUT_DIR}/viewer.html   $(date '+%Y-%m-%d %H:%M:%S')"
