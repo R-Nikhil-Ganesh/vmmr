@@ -29,6 +29,7 @@ A second launch with a session name that is already running is refused (it print
 | `AUTO_GIT_PUSH=0` | Do not commit and push results when finished (default `1`: commits `code/current/mobilenet/` and pushes). |
 | `CUDA_VISIBLE_DEVICES=1` | Choose the GPU. |
 | `ECON_ROOT`, `PM_IMG_DIR`, `PM_MANIFEST_CSV`, `PM_LABEL_MAP`, `EXT_DATASETS_DIR`, `PYTHON_BIN` | Override a path for one run. Permanent per-server values go in the gitignored `bash_scripts/lib/paths.local.sh`. |
+| `CAM_ROOT` | Folder with the production camera batches (`batch*_*/`), default `/home/econsy/transfer`. Used by `annotate.py --domain cam`. |
 | `ANNOT_OUT_DIR`, `QWEN_MODEL_DIR` | Annotation output root (default `${ECON_ROOT}/annotation_runs`) and the Qwen3-VL model id or local directory (see `run_annotate.sh`). |
 
 Example: `RUN_NAME=run5 AUTO_GIT_PUSH=0 bash bash_scripts/run_train_merged.sh --aug-strength strong`
@@ -95,6 +96,10 @@ Annotates **test-split** images (unseen by Model C) with make and model (merged 
 bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color     # smoke test, no Qwen
 bash bash_scripts/run_annotate.sh --max-samples 200                  # smoke test with Qwen
 RUN_NAME=run4 bash bash_scripts/run_annotate.sh --max-samples 20000  # real run (per domain)
+
+# Production camera batches (no ground truth; keeps COCO ids 2/3/5/7, drops tiny and duplicate boxes).
+# --max-samples-batch3 subsamples only the large batch; batch1/2 are kept whole. Output: ${ANNOT_OUT_DIR}/cam/
+RUN_NAME=cam bash bash_scripts/run_annotate.sh --domain cam --max-samples-batch3 10000
 ```
 
 Needs `pip install -U "transformers>=4.57" accelerate` for Qwen (use `PYTHON_BIN` to point at a separate env); `umap-learn` is optional (falls back to t-SNE). Output goes to `${ANNOT_OUT_DIR}/<RUN_NAME or run4>/` (default `${ECON_ROOT}/annotation_runs`), outside git, so no auto-push: `annotations.csv`, `embeddings.npy`, `color_cache.csv`, `viewer.html`. The color stage resumes from `color_cache.csv`.

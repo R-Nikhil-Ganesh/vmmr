@@ -35,9 +35,16 @@ def parse_args():
     p.add_argument("--model-path", required=True)
     p.add_argument("--label-map", required=True)
     p.add_argument("--output-dir", required=True)
-    p.add_argument("--domain", choices=["both", "pm", "ext"], default="both")
+    p.add_argument("--domain", choices=["both", "pm", "ext", "cam"], default="both",
+                   help="both = PlatesMania + External test splits; cam = production camera batches (no ground truth)")
     p.add_argument("--split", default="test", help="split to annotate (default: test; unseen by the model)")
     p.add_argument("--max-samples", type=int, default=None, help="random subsample per domain")
+    p.add_argument("--cam-batches", nargs="*", default=None, help="camera batch folder names under CAM_ROOT (default: all batch*)")
+    p.add_argument("--cam-valid-csv", default=None,
+                   help="with --domain cam: annotate only the hand-filtered boxes listed in this valid_cars.csv "
+                        "(columns batch, source_image, x1..y2 in source-frame pixels) instead of every detector box")
+    p.add_argument("--max-samples-batch3", type=int, default=None,
+                   help="random subsample of boxes for the large camera batch (batch3); other batches are kept whole")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--batch-size", type=int, default=64)
     p.add_argument("--num-workers", type=int, default=10)
@@ -141,6 +148,106 @@ def ext_table(split, n, seed):
     return _subsample(res, n, seed)
 
 
+VEHICLE_IDS = {2, 3, 5, 7}          # COCO: car, motorcycle, bus, truck
+CAM_NOMINAL_WH = (960, 540)
+CAM_MIN_SIDE_PX = 20
+CAM_DEDUP_IOU = 0.7
+LARGE_BATCH_TAG = "batch3"
+
+
+def _iou(a, b):
+    ix = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
+    iy = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+    inter = ix * iy
+    union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+    return inter / union if union > 0 else 0.0
+
+
+def cam_table(batches, n_large, seed):
+    """One row per kept detector box. Labels are YOLO `cls xc yc w h` (normalized, no confidence), COCO ids."""
+    from PIL import Image
+    root = Path(paths.CAM_ROOT)
+    dirs = [root / b for b in batches] if batches else sorted(root.glob("batch*_*"))
+    rows, stats = [], {}
+    for d in dirs:
+        kept = skipped = 0
+        for lbl in sorted(d.glob("*.txt")):
+            img = d / (lbl.stem + ".jpg")
+            if not img.is_file():
+                continue
+            boxes = []
+            for line in lbl.read_text().split("\n"):
+                f = line.split()
+                if len(f) != 5 or int(float(f[0])) not in VEHICLE_IDS:
+                    skipped += bool(f)
+                    continue
+                c, xc, yc, w, h = int(float(f[0])), *map(float, f[1:])
+                raw = (xc - w / 2, yc - h / 2, xc + w / 2, yc + h / 2)
+                box = tuple(min(1.0, max(0.0, v)) for v in raw)
+                if (box[2] - box[0]) * CAM_NOMINAL_WH[0] < CAM_MIN_SIDE_PX or (box[3] - box[1]) * CAM_NOMINAL_WH[1] < CAM_MIN_SIDE_PX:
+                    skipped += 1
+                    continue
+                edge = any(abs(a - b) > 1e-6 for a, b in zip(raw, box)) or box[0] <= 0 or box[1] <= 0 or box[2] >= 1 or box[3] >= 1
+                boxes.append((c, box, edge))
+            boxes.sort(key=lambda t: -(t[1][2] - t[1][0]) * (t[1][3] - t[1][1]))   # keep the larger of overlapping boxes
+            uniq = []
+            for b in boxes:
+                if all(_iou(b[1], u[1]) <= CAM_DEDUP_IOU for u in uniq):
+                    uniq.append(b)
+                else:
+                    skipped += 1
+            for k, (c, box, edge) in enumerate(uniq):
+                rows.append({"source": d.name, "path": str(img), "frame": lbl.stem, "box_idx": k, "det_class": c,
+                             "touches_edge": bool(edge), "nx1": box[0], "ny1": box[1], "nx2": box[2], "ny2": box[3]})
+                kept += 1
+        stats[d.name] = (kept, skipped)
+    df = pd.DataFrame(rows)
+    if df.empty:
+        raise SystemExit(f"[cam] no usable boxes under {root} (batches: {[d.name for d in dirs]})")
+    if n_large:
+        large = df["source"].str.startswith(LARGE_BATCH_TAG)
+        if large.sum() > n_large:
+            df = pd.concat([df[~large], df[large].sample(n=n_large, random_state=seed)]).sort_values(["source", "frame", "box_idx"])
+    df = df.reset_index(drop=True)
+    sizes = {}
+    for p in df["path"].unique():
+        with Image.open(p) as im:
+            sizes[p] = im.size
+    W = df["path"].map(lambda p: sizes[p][0]); H = df["path"].map(lambda p: sizes[p][1])
+    out = pd.DataFrame({
+        "domain": "camera", "path": df["path"], "gt_label": -1,
+        "bbox_x1": (df["nx1"] * W).round().astype(int).clip(0, W - 1), "bbox_y1": (df["ny1"] * H).round().astype(int).clip(0, H - 1),
+        "bbox_x2": (df["nx2"] * W).round().astype(int), "bbox_y2": (df["ny2"] * H).round().astype(int),
+        "source": df["source"], "frame": df["frame"], "box_idx": df["box_idx"], "det_class": df["det_class"],
+        "touches_edge": df["touches_edge"],
+    })
+    for b, (k, sk) in stats.items():
+        print(f"[cam] {b}: kept {k:,} boxes, dropped {sk:,} (non-vehicle ids / tiny / duplicates)")
+    return out.reset_index(drop=True)
+
+
+def cam_valid_table(csv_path):
+    """Boxes from a curated valid_cars.csv: one row per kept crop, boxes already in source-frame pixels."""
+    v = pd.read_csv(csv_path)
+    root = Path(paths.CAM_ROOT)
+    folders = {d.name.split("_")[0]: d for d in root.glob("batch*_*") if d.is_dir()}     # batch1 -> batch1_0007...
+    path = [str(folders[b] / s) if b in folders else "" for b, s in zip(v["batch"], v["source_image"])]
+    out = pd.DataFrame({
+        "domain": "camera", "path": path, "gt_label": -1,
+        "bbox_x1": v["x1"].astype(int), "bbox_y1": v["y1"].astype(int),
+        "bbox_x2": v["x2"].astype(int), "bbox_y2": v["y2"].astype(int),
+        "source": [folders[b].name if b in folders else b for b in v["batch"]],
+        "frame": v["source_image"].str.replace(".jpg", "", regex=False), "box_idx": v["box_idx"],
+        "det_class": -1, "touches_edge": v["near_border"].astype(bool),
+    })
+    missing = ~out["path"].map(lambda p: bool(p) and Path(p).is_file())
+    if missing.any():
+        print(f"[cam] {int(missing.sum())} of {len(out)} listed frames not found under {root}, dropped")
+        out = out[~missing]
+    print(f"[cam] {len(out):,} curated boxes from {csv_path} ({out['source'].value_counts().to_dict()})")
+    return out.reset_index(drop=True)
+
+
 # ------------------------------------------------------------------------------
 # Stage 1: make / model
 # ------------------------------------------------------------------------------
@@ -206,10 +313,10 @@ def stage_model(table, label_map, args):
     out = pd.concat([out, res], axis=1).reset_index(drop=True)
     out["pred_class"] = out["pred_idx"].map(idx_to_class)
     out["pred_model"] = out["pred_class"].map(lambda c: split_class(c)[1])
-    out["gt_class"] = out["gt_label"].map(idx_to_class)
-    out["gt_make"] = out["gt_class"].map(lambda c: split_class(c)[0])
-    out["correct_model"] = out["pred_class"] == out["gt_class"]
-    out["correct_make"] = out["pred_make"] == out["gt_make"]
+    out["gt_class"] = out["gt_label"].map(idx_to_class)          # NaN when there is no ground truth (camera)
+    out["gt_make"] = out["gt_class"].map(lambda c: split_class(c)[0] if isinstance(c, str) else np.nan)
+    out["correct_model"] = out["gt_class"].notna() & (out["pred_class"] == out["gt_class"])
+    out["correct_make"] = out["gt_make"].notna() & (out["pred_make"] == out["gt_make"])
     out.insert(0, "image_id", np.arange(len(out)))
     out.insert(2, "filename", out["path"].map(lambda p: Path(p).name))
     return out.drop(columns=["pred_idx", "gt_label"]), np.stack(embs)
@@ -222,8 +329,9 @@ def stage_coords(df, emb, args):
     from sklearn.decomposition import PCA
     rng = np.random.RandomState(args.seed)
     chosen = []
-    per = args.coords_max // 2
-    for domain in DOMAINS:
+    present = [d for d in DOMAINS if (df["domain"] == d).any()]
+    per = args.coords_max // max(1, len(present))
+    for domain in present:
         idx = np.where(df["domain"].values == domain)[0]
         if len(idx) > per:
             idx = rng.choice(idx, per, replace=False)
@@ -255,12 +363,20 @@ def stage_coords(df, emb, args):
 # ------------------------------------------------------------------------------
 # Stage 3: color
 # ------------------------------------------------------------------------------
+COLOR_KEY = ["path", "domain", "bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"]   # one color per box, not per frame
+
+
 def stage_color(df, out_dir, args):
     from color_heads import build_head
     cache_path = out_dir / "color_cache.csv"
-    cache = pd.read_csv(cache_path) if cache_path.exists() else pd.DataFrame(columns=["path", "domain", "color", "color_conf"])
-    done = set(zip(cache["path"], cache["domain"]))
-    todo = df[[(p, d) not in done for p, d in zip(df["path"], df["domain"])]]
+    cols = COLOR_KEY + ["color", "color_conf"]
+    cache = pd.read_csv(cache_path) if cache_path.exists() else pd.DataFrame(columns=cols)
+    if not set(cols) <= set(cache.columns):
+        print("[color] ignoring an old color_cache.csv that is keyed by image only (frames with several boxes shared one color)")
+        cache = pd.DataFrame(columns=cols)
+    done = set(map(tuple, cache[COLOR_KEY].values.tolist()))
+    keys = list(map(tuple, df[COLOR_KEY].values.tolist()))
+    todo = df[[k not in done for k in keys]]
     print(f"[color] {len(df) - len(todo):,} cached, {len(todo):,} to do (head={args.color_head})")
 
     if len(todo):
@@ -278,14 +394,14 @@ def stage_color(df, out_dir, args):
                     print(f"[color] cannot read {r['path']}: {e}")
             if imgs:
                 for r, (c, p) in zip(keep, head.predict(imgs)):
-                    new.append({"path": r["path"], "domain": r["domain"], "color": c, "color_conf": p})
+                    new.append({**{k: r[k] for k in COLOR_KEY}, "color": c, "color_conf": p})
             if (i // args.color_batch_size) % 50 == 49 or i + args.color_batch_size >= len(recs):
                 cache = pd.concat([cache, pd.DataFrame(new)], ignore_index=True) if len(cache) else pd.DataFrame(new)
                 cache.to_csv(cache_path, index=False)
                 new = []
                 rate = (i + len(chunk)) / (time.time() - t0)
                 print(f"[color] {i + len(chunk):,}/{len(recs):,} ({rate:.1f} img/s)")
-    return df.merge(cache.drop_duplicates(["path", "domain"]), on=["path", "domain"], how="left")
+    return df.merge(cache.drop_duplicates(COLOR_KEY), on=COLOR_KEY, how="left")
 
 
 def finalize(df, args):
@@ -308,12 +424,15 @@ def main():
         print(f"[model] reusing {len(df):,} rows from {ann_path}")
     else:
         tables = []
+        if args.domain == "cam":
+            tables.append(cam_valid_table(args.cam_valid_csv) if args.cam_valid_csv
+                          else cam_table(args.cam_batches, args.max_samples_batch3, args.seed))
         if args.domain in ("both", "pm"):
             tables.append(pm_table(args.split, args.max_samples, args.seed))
         if args.domain in ("both", "ext"):
             tables.append(ext_table(args.split, args.max_samples, args.seed))
         table = pd.concat(tables, ignore_index=True)
-        print(f"[model] {len(table):,} {args.split} images ({table['domain'].value_counts().to_dict()})")
+        print(f"[model] {len(table):,} {'camera' if args.domain == 'cam' else args.split} images ({table['domain'].value_counts().to_dict()})")
         df, emb = stage_model(table, label_map, args)
         df = stage_coords(df, emb, args)
         np.save(emb_path, emb)

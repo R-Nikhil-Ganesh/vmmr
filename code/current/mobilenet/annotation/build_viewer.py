@@ -42,7 +42,8 @@ def stratified(df, n, seed):
     if len(df) <= n:
         return df
     rng = np.random.RandomState(seed)
-    groups = [g.index.values.copy() for _, g in df.groupby(["domain", "gt_make"])]
+    key = df["gt_make"].fillna(df["pred_make"])        # no ground truth (camera): spread over predicted make
+    groups = [g.index.values.copy() for _, g in df.groupby(["domain", key])]
     for g in groups:
         rng.shuffle(g)
     picked, i = [], 0
@@ -63,7 +64,7 @@ def record(r, with_thumb, side):
     d = {
         "id": int(r["image_id"]), "domain": r["domain"], "x": f("x", 4), "y": f("y", 4),
         "file": fname,
-        "gt": r["gt_class"], "gt_make": r["gt_make"],
+        "gt": r["gt_class"] if isinstance(r["gt_class"], str) else "", "gt_make": r["gt_make"] if isinstance(r["gt_make"], str) else "",
         "pred": r.get("pred_class") or f"{r['pred_make']}/{r['pred_model']}",
         "make": r["pred_make"], "make_conf": f("make_conf"),
         "model": r["pred_model"], "model_conf": f("pred_model_conf"), "top3": r["top3"],
@@ -78,8 +79,10 @@ def record(r, with_thumb, side):
 def summary(df):
     s = {"n": int(len(df)), "domains": {}}
     for dom, g in list(df.groupby("domain")) + [("all", df)]:
-        e = {"n": int(len(g)), "make_acc": round(float(g["correct_make"].mean()), 4),
-             "model_acc": round(float(g["correct_model"].mean()), 4),
+        has_gt = g["gt_class"].notna().any() if "gt_class" in g else False
+        e = {"n": int(len(g)),
+             "make_acc": round(float(g["correct_make"].mean()), 4) if has_gt else None,
+             "model_acc": round(float(g["correct_model"].mean()), 4) if has_gt else None,
              "mean_model_conf": round(float(g["pred_model_conf"].mean()), 4),
              "review": int(g["needs_review"].sum())}
         if "color" in g and g["color"].notna().any():
@@ -197,7 +200,7 @@ function hue(i,n){return `hsl(${Math.round(360*i/Math.max(n,1))},62%,52%)`}
 
 // summary
 const S=D.summary.domains;
-$("stats").innerHTML=Object.entries(S).map(([k,v])=>`<div class="stat"><b>${k}: ${v.n.toLocaleString()}</b>make ${(100*v.make_acc).toFixed(1)}% · model ${(100*v.model_acc).toFixed(1)}% · conf ${v.mean_model_conf.toFixed(2)} · review ${v.review.toLocaleString()}${v.mean_color_conf!=null?` · color conf ${v.mean_color_conf.toFixed(2)}`:""}</div>`).join("");
+$("stats").innerHTML=Object.entries(S).map(([k,v])=>`<div class="stat"><b>${k}: ${v.n.toLocaleString()}</b>${v.make_acc!=null?`make ${(100*v.make_acc).toFixed(1)}% · model ${(100*v.model_acc).toFixed(1)}% · `:"no ground truth · "}conf ${v.mean_model_conf.toFixed(2)} · review ${v.review.toLocaleString()}${v.mean_color_conf!=null?` · color conf ${v.mean_color_conf.toFixed(2)}`:""}</div>`).join("");
 
 // filters
 for(const d of uniq(D.points.map(p=>p.domain)))$("fd").add(new Option(d,d));

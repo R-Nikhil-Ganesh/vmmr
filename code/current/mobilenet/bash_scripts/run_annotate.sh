@@ -10,8 +10,11 @@ run_in_tmux annotate "${SCRIPT_DIR}/run_annotate.sh" "$@"
 
 [ -x "${PYTHON_BIN}" ] || { echo "[ERROR] Python not found or not executable: ${PYTHON_BIN}" >&2; exit 1; }
 
-# RUN_NAME=<name> uses merged_dataset/output_merged_<name> (defaults to output_merged_run4)
-MERGED_RUN_DIR="${MOBILENET_DIR}/merged_dataset/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run4}"
+# RUN_NAME=<name> names the output folder. The model comes from merged_dataset/output_merged_<MODEL_RUN>; MODEL_RUN
+# defaults to RUN_NAME when that model folder exists, otherwise run4 (so RUN_NAME=cam uses the run4 model).
+MODEL_RUN="${MODEL_RUN:-${RUN_NAME:-run4}}"
+[ -d "${MOBILENET_DIR}/merged_dataset/output_merged_${MODEL_RUN}" ] || MODEL_RUN=run4
+MERGED_RUN_DIR="${MOBILENET_DIR}/merged_dataset/output_merged_${MODEL_RUN}"
 OUT_DIR="${ANNOT_OUT_DIR}/${RUN_NAME:-run4}"
 
 echo "=================================================================="

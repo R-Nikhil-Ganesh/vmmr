@@ -20,7 +20,7 @@ _PATHS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Precedence: shell environment > paths.local.sh > defaults below.
 if [ -f "${_PATHS_DIR}/paths.local.sh" ]; then
     _SAVED=""
-    for _k in ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH REPO_ROOT ANNOT_OUT_DIR QWEN_MODEL_DIR; do
+    for _k in ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH REPO_ROOT ANNOT_OUT_DIR QWEN_MODEL_DIR CAM_ROOT; do
         if [ -n "${!_k+x}" ]; then _SAVED="${_SAVED} ${_k}=$(printf '%q' "${!_k}")"; fi
     done
     # shellcheck disable=SC1091
@@ -48,6 +48,9 @@ fi
 : "${ANNOT_OUT_DIR:=${MOBILENET_DIR}/annotation_runs}"
 : "${QWEN_MODEL_DIR:=Qwen/Qwen3-VL-8B-Instruct}"
 
+# Production camera batches (batch*_*/ folders of <uuid>-bg.jpg + <uuid>-bg.txt); used by annotate.py --domain cam
+: "${CAM_ROOT:=/home/econsy/transfer}"
+
 # Python interpreter: <repo parent>/pt-env if present, else python3
 if [ -z "${PYTHON_BIN:-}" ]; then
     if [ -x "$(dirname "${REPO_ROOT}")/pt-env/bin/python" ]; then
@@ -60,4 +63,4 @@ fi
 # Commit and push results when a runner finishes (1 = on, 0 = off)
 : "${AUTO_GIT_PUSH:=1}"
 
-export MOBILENET_DIR REPO_ROOT ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH ANNOT_OUT_DIR QWEN_MODEL_DIR
+export MOBILENET_DIR REPO_ROOT ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH ANNOT_OUT_DIR QWEN_MODEL_DIR CAM_ROOT

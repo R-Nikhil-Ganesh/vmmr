@@ -10,6 +10,7 @@ from PIL import Image
 DOMAINS = {
     "platesmania": {"crop_top_pct": 0.15, "crop_bottom_pct": 0.0},
     "external":    {"crop_top_pct": 0.0,  "crop_bottom_pct": 0.05},
+    "camera":      {"crop_top_pct": 0.0,  "crop_bottom_pct": 0.0},   # always has a detector box, so the crop pct is unused
 }
 
 Bbox = Optional[Tuple[int, int, int, int]]
