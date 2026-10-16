@@ -7,6 +7,7 @@ Run everything from `vmmr/code/current/mobilenet/`. The runners in `bash_scripts
 | Train Model C (merged), then per-domain diagnostics + benchmark | `bash bash_scripts/run_all_pipeline.sh [trainer flags]` | `mobilenet_pipeline` |
 | Train Model C (PlatesMania + External merged) | `bash bash_scripts/run_train_merged.sh [flags]` | `train_merged` |
 | Diagnostics + mixed benchmark | `bash bash_scripts/run_diagnostics.sh [options]` | `diagnostics` |
+| Distill color into MobileNetV2 (features[16] tap) -> ONNX | `bash bash_scripts/run_train_color_distillation.sh [flags]` | `color_distill` |
 
 `bash_scripts/lib/` holds helpers that are not run directly: `paths.sh` (all machine paths), `tmux_wrap.sh`, `auto_git_sync.sh`.
 
@@ -118,6 +119,34 @@ Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `u
 | `--no-viewer` | Skip building the HTML |
 
 To rebuild only the viewer: `python annotation/build_viewer.py --annotations <dir>/annotations.csv --max-points 15000 --workers 16`.
+
+---
+
+## `run_train_color_distillation.sh` (Color Distillation -> Multi-Task ONNX)
+
+Distills Qwen3-VL-8B color labels from `run5/annotations.csv` into a lightweight classification head branching from block `features[16]` (160 channels) of the Model C backbone. Caches extracted features to disk (`cache/features_L16_train.npy`, ~287 MB) for rapid training, trains for 25 epochs using class-weighted cross-entropy, and automatically exports a unified `mobilenet_v2_multitask.onnx`.
+
+```bash
+bash bash_scripts/run_train_color_distillation.sh                # train MLP head (default)
+bash bash_scripts/run_train_color_distillation.sh --head-type linear   # train fast linear head
+bash bash_scripts/run_train_color_distillation.sh --skip-extract       # train on existing cached features
+```
+
+| Option | Meaning |
+|---|---|
+| `--head-type {mlp,linear}` | Color head architecture (`mlp`: 160 -> 128 -> 13; `linear`: 160 -> 13) |
+| `--epochs N` | Training epochs (default `25`) |
+| `--batch-size N` | Batch size for training (default `512`) |
+| `--lr F` | Learning rate with cosine annealing (default `1e-3`) |
+| `--label-smoothing F` | Label smoothing for regularization (default `0.05`) |
+| `--min-conf F` | Minimum Qwen color confidence filter (default `0.70`) |
+| `--extract-batch-size N`| Batch size for ONNX feature extraction (default `128`) |
+| `--skip-extract` | Skip feature extraction and immediately train on cached `.npy` |
+
+Output: `code/current/mobilenet/color_distillation/output/` containing:
+- `color_head_best.pt` (PyTorch state dict)
+- `mobilenet_v2_multitask.onnx` (Unified ONNX model with `predictions`, `color_predictions`, `embeddings`, `class_maps`)
+- `training_history.csv` & `final_report.txt`
 
 ## Building the External Splits
 

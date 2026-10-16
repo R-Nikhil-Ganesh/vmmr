@@ -21,4 +21,6 @@ test_predictions.txt
 **/annotation_runs*/**/*.npy
 **/annotation_runs*/**/color_cache.csv
 code/current/mobilenet/annotation_runs/run5/
+code/current/mobilenet/color_distillation/cache/
+code/current/mobilenet/color_distillation/output/
 CLAUDE.md
