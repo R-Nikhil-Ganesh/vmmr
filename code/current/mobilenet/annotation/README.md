@@ -114,3 +114,4 @@ Each annotation run writes the following artifacts inside `annotation_runs/<RUN_
 * `embeddings.npy`: `(N, 1280)` float16 penultimate feature embeddings extracted from MobileNetV2.
 * `color_cache.csv`: Resumable key-value cache mapping image indices to assigned colors and probabilities.
 * `viewer.html`: Standalone, interactive 2D visualization dashboard with embedded image thumbnails.
+
