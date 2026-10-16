@@ -38,3 +38,4 @@ echo "=================================================================="
     "$@"
 
 echo; echo "  Distillation complete! Model: ${OUT_DIR}/mobilenet_v2_multitask.onnx"
+
