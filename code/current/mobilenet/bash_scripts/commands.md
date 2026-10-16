@@ -89,31 +89,35 @@ bash bash_scripts/run_diagnostics.sh --quick
 
 ## `run_annotate.sh` (make/model + color annotation and HTML viewer)
 
-Annotates **test-split** images (unseen by Model C) with make and model (merged Model C, ONNX) and color (Qwen3-VL-8B, scored over a fixed color list), then builds a self-contained `viewer.html`. tmux session `annotate`.
+Annotates vehicle images across test or all splits (`train`, `val`, `test`) with make and model (merged Model C, ONNX) and color (Qwen3-VL-8B 4-bit NF4, scored over a fixed color list), then builds a self-contained `viewer.html`. tmux session `annotate_<RUN_NAME>`.
 
 ```bash
 bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color     # smoke test, no Qwen
 bash bash_scripts/run_annotate.sh --max-samples 200                  # smoke test with Qwen
-RUN_NAME=run4 bash bash_scripts/run_annotate.sh --max-samples 20000  # real run (per domain)
+RUN_NAME=run5 bash bash_scripts/run_annotate.sh --split all         # full dataset run with run4 cache reuse
 ```
 
-Needs `pip install -U "transformers>=4.57" accelerate` for Qwen (use `PYTHON_BIN` to point at a separate env); `umap-learn` is optional (falls back to t-SNE). Output goes to `${ANNOT_OUT_DIR}/<RUN_NAME or run4>/` (default `${ECON_ROOT}/annotation_runs`), outside git, so no auto-push: `annotations.csv`, `embeddings.npy`, `color_cache.csv`, `viewer.html`. The color stage resumes from `color_cache.csv`.
+Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `umap-learn` is used for 2D manifold projection. Output goes to `${ANNOT_OUT_DIR}/<RUN_NAME>/` (default `code/current/mobilenet/annotation_runs/<RUN_NAME>/`): `annotations.csv`, `embeddings.npy`, `color_cache.csv`, `viewer.html`.
 
 | Option | Meaning |
 |---|---|
-| `--domain both\|pm\|ext` | Which dataset(s) (default both) |
-| `--max-samples N` | Random subsample per domain (default: all test images, 109k + 6k) |
+| `--split {test,all,train,val}` | Which split(s) to annotate (default: `test`; use `all` for full dataset) |
+| `--cache-from DIR` | Previous run to reuse annotations, embeddings, and colors from (default: `run4` if available) |
+| `--domain both\|pm\|ext` | Which dataset(s) (default `both`) |
+| `--max-samples N` | Random subsample per domain (default: all split images) |
 | `--skip-color` | make/model only |
 | `--color-head NAME` | `qwen3vl` (default) |
-| `--qwen-model ID_OR_DIR` | Default `$QWEN_MODEL_DIR` (`Qwen/Qwen3-VL-8B-Instruct`); a local directory for offline servers |
-| `--color-batch-size N` | Qwen batch (default 8) |
-| `--reuse-model-stage` | Skip the ONNX stage if `annotations.csv` and `embeddings.npy` exist (e.g. to redo color only) |
-| `--coords-max N` | Rows that get 2-D embedding coordinates (default 20000, half per domain) |
-| `--max-points N` | Points with thumbnails embedded in the viewer (default 3000; the file grows with it) |
-| `--review-conf` / `--review-color-conf` | Confidence thresholds below which a row is flagged `needs_review` (0.70 / 0.50) |
+| `--qwen-model ID_OR_DIR` | Default `$QWEN_MODEL_DIR` (`Qwen/Qwen3-VL-8B-Instruct`); local directory for offline servers |
+| `--color-batch-size N` | Qwen batch (default `16`) |
+| `--qwen-max-side N` | Max image side for Qwen vision tokens (default: `336` for fast inference) |
+| `--no-4bit` | Disable 4-bit NF4 quantization and use bfloat16 |
+| `--reuse-model-stage` | Skip the ONNX stage if `annotations.csv` and `embeddings.npy` exist |
+| `--coords-max N` | Rows that get 2-D embedding coordinates (default 30000) |
+| `--max-points N` | Points with thumbnails embedded in the viewer (default `15000`) |
+| `--review-conf` / `--review-color-conf` | Confidence thresholds below which a row is flagged `needs_review` (`0.70` / `0.50`) |
 | `--no-viewer` | Skip building the HTML |
 
-To rebuild only the viewer: `python annotation/build_viewer.py --annotations <dir>/annotations.csv --max-points 5000`.
+To rebuild only the viewer: `python annotation/build_viewer.py --annotations <dir>/annotations.csv --max-points 15000 --workers 16`.
 
 ## Building the External Splits
 
