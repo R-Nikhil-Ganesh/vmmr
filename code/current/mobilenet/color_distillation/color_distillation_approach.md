@@ -58,16 +58,16 @@ To scientifically verify where color information resides in the Model C backbone
 
 ### Benchmark Results Table
 
-| Layer | Backbone Stage | Channels | Spatial Grid | Linear Top-1 | Linear Macro F1 | MLP Top-1 | MLP Top-3 | MLP Macro F1 | Head Params (MLP) |
+| Layer | Backbone Stage | Channels | Spatial Grid | Linear Top-1 | Linear Top-3 | Linear Macro F1 | MLP Top-1 | MLP Top-3 | MLP Macro F1 | Head Params (MLP) |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`L17`** | **Deep Stage 2 (Unfrozen)** | **320** | **$16 \times 16$** | 58.16% | 57.72% | **62.72%** | **89.56%** | **62.55%** | **43,021** |
-| **`L16`** | **Deep Stage 1 (Unfrozen)** | **160** | **$16 \times 16$** | **58.48%** | **58.18%** | **62.58%** | **88.66%** | **62.50%** | **22,541** |
-| **`L13`** | Mid-Level Stage 2 (Frozen) | 96 | $32 \times 32$ | 57.54% | 57.51% | 61.08% | 87.22% | 61.14% | 14,349 |
-| **`L10`** | Mid-Level Stage 1 (Frozen) | 64 | $32 \times 32$ | 51.26% | 50.92% | 55.60% | 84.42% | 55.56% | 10,253 |
-| **`L6`** | Low-Mid Level (Frozen) | 32 | $64 \times 64$ | 45.96% | 45.58% | 50.74% | 79.80% | 50.36% | 6,157 |
-| **`L3`** | Early Low-Level (Frozen) | 24 | $128 \times 128$ | 38.06% | 37.30% | 41.64% | 73.54% | 41.23% | 5,133 |
-| **`L18`** | Final Conv (Unfrozen) | 1,280 | $16 \times 16$ | 52.96% | 52.58% | 53.48% | 83.52% | 53.46% | 165,901 |
-| **`Embedding`** | Penultimate 1280-D (Pooled) | 1,280 | $1 \times 1$ | 53.52% | 53.17% | 53.48% | 82.90% | 53.35% | 165,901 |
+| **L17** | **Deep Stage 2 (Unfrozen)** | **320** | 16x16 | 58.16% | 86.36% | 57.72% | **62.72%** | **89.56%** | **62.55%** | **43,021** |
+| **L16** | **Deep Stage 1 (Unfrozen)** | **160** | 16x16 | **58.48%** | 85.74% | **58.18%** | **62.58%** | **88.66%** | **62.50%** | **22,541** |
+| L13 | Mid-Level Stage 2 (Frozen) | 96 | 32x32 | 57.54% | 84.88% | 57.51% | 61.08% | 87.22% | 61.14% | 14,349 |
+| L10 | Mid-Level Stage 1 (Frozen) | 64 | 32x32 | 51.26% | 80.48% | 50.92% | 55.60% | 84.42% | 55.56% | 10,253 |
+| L6 | Low-Mid Level (Frozen) | 32 | 64x64 | 45.96% | 75.78% | 45.58% | 50.74% | 79.80% | 50.36% | 6,157 |
+| L3 | Early Low-Level (Frozen) | 24 | 128x128 | 38.06% | 69.66% | 37.30% | 41.64% | 73.54% | 41.23% | 5,133 |
+| L18 | Final Conv (Unfrozen) | 1,280 | 16x16 | 52.96% | 82.22% | 52.58% | 53.48% | 83.52% | 53.46% | 165,901 |
+| Embedding | Penultimate 1280-D (Pooled) | 1,280 | 1x1 | 53.52% | 82.52% | 53.17% | 53.48% | 82.90% | 53.35% | 165,901 |
 
 ### Key Discoveries:
 1. **The "Color Bottleneck" Collapse in Layer 18 / Embedding**:
@@ -216,3 +216,4 @@ bash bash_scripts/run_train_color_distillation.sh --head-type linear
 # 3. Instant re-training on cached features (skips extraction, finishes in <2 min)
 bash bash_scripts/run_train_color_distillation.sh --skip-extract --epochs 30 --lr 5e-4
 ```
+

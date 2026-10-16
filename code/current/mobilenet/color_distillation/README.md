@@ -20,3 +20,4 @@ bash bash_scripts/run_train_color_distillation.sh --head-type linear
 # 3. Instant re-training on cached features (skips extraction, finishes in <2 min)
 bash bash_scripts/run_train_color_distillation.sh --skip-extract --epochs 30 --lr 5e-4
 ```
+
