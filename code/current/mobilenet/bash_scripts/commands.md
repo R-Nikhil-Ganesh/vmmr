@@ -155,3 +155,25 @@ Only needed when the External splits change (they are committed in `merged_datas
 ```bash
 python merged_dataset/prepare_external_1235models.py
 ```
+
+---
+
+## DVC (Data Version Control) with Google Drive
+
+Used to track heavy datasets, Qwen embeddings (`embeddings.npy`, 2.7 GB), feature caches (`features_L16_train.npy`, 263 MB), and large ONNX models without bloating Git or exceeding GitHub's 100 MB limit.
+
+A convenience runner is located at `code/current/mobilenet/bash_scripts/dvc.sh`:
+
+```bash
+# Add a large dataset or directory to DVC
+./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/annotation_runs/run5
+./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/color_distillation/cache
+
+# Push data to Google Drive
+./code/current/mobilenet/bash_scripts/dvc.sh push
+
+# Pull data on a new machine
+./code/current/mobilenet/bash_scripts/dvc.sh pull
+```
+See the full guide in [dvc_gdrive_guide.md](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/dvc_gdrive_guide.md).
+

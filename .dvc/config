@@ -1,0 +1,8 @@
+[cache]
+    type = "reflink,hardlink,symlink,copy"
+[core]
+    analytics = false
+    remote = gdrive-storage
+    autostage = true
+['remote "gdrive-storage"']
+    url = gdrive://1jmsSPZKa0o1LpOW8mgZFg1kghPBolerc
