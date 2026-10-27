@@ -20,7 +20,7 @@ _PATHS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Precedence: shell environment > paths.local.sh > defaults below.
 if [ -f "${_PATHS_DIR}/paths.local.sh" ]; then
     _SAVED=""
-    for _k in ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN AUTO_GIT_PUSH REPO_ROOT ANNOT_OUT_DIR QWEN_MODEL_DIR; do
+    for _k in ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN DVC_BIN DVC_SITE_CACHE_DIR AUTO_GIT_PUSH REPO_ROOT ANNOT_OUT_DIR QWEN_MODEL_DIR; do
         if [ -n "${!_k+x}" ]; then _SAVED="${_SAVED} ${_k}=$(printf '%q' "${!_k}")"; fi
     done
     # shellcheck disable=SC1091
@@ -65,7 +65,7 @@ if [ -z "${DVC_BIN:-}" ]; then
         DVC_BIN="$(command -v dvc || true)"
     fi
 fi
-export DVC_SITE_CACHE_DIR="${DVC_SITE_CACHE_DIR:-/tmp/dvc}"
+export DVC_SITE_CACHE_DIR="${DVC_SITE_CACHE_DIR:-/tmp/dvc-${USER:-shared}}"
 
 # Commit and push results when a runner finishes (1 = on, 0 = off)
 : "${AUTO_GIT_PUSH:=1}"

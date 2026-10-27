@@ -1,0 +1,5 @@
+outs:
+- md5: efe8bddf1e45e0b0e93a6df7cd8e96b5
+  size: 8438065
+  hash: md5
+  path: efficientnet_b0_final.onnx

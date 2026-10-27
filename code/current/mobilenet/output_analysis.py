@@ -136,21 +136,25 @@ class MobileNetV2Evaluator(nn.Module):
       class_maps   (B, num_classes, H, W)  per-class activation maps (CAM / Grad-CAM)
     After forward(), `embeddings` and `class_maps` hold the latest batch (None for older single-output models).
     """
-    def __init__(self, num_classes: int, checkpoint_path: str):
+    def __init__(self, num_classes: int, model_path: Optional[str] = None, checkpoint_path: Optional[str] = None):
         super().__init__()
         self.num_classes = num_classes
-        self.checkpoint_path = str(checkpoint_path)
+        resolved_model_path = model_path if model_path is not None else checkpoint_path
+        if resolved_model_path is None:
+            raise ValueError("MobileNetV2Evaluator requires model_path.")
+        self.model_path = str(resolved_model_path)
+        self.checkpoint_path = self.model_path
 
-        if not self.checkpoint_path.endswith(".onnx"):
-            raise ValueError(f"Only .onnx models are supported, got: {self.checkpoint_path}")
-        if not os.path.exists(self.checkpoint_path):
-            raise FileNotFoundError(f"ONNX model not found: {self.checkpoint_path}")
+        if not self.model_path.endswith(".onnx"):
+            raise ValueError(f"Only .onnx models are supported, got: {self.model_path}")
+        if not os.path.exists(self.model_path):
+            raise FileNotFoundError(f"ONNX model not found: {self.model_path}")
         if not HAS_ORT:
             raise ImportError("onnxruntime is required to evaluate .onnx models.")
 
         available = ort.get_available_providers()
         providers = []
-        if "CUDAExecutionProvider" in available:
+        if "CUDAExecutionProvider" in available and torch.cuda.is_available():
             cuda_options = {
                 "device_id": 0,
                 "arena_extend_strategy": "kSameAsRequested",
@@ -160,12 +164,12 @@ class MobileNetV2Evaluator(nn.Module):
             providers.append(("CUDAExecutionProvider", cuda_options))
         providers.append("CPUExecutionProvider")
 
-        self.ort_session = ort.InferenceSession(self.checkpoint_path, providers=providers)
+        self.ort_session = ort.InferenceSession(self.model_path, providers=providers)
         self.input_name = self.ort_session.get_inputs()[0].name
         self.output_names = [o.name for o in self.ort_session.get_outputs()]
         self.active_provider = self.ort_session.get_providers()[0]
         device_label = "GPU (CUDA)" if "CUDA" in self.active_provider else "CPU"
-        print(f"[Model] Initialized ONNX Runtime session on {device_label} ({self.active_provider}) from {self.checkpoint_path}")
+        print(f"[Model] Initialized ONNX Runtime session on {device_label} ({self.active_provider}) from {self.model_path}")
         if "embeddings" not in self.output_names:
             print("[WARN] ONNX model has no 'embeddings'/'class_maps' outputs (exported by an older script); "
                   "latent-space and Grad-CAM analysis are unavailable. Re-export with the current training script.")
@@ -176,6 +180,9 @@ class MobileNetV2Evaluator(nn.Module):
             "predictions" if "predictions" in self.output_names
             else ("logits" if "logits" in self.output_names else self.output_names[0])
         )
+        for o in self.ort_session.get_outputs():
+            if o.name == self.pred_key and len(o.shape) >= 2 and isinstance(o.shape[-1], int):
+                self.num_classes = int(o.shape[-1])
 
     def forward(self, x, return_embeddings: bool = True, return_cam: bool = False):
         if isinstance(x, torch.Tensor):
@@ -204,8 +211,43 @@ class MobileNetV2Evaluator(nn.Module):
 # ==============================================================================
 # 3. Image Preprocessing & High-Throughput Batch Evaluation
 # ==============================================================================
+def _resolve_analysis_path(raw_path: str) -> str:
+    raw_str = str(raw_path).strip()
+    if os.path.isabs(raw_str) and os.path.exists(raw_str):
+        return raw_str
+    if context.base_img_dir is not None:
+        base_str = str(context.base_img_dir)
+        cand = os.path.join(base_str, raw_str.lstrip("/"))
+        if os.path.exists(cand):
+            return cand
+        if raw_str.startswith("images/"):
+            cand_no_img = os.path.join(base_str, raw_str[7:])
+            if os.path.exists(cand_no_img):
+                return cand_no_img
+    try:
+        import paths as _paths
+        for root in (getattr(_paths, "EXT_DATASETS_DIR", ""), getattr(_paths, "PM_IMG_DIR", "")):
+            if not root:
+                continue
+            cand = os.path.join(str(root), raw_str.lstrip("/"))
+            if os.path.exists(cand):
+                return cand
+            if raw_str.startswith("images/"):
+                cand_no_img = os.path.join(str(root), raw_str[7:])
+                if os.path.exists(cand_no_img):
+                    return cand_no_img
+        if "/external_resized_512/" in raw_str and getattr(_paths, "EXT_DATASETS_DIR", ""):
+            return os.path.join(str(_paths.EXT_DATASETS_DIR), raw_str.split("/external_resized_512/", 1)[1].lstrip("/"))
+        if "/resized_512/" in raw_str and getattr(_paths, "PM_IMG_DIR", ""):
+            return os.path.join(str(_paths.PM_IMG_DIR), raw_str.split("/resized_512/", 1)[1].lstrip("/"))
+    except Exception:
+        pass
+    return raw_str
+
+
 def load_and_preprocess_image(path: str, img_size: int = 512, crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0, bbox: Optional[Tuple[int, int, int, int]] = None):
-    img = Image.open(path).convert("RGB")
+    resolved = _resolve_analysis_path(path)
+    img = Image.open(resolved).convert("RGB")
     w, h = img.size
     if bbox is not None and bbox[0] >= 0:
         x1, y1, x2, y2 = bbox
@@ -218,7 +260,7 @@ def load_and_preprocess_image(path: str, img_size: int = 512, crop_top_pct: floa
         top = int(h * crop_top_pct)
         bottom = max(top + 10, int(h * (1.0 - crop_bottom_pct)))
         img = img.crop((0, top, w, bottom))
-    img = img.resize((img_size, img_size), Image.BILINEAR)
+    img = img.resize((img_size, img_size), Image.Resampling.BILINEAR)
     arr = np.array(img, dtype=np.float32) / 255.0
     arr = (arr - np.array(IMAGENET_MEAN, dtype=np.float32)) / np.array(IMAGENET_STD, dtype=np.float32)
     tensor = torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0).float()
@@ -230,7 +272,7 @@ class DiagnosticDataset(Dataset):
     def __init__(self, paths: List[str], labels: np.ndarray, img_size: int = 512,
                  crop_top_pct: float = 0.0, crop_bottom_pct: float = 0.0,
                  bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]] = None):
-        self.paths = paths
+        self.paths = [_resolve_analysis_path(p) for p in paths]
         self.labels = labels
         self.img_size = img_size
         self.crop_top_pct = crop_top_pct
@@ -247,15 +289,20 @@ class DiagnosticDataset(Dataset):
         label = self.labels[idx]
         bbox = self.bboxes[idx] if self.bboxes is not None else None
         try:
-            if bbox is not None and bbox[0] >= 0:
-                t, _ = load_and_preprocess_image(path, self.img_size, self.crop_top_pct, self.crop_bottom_pct, bbox=bbox)
-                return t.squeeze(0), label, True
             img = io.read_image(path, mode=io.ImageReadMode.RGB)
             _, h, w = img.shape
-            top = int(h * self.crop_top_pct)
-            bottom = max(top + 10, int(h * (1.0 - self.crop_bottom_pct)))
-            if top > 0 or self.crop_bottom_pct > 0:
-                img = img[:, top:bottom, :]
+            if bbox is not None and bbox[0] >= 0:
+                x1, y1, x2, y2 = bbox
+                x1 = max(0, min(x1, w - 1))
+                y1 = max(0, min(y1, h - 1))
+                x2 = max(x1 + 1, min(x2, w))
+                y2 = max(y1 + 1, min(y2, h))
+                img = img[:, y1:y2, x1:x2]
+            else:
+                top = int(h * self.crop_top_pct)
+                bottom = max(top + 10, int(h * (1.0 - self.crop_bottom_pct)))
+                if top > 0 or self.crop_bottom_pct > 0:
+                    img = img[:, top:bottom, :]
             res = nn.functional.interpolate(
                 img.unsqueeze(0).float(),
                 size=(self.img_size, self.img_size),
@@ -635,6 +682,18 @@ def main():
     if "split" in test_df.columns:
         test_df = test_df[test_df["split"] == "test"].reset_index(drop=True)
     model = MobileNetV2Evaluator(num_classes=context.num_classes, checkpoint_path=args.model_path)
+    if context.num_classes > model.num_classes:
+        print(f"[Context] Model has {model.num_classes:,} classes while label_map has {context.num_classes:,}; "
+              f"restricting taxonomy to first {model.num_classes:,} classes.")
+        context.num_classes = model.num_classes
+        context.class_names = context.class_names[:model.num_classes]
+        context.idx_to_class = {k: v for k, v in context.idx_to_class.items() if k < model.num_classes}
+        context.class_to_idx = {k: v for k, v in context.class_to_idx.items() if v < model.num_classes}
+    if "label" in test_df.columns and (test_df["label"] >= model.num_classes).any():
+        n_before = len(test_df)
+        test_df = test_df[test_df["label"] < model.num_classes].reset_index(drop=True)
+        print(f"[Eval] Filtered test set to model's {model.num_classes:,}-class taxonomy: "
+              f"{len(test_df):,} / {n_before:,} rows retained.")
     
     y_true, y_pred, y_probs, embeddings = evaluate_test_dataset(
         model, test_df,

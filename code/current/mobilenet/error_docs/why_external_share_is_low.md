@@ -1,7 +1,7 @@
 # Analysis & Plan: Why the Share of External Images is Low (3.0%)
 
 ## Goal Description
-In the current merged dataset ([code/current/mobilenet/merged_dataset/splits_1235models/all_splits.csv](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/merged_dataset/splits_1235models/all_splits.csv)), the total count of External images is **33,329** (25,055 train, 3,404 val, 4,870 test), compared to **1,093,408** PlatesMania images. 
+In the Run 4 merged dataset ([merged_dataset/splits_1235models/all_splits.csv](../merged_dataset/splits_1235models/all_splits.csv)), the total count of External images was **33,329** (23,589 train, 4,870 val, 4,870 test), compared to **1,093,408** PlatesMania images. 
 
 External images represent only **~2.96%** of the total dataset, and cover only **286 out of the 1,235 classes** (23.1%). This document provides the complete empirical root cause for this drop, tracing the data funnel from >594,000 raw files down to 33,329 rows.
 
@@ -26,12 +26,12 @@ flowchart TD
 ## 1. Five Concrete Reasons Why the External Share is Low
 
 ### Reason 1: The Initial Filtering to 51 Makes (594k $\to$ 73k)
-The server actually stores **594,355 raw external vehicle images** under `/home/researchadmin/Econ/external_datasets`:
+The server actually stores **594,355 raw external vehicle images** under `$ECON_ROOT/external_datasets`:
 - `compcars_cctv`: **345,582 files**
 - `BoxCars116k`: **232,582 files**
 - `stanford-cars`: **16,191 files**
 
-When `/home/researchadmin/Econ/scripts/rebuild_external_resized_512.py` was created, it selected only 51 consumer car makes (`TARGET_51_MAKES`). Hundreds of thousands of surveillance crops containing unidentifiable frames, obscure Chinese domestic brands, heavy commercial trucks, and duplicates were filtered out, producing **73,219 curated letterboxed images**.
+When `$ECON_ROOT/scripts/rebuild_external_resized_512.py` was created, it selected only 51 consumer car makes (`TARGET_51_MAKES`). Hundreds of thousands of surveillance crops containing unidentifiable frames, obscure Chinese domestic brands, heavy commercial trucks, and duplicates were filtered out, producing **73,219 curated letterboxed images**.
 
 ---
 
@@ -96,7 +96,7 @@ $$\text{External Fraction} = \frac{25,055 \text{ (Ext Train)}}{875,199 \text{ (P
 A model seeing only 2.78% External data would treat External as negligible noise and overfit entirely to PlatesMania.
 
 ### The Solution: `WeightedRandomSampler` (`--ext-fraction 0.2`)
-In [merged_dataset/train/train_mobilenet_v2_merged.py](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/merged_dataset/train/train_mobilenet_v2_merged.py#L130-L140):
+In [merged_dataset/train/train_mobilenet_v2_merged.py](../merged_dataset/train/train_mobilenet_v2_merged.py#L130-L140):
 ```python
 if args.ext_fraction > 0:
     weights = np.concatenate([
@@ -125,3 +125,24 @@ If the project requires increasing the External volume from 33k to 100k+:
 ### Recommended Plan
 1. **Immediate (No Retraining Needed)**: Keep the existing 33,329-image split for Model C comparability, but accurately document the 5-layer funnel in `run_docs/` so future reviewers understand why External is 3%.
 2. **For the Next Multi-Head Teacher Architecture**: Incorporate Mercedes-Benz and expand the model aliasing mapping in `prepare_external_1235models.py` to capture ~50,000+ External images.
+
+---
+
+## 4. Implemented Update: 51-Make Expansion + `< 50` Sample Pruning
+
+Following this analysis, [`prepare_external_1235models.py`](../merged_dataset/prepare_external_1235models.py) was updated and executed to:
+1. **Fix Unicode accent normalization** in `clean_tok()` (`é` $\to$ `e`, `ó` $\to$ `o`) and add CompCars/BoxCars model aliases (`MB_ALIASES`, `INFINITI_ALIASES`, `GLOBAL_MODEL_ALIASES`), recovering **+2,246** samples into existing PlatesMania classes (`34,135` $\to$ **`36,381`** raw candidates across **290** shared classes).
+2. **Retain all 51 makes** from `external_metadata_51make.csv` even when the Make or Model is absent from PlatesMania (`--include-51-makes`), appending new classes starting at index `1235` to preserve full backward compatibility with indices `0..1234`.
+3. **Prune any class with `< 50` samples** (`--min-samples 50`), dropping **159 small External-only classes** (`3,642` images) and keeping **181 External-only classes** (`33,195` raw candidates; **`32,131`** after the `600`/class cap).
+
+### Before vs. After Summary
+
+| Metric | Previous (35-Make Strict PM Filter) | Updated (51 Makes + `< 50` Pruned) | Change |
+| :--- | ---: | ---: | ---: |
+| **Raw External Candidates Retained** | 34,135 / 73,219 (46.6%) | **69,576 / 73,219 (95.0%)** | **+35,441 (+103.8%)** |
+| **Total External Samples (after 600/class cap)** | 33,329 | **67,695** | **+34,366 (+103.1%)** |
+| **Train / Val / Test Splits** | 23,502 / 4,913 / 4,914 | **47,805 / 9,945 / 9,945** | **+103.4% Train** |
+| **Active External Classes** | 286 (all in PM) | **471** (290 in PM + 181 Ext-only) | **+185 classes** |
+| **Unified Taxonomy Size** | 1,235 classes (35 makes) | **1,416 classes (49 makes)** | **+181 classes (+14 makes)** |
+| **Minimum Samples per Class (Merged)** | 50 | **50** | Every class $\ge 50$ samples |
+

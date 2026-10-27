@@ -7,9 +7,12 @@ Model C sees both training sets and is evaluated on both test sets, so it shows 
 compared with the cross-dataset numbers of A and B.
 
 Reuses the datasets, model, evaluation and ONNX export of the two single-dataset trainers, so every image is
-cropped exactly as in A (PlatesMania: top 15%) or B (External: vehicle bbox / bottom 5%).
+cropped as in its domain: PlatesMania uses a top 15% crop (`crop_top_pct=0.15`), while External (`external_resized_512`,
+where images were pre-letterboxed to 512x512 with `bbox_* = -1`) uses a bottom 5% crop (`crop_bottom_pct=0.05`).
 
-Both datasets share one label index space (1,235 Make/Model classes).
+Both datasets share one label index space: indices `0..1234` are the 1,235 PlatesMania Make/Model classes, and if
+`splits_1235models/label_map.json` includes the 51-make expanded External classes (`>= 50` samples, indices `1235..1415`),
+the trainer automatically adopts the 1,416-class superset taxonomy.
 
 Sampling: External has ~30k train images against ~1M for PlatesMania, so plain concatenation would make it
 negligible. --ext-fraction sets the share of External images drawn per epoch (default 0.2, 0 = plain
@@ -56,6 +59,7 @@ from train_common import (
     add_robustness_args,
     TrainObjective,
     ModelEMA,
+    save_run_config,
 )
 
 
@@ -99,6 +103,7 @@ def main():
     models_dir, plots_dir, reports_dir = output_dir / "models", output_dir / "plots", output_dir / "reports"
     for d in [models_dir, plots_dir, reports_dir]:
         d.mkdir(parents=True, exist_ok=True)
+    save_run_config(output_dir, args, "merged_dataset/train/train_mobilenet_v2_merged.py")
 
     # Shared label space: PlatesMania's map; the External splits must use the same one
     def load_map(path):
@@ -106,8 +111,15 @@ def main():
         return {k: int(v) for k, v in raw.get("class_to_idx", raw).items()}
     class_to_idx = load_map(args.label_map_path)
     ext_map_file = Path(args.ext_splits_dir) / "label_map.json"
-    if ext_map_file.exists() and load_map(ext_map_file) != class_to_idx:
-        raise ValueError(f"{ext_map_file} differs from {args.label_map_path}: the two datasets must share one label space.")
+    if ext_map_file.exists():
+        ext_map = load_map(ext_map_file)
+        if ext_map != class_to_idx:
+            if all(ext_map.get(k) == v for k, v in class_to_idx.items()):
+                print(f"[Label Map] Adopting expanded taxonomy from {ext_map_file}: "
+                      f"{len(ext_map):,} classes (base PlatesMania: {len(class_to_idx):,})")
+                class_to_idx = ext_map
+            else:
+                raise ValueError(f"{ext_map_file} conflicts with {args.label_map_path}: base label indices must match.")
     num_classes = len(class_to_idx)
     with open(models_dir / "label_map.json", "w") as f:
         json.dump({"class_to_idx": class_to_idx, "idx_to_class": {v: k for k, v in class_to_idx.items()},

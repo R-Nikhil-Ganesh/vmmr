@@ -27,7 +27,8 @@ sys.path.insert(0, str(MOBILENET_DIR))
 sys.path.insert(0, str(HERE))
 
 import paths  # noqa: E402
-from common import DOMAINS, load_crop, load_label_map, parse_bbox, split_class  # noqa: E402
+from common import DOMAINS, load_crop, load_label_map, parse_bbox, resolve_image_path, split_class, to_rel_image_path  # noqa: E402
+from train_common import save_run_config  # noqa: E402
 
 
 def parse_args():
@@ -67,57 +68,11 @@ def _subsample(df, n, seed):
 
 
 def _resolve_pm_path(raw_path: str, base_dir: str) -> str:
-    p = Path(raw_path)
-    if p.is_file():
-        return str(p)
-    base = Path(base_dir) if base_dir else Path(".")
-    raw_str = str(raw_path)
-    for marker in ("resized_512", "images"):
-        if marker in raw_str:
-            rel = raw_str.split(marker, 1)[1].lstrip("/")
-            cand = base / rel
-            if cand.is_file():
-                return str(cand)
-            if rel.startswith("images/"):
-                cand_no_img = base / rel[7:]
-                if cand_no_img.is_file():
-                    return str(cand_no_img)
-            strip = not (base / "images").is_dir() and base.is_dir()
-            return str(base / (rel[7:] if (strip and rel.startswith("images/")) else rel))
-    strip = not (base / "images").is_dir() and base.is_dir()
-    clean_rel = raw_str[7:] if (strip and raw_str.startswith("images/")) else raw_str
-    cand = base / clean_rel
-    if cand.is_file():
-        return str(cand)
-    cand_img = base / "images" / clean_rel
-    if cand_img.is_file():
-        return str(cand_img)
-    return str(cand)
+    return resolve_image_path(raw_path, domain="platesmania", base_dir=base_dir)
 
 
 def _resolve_ext_path(raw_path: str, ext_base_dir: str) -> str:
-    p = Path(raw_path)
-    if p.is_file():
-        return str(p)
-    base = Path(ext_base_dir) if ext_base_dir else Path(".")
-    raw_str = str(raw_path)
-    marker = "external_resized_512"
-    if marker in raw_str:
-        rel = raw_str.split(marker, 1)[1].lstrip("/")
-        cand = base / rel
-        if cand.is_file():
-            return str(cand)
-        if rel.startswith("images/"):
-            cand_no_img = base / rel[7:]
-            if cand_no_img.is_file():
-                return str(cand_no_img)
-            if not (base / "images").is_dir() and base.is_dir():
-                return str(cand_no_img)
-        return str(cand)
-    cand = base / raw_str.lstrip("/")
-    if cand.is_file():
-        return str(cand)
-    return str(cand) if not p.is_absolute() else raw_str
+    return resolve_image_path(raw_path, domain="external", base_dir=ext_base_dir)
 
 
 def pm_table(split, n, seed):
@@ -126,7 +81,7 @@ def pm_table(split, n, seed):
         df = df[df["split"] == split]
     col = "image_path" if "image_path" in df.columns else "image_rel_path"
     base = paths.PM_IMG_DIR
-    out = [_resolve_pm_path(p, base) for p in df[col].astype(str)]
+    out = [to_rel_image_path(p, "platesmania", base) for p in df[col].astype(str)]
     split_vals = df["split"].astype(str).values if "split" in df.columns else np.full(len(df), split)
     res = pd.DataFrame({
         "path": out,
@@ -157,7 +112,7 @@ def ext_table(split, n, seed):
         df["split"] = split
 
     base = paths.EXT_DATASETS_DIR
-    out = [_resolve_ext_path(p, base) for p in df["image_path"].astype(str)]
+    out = [to_rel_image_path(p, "external", base) for p in df["image_path"].astype(str)]
     res = df[["split", "label", "bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2", "source"]].rename(
         columns={"label": "gt_label"})
     res.insert(0, "path", out)
@@ -174,16 +129,24 @@ def stage_model(table, label_map, args):
     from tqdm import tqdm
     import output_analysis as oa
 
-    idx_to_class = {v: k for k, v in label_map.items()}
-    n_cls = len(label_map)
-    makes = sorted({split_class(c)[0] for c in label_map})
+    ext_lm_path = MOBILENET_DIR / "merged_dataset" / "splits_1235models" / "label_map.json"
+    full_label_map = dict(label_map)
+    if ext_lm_path.exists():
+        raw_ext = json.load(open(ext_lm_path))
+        for k, v in raw_ext.get("class_to_idx", raw_ext).items():
+            full_label_map.setdefault(k, int(v))
+
+    idx_to_class = {v: k for k, v in full_label_map.items()}
+    model = oa.MobileNetV2Evaluator(len(label_map), args.model_path)
+    model.eval()
+
+    model_label_map = {c: i for c, i in full_label_map.items() if i < model.num_classes}
+    n_cls = model.num_classes
+    makes = sorted({split_class(c)[0] for c in model_label_map})
     make_to_i = {m: i for i, m in enumerate(makes)}
     proj = np.zeros((n_cls, len(makes)), dtype=np.float32)
-    for c, i in label_map.items():
+    for c, i in model_label_map.items():
         proj[i, make_to_i[split_class(c)[0]]] = 1.0
-
-    model = oa.MobileNetV2Evaluator(n_cls, args.model_path)
-    model.eval()
 
     rows, embs = [], []
     total_imgs = len(table)
@@ -301,6 +264,9 @@ def stage_color(df, out_dir, args):
             print(f"[color] Seeded color cache with {src_cache}")
 
     cache = pd.read_csv(cache_path) if cache_path.exists() else pd.DataFrame(columns=["path", "domain", "color", "color_conf"])
+    if len(cache):
+        cache["path"] = [to_rel_image_path(p, d) for p, d in zip(cache["path"].astype(str), cache["domain"].astype(str))]
+    df["path"] = [to_rel_image_path(p, d) for p, d in zip(df["path"].astype(str), df["domain"].astype(str))]
     done = set(zip(cache["path"].astype(str), cache["domain"].astype(str)))
     todo = df[[(str(p), str(d)) not in done for p, d in zip(df["path"], df["domain"])]]
     print(f"[color] {len(df) - len(todo):,} cached, {len(todo):,} to do (head={args.color_head})")
@@ -334,7 +300,10 @@ def stage_color(df, out_dir, args):
                 mins = int((rem % 3600) // 60)
                 print(f"[color] {i + len(chunk):,}/{len(recs):,} ({rate:.1f} img/s, ~{hrs}h {mins}m remaining)")
 
-    cache = pd.read_csv(cache_path).drop_duplicates(["path", "domain"])
+    cache = pd.read_csv(cache_path)
+    if len(cache):
+        cache["path"] = [to_rel_image_path(p, d) for p, d in zip(cache["path"].astype(str), cache["domain"].astype(str))]
+        cache = cache.drop_duplicates(["path", "domain"])
     df = df.drop(columns=[c for c in ("color", "color_conf") if c in df.columns])
     return df.merge(cache[["path", "domain", "color", "color_conf"]], on=["path", "domain"], how="left")
 
@@ -350,6 +319,7 @@ def main():
     args = parse_args()
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    save_run_config(out_dir, args, "annotation/annotate.py")
     label_map = load_label_map(args.label_map)
     ann_path, emb_path = out_dir / "annotations.csv", out_dir / "embeddings.npy"
 
@@ -376,6 +346,7 @@ def main():
             if c_ann.exists() and c_emb_file.exists():
                 print(f"[cache] Checking cached predictions and embeddings from {c_dir}")
                 c_df = pd.read_csv(c_ann)
+                c_df["path"] = [to_rel_image_path(p, d) for p, d in zip(c_df["path"].astype(str), c_df["domain"].astype(str))]
                 c_emb = np.load(c_emb_file)
 
                 c_keys = set(zip(c_df["path"].astype(str), c_df["domain"].astype(str)))

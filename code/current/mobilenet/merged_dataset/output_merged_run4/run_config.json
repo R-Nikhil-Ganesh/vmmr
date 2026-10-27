@@ -1,0 +1,26 @@
+{
+  "reconstructed": true,
+  "script": "merged_dataset/train/train_mobilenet_v2_merged.py",
+  "runner": "bash_scripts/run_train_merged.sh",
+  "run_name": "run4",
+  "args": {
+    "ext_fraction": 0.2,
+    "pm_crop_top_pct": 0.15,
+    "ext_crop_bottom_pct": 0.05,
+    "img_size": 512,
+    "batch_size": 32,
+    "eval_batch_size": 64,
+    "epochs": 15,
+    "lr": 0.0005,
+    "backbone_lr": 5e-05,
+    "dropout": 0.25,
+    "unfreeze_layers": 5,
+    "num_workers": 8,
+    "seed": 42,
+    "aug_strength": "strong",
+    "crop_jitter": 0.08,
+    "label_smoothing": 0.1,
+    "make_loss_weight": 0.3,
+    "ema_decay": 0.999
+  }
+}

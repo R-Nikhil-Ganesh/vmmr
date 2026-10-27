@@ -1,0 +1,5 @@
+outs:
+- md5: 1fc6b0423ac5ca4c53bcb4b35a9dd849
+  size: 21611195
+  hash: md5
+  path: mobilenet_v2_multitask.onnx

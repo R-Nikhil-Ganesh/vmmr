@@ -1,0 +1,41 @@
+              precision    recall  f1-score   support
+
+       white       0.82      0.88      0.85     24450
+       black       0.72      0.86      0.78     23540
+      silver       0.70      0.70      0.70     19521
+        gray       0.57      0.50      0.53     13698
+         red       0.89      0.94      0.92      9396
+        blue       0.67      0.54      0.59      9916
+       green       0.67      0.34      0.45      2352
+      yellow       0.86      0.86      0.86      1576
+      orange       0.79      0.67      0.72       947
+       brown       0.57      0.32      0.41      1744
+       beige       0.50      0.21      0.30      1668
+        gold       0.56      0.23      0.32       289
+       other       0.69      0.14      0.24       357
+
+    accuracy                           0.73    109454
+   macro avg       0.69      0.55      0.59    109454
+weighted avg       0.73      0.73      0.72    109454
+
+
+Held-Out Test Split (conf >= 0.70):
+              precision    recall  f1-score   support
+
+       white       0.83      0.88      0.85     24571
+       black       0.70      0.86      0.77     23174
+      silver       0.71      0.71      0.71     20053
+        gray       0.56      0.50      0.53     13525
+         red       0.90      0.93      0.92      9618
+        blue       0.67      0.53      0.59     10292
+       green       0.72      0.31      0.44      2687
+      yellow       0.87      0.84      0.85      1608
+      orange       0.76      0.67      0.71       881
+       brown       0.52      0.34      0.41      1535
+       beige       0.50      0.25      0.33      1484
+        gold       0.61      0.19      0.29       408
+       other       0.56      0.08      0.15       381
+
+    accuracy                           0.73    110217
+   macro avg       0.69      0.55      0.58    110217
+weighted avg       0.72      0.73      0.72    110217

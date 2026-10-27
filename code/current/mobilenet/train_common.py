@@ -303,8 +303,27 @@ class PlatesManiaDataset(Dataset):
 
 
 class ExternalMergedDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, img_size: int = 512, crop_bottom_pct: float = 0.0, crop_jitter: float = 0.0):
-        self.paths = df["image_path"].values
+    def __init__(self, df: pd.DataFrame, img_size: int = 512, crop_bottom_pct: float = 0.0, crop_jitter: float = 0.0,
+                 base_img_dir: Optional[Path] = None):
+        if base_img_dir is None:
+            try:
+                import paths as _paths
+                base_str = str(getattr(_paths, "EXT_DATASETS_DIR", "") or "")
+            except Exception:
+                base_str = ""
+        else:
+            base_str = str(base_img_dir)
+        resolved_paths = []
+        for raw_p in df["image_path"].astype(str).values:
+            if os.path.isabs(raw_p) and os.path.exists(raw_p):
+                resolved_paths.append(raw_p)
+            elif base_str and "/external_resized_512/" in raw_p:
+                resolved_paths.append(os.path.join(base_str, raw_p.split("/external_resized_512/", 1)[1].lstrip("/")))
+            elif base_str and not os.path.isabs(raw_p):
+                resolved_paths.append(os.path.join(base_str, raw_p.lstrip("/")))
+            else:
+                resolved_paths.append(raw_p)
+        self.paths = np.array(resolved_paths)
         self.labels = df["label"].values.astype(np.int64)
         self.img_size = img_size
         self.crop_bottom_pct = crop_bottom_pct
@@ -431,4 +450,68 @@ def export_to_onnx(model: nn.Module, num_classes: int, img_size: int, out_onnx_p
         dynamo=False
     )
     print(f"[ONNX] Exported model successfully to: {out_onnx_path}")
+
+
+def save_run_config(output_dir: Path, args, script_name: str, extra: Optional[dict] = None) -> Path:
+    """Save CLI arguments, git commit, and environment metadata to <output_dir>/run_config.json (E-17)."""
+    import datetime
+    import getpass
+    import json
+    import platform
+    import socket
+    import subprocess
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    cfg_path = out_dir / "run_config.json"
+
+    repo_dir = Path(__file__).resolve().parent
+    git_commit, git_dirty = "unknown", False
+    try:
+        git_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=str(repo_dir), stderr=subprocess.DEVNULL, text=True
+        ).strip()
+        status_out = subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=str(repo_dir), stderr=subprocess.DEVNULL, text=True
+        ).strip()
+        git_dirty = bool(status_out)
+    except Exception:
+        pass
+
+    ort_ver = None
+    try:
+        import onnxruntime as _ort
+        ort_ver = _ort.__version__
+    except Exception:
+        pass
+
+    cuda_dev = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
+    args_dict = vars(args).copy() if hasattr(args, "__dict__") else (dict(args) if isinstance(args, dict) else {})
+    for k, v in list(args_dict.items()):
+        if isinstance(v, Path):
+            args_dict[k] = str(v)
+
+    payload = {
+        "script": script_name,
+        "timestamp_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "argv": sys.argv,
+        "args": args_dict,
+        "git_commit": git_commit,
+        "git_dirty": git_dirty,
+        "environment": {
+            "hostname": socket.gethostname(),
+            "user": getpass.getuser(),
+            "python_version": platform.python_version(),
+            "torch_version": torch.__version__,
+            "onnxruntime_version": ort_ver,
+            "cuda_available": torch.cuda.is_available(),
+            "cuda_device": cuda_dev,
+        },
+    }
+    if extra:
+        payload.update(extra)
+
+    with open(cfg_path, "w") as f:
+        json.dump(payload, f, indent=2)
+    return cfg_path
 

@@ -43,3 +43,8 @@ echo "=================================================================="
     "$@"
 
 echo; echo "  Done. Viewer: ${OUT_DIR}/viewer.html   $(date '+%Y-%m-%d %H:%M:%S')"
+
+if [ "${AUTO_GIT_PUSH:-1}" = "1" ]; then
+    bash "${SCRIPT_DIR}/lib/auto_git_sync.sh" "Annotation Run${RUN_NAME:+ (${RUN_NAME})}"
+fi
+

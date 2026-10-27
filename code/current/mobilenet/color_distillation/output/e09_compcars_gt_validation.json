@@ -1,0 +1,327 @@
+{
+  "total_matched_rows": 19479,
+  "overall_strict_acc_pct": 70.21,
+  "overall_grouped_acc_pct": 78.44,
+  "high_conf_ge_070": {
+    "n": 18433,
+    "pct_of_total": 94.63,
+    "strict_acc_pct": 71.93,
+    "grouped_acc_pct": 79.7
+  },
+  "low_conf_lt_070": {
+    "n": 1046,
+    "pct_of_total": 5.37,
+    "strict_acc_pct": 39.87,
+    "grouped_acc_pct": 56.21
+  },
+  "by_split": {
+    "test": {
+      "n": 2867,
+      "strict_acc_pct": 71.43,
+      "grouped_acc_pct": 79.67
+    },
+    "train": {
+      "n": 13753,
+      "strict_acc_pct": 69.95,
+      "grouped_acc_pct": 78.08
+    },
+    "val": {
+      "n": 2859,
+      "strict_acc_pct": 70.23,
+      "grouped_acc_pct": 78.91
+    }
+  },
+  "per_compcars_gt_color": [
+    {
+      "compcars_id": 0,
+      "compcars_color": "black",
+      "n": 7004,
+      "strict_acc_pct": 91.98,
+      "grouped_acc_pct": 91.98,
+      "top_qwen_preds": {
+        "black": 6442,
+        "gray": 421,
+        "silver": 99
+      }
+    },
+    {
+      "compcars_id": 1,
+      "compcars_color": "white",
+      "n": 3567,
+      "strict_acc_pct": 72.92,
+      "grouped_acc_pct": 72.92,
+      "top_qwen_preds": {
+        "white": 2601,
+        "silver": 903,
+        "gray": 44
+      }
+    },
+    {
+      "compcars_id": 2,
+      "compcars_color": "red",
+      "n": 1448,
+      "strict_acc_pct": 78.59,
+      "grouped_acc_pct": 78.59,
+      "top_qwen_preds": {
+        "red": 1138,
+        "brown": 219,
+        "black": 73
+      }
+    },
+    {
+      "compcars_id": 3,
+      "compcars_color": "yellow",
+      "n": 454,
+      "strict_acc_pct": 28.63,
+      "grouped_acc_pct": 38.55,
+      "top_qwen_preds": {
+        "yellow": 130,
+        "brown": 56,
+        "gray": 56
+      }
+    },
+    {
+      "compcars_id": 4,
+      "compcars_color": "blue",
+      "n": 531,
+      "strict_acc_pct": 52.54,
+      "grouped_acc_pct": 52.54,
+      "top_qwen_preds": {
+        "blue": 279,
+        "black": 118,
+        "gray": 77
+      }
+    },
+    {
+      "compcars_id": 5,
+      "compcars_color": "green",
+      "n": 163,
+      "strict_acc_pct": 14.11,
+      "grouped_acc_pct": 14.11,
+      "top_qwen_preds": {
+        "black": 94,
+        "gray": 41,
+        "green": 23
+      }
+    },
+    {
+      "compcars_id": 6,
+      "compcars_color": "purple",
+      "n": 76,
+      "strict_acc_pct": 0.0,
+      "grouped_acc_pct": 88.16,
+      "top_qwen_preds": {
+        "other": 67,
+        "black": 9
+      }
+    },
+    {
+      "compcars_id": 7,
+      "compcars_color": "brown",
+      "n": 585,
+      "strict_acc_pct": 10.6,
+      "grouped_acc_pct": 10.6,
+      "top_qwen_preds": {
+        "black": 298,
+        "gray": 194,
+        "brown": 62
+      }
+    },
+    {
+      "compcars_id": 8,
+      "compcars_color": "champagne",
+      "n": 444,
+      "strict_acc_pct": 3.6,
+      "grouped_acc_pct": 4.73,
+      "top_qwen_preds": {
+        "gray": 214,
+        "silver": 126,
+        "black": 81
+      }
+    },
+    {
+      "compcars_id": 9,
+      "compcars_color": "silver",
+      "n": 5207,
+      "strict_acc_pct": 57.33,
+      "grouped_acc_pct": 85.87,
+      "top_qwen_preds": {
+        "silver": 2985,
+        "gray": 1486,
+        "black": 703
+      }
+    }
+  ],
+  "per_qwen_predicted_color": [
+    {
+      "qwen_color": "black",
+      "n": 7861,
+      "mean_conf": 0.985,
+      "pct_below_070": 1.91,
+      "strict_precision_pct": 81.95,
+      "grouped_precision_pct": 81.95,
+      "top_human_gt": {
+        "black": 6442,
+        "silver": 703,
+        "brown": 298
+      }
+    },
+    {
+      "qwen_color": "silver",
+      "n": 4235,
+      "mean_conf": 0.9377,
+      "pct_below_070": 8.24,
+      "strict_precision_pct": 70.48,
+      "grouped_precision_pct": 70.48,
+      "top_human_gt": {
+        "silver": 2985,
+        "white": 903,
+        "champagne": 126
+      }
+    },
+    {
+      "qwen_color": "white",
+      "n": 2628,
+      "mean_conf": 0.9594,
+      "pct_below_070": 5.02,
+      "strict_precision_pct": 98.97,
+      "grouped_precision_pct": 98.97,
+      "top_human_gt": {
+        "white": 2601,
+        "black": 15,
+        "silver": 8
+      }
+    },
+    {
+      "qwen_color": "gray",
+      "n": 2540,
+      "mean_conf": 0.8993,
+      "pct_below_070": 12.17,
+      "strict_precision_pct": 0.0,
+      "grouped_precision_pct": 58.5,
+      "top_human_gt": {
+        "silver": 1486,
+        "black": 421,
+        "champagne": 214
+      }
+    },
+    {
+      "qwen_color": "red",
+      "n": 1173,
+      "mean_conf": 0.9803,
+      "pct_below_070": 2.39,
+      "strict_precision_pct": 97.02,
+      "grouped_precision_pct": 97.02,
+      "top_human_gt": {
+        "red": 1138,
+        "black": 11,
+        "yellow": 10
+      }
+    },
+    {
+      "qwen_color": "brown",
+      "n": 352,
+      "mean_conf": 0.9287,
+      "pct_below_070": 9.66,
+      "strict_precision_pct": 17.61,
+      "grouped_precision_pct": 17.61,
+      "top_human_gt": {
+        "red": 219,
+        "brown": 62,
+        "yellow": 56
+      }
+    },
+    {
+      "qwen_color": "blue",
+      "n": 291,
+      "mean_conf": 0.9749,
+      "pct_below_070": 3.09,
+      "strict_precision_pct": 95.88,
+      "grouped_precision_pct": 95.88,
+      "top_human_gt": {
+        "blue": 279,
+        "black": 9,
+        "yellow": 1
+      }
+    },
+    {
+      "qwen_color": "yellow",
+      "n": 131,
+      "mean_conf": 0.9729,
+      "pct_below_070": 3.82,
+      "strict_precision_pct": 99.24,
+      "grouped_precision_pct": 99.24,
+      "top_human_gt": {
+        "yellow": 130,
+        "black": 1
+      }
+    },
+    {
+      "qwen_color": "other",
+      "n": 72,
+      "mean_conf": 0.9873,
+      "pct_below_070": 1.39,
+      "strict_precision_pct": 0.0,
+      "grouped_precision_pct": 93.06,
+      "top_human_gt": {
+        "purple": 67,
+        "red": 3,
+        "yellow": 1
+      }
+    },
+    {
+      "qwen_color": "beige",
+      "n": 62,
+      "mean_conf": 0.8294,
+      "pct_below_070": 24.19,
+      "strict_precision_pct": 25.81,
+      "grouped_precision_pct": 25.81,
+      "top_human_gt": {
+        "yellow": 23,
+        "champagne": 16,
+        "silver": 12
+      }
+    },
+    {
+      "qwen_color": "orange",
+      "n": 55,
+      "mean_conf": 0.9176,
+      "pct_below_070": 9.09,
+      "strict_precision_pct": 0.0,
+      "grouped_precision_pct": 81.82,
+      "top_human_gt": {
+        "yellow": 45,
+        "brown": 8,
+        "red": 2
+      }
+    },
+    {
+      "qwen_color": "gold",
+      "n": 51,
+      "mean_conf": 0.8869,
+      "pct_below_070": 15.69,
+      "strict_precision_pct": 0.0,
+      "grouped_precision_pct": 9.8,
+      "top_human_gt": {
+        "yellow": 42,
+        "champagne": 5,
+        "silver": 3
+      }
+    },
+    {
+      "qwen_color": "green",
+      "n": 28,
+      "mean_conf": 0.9389,
+      "pct_below_070": 3.57,
+      "strict_precision_pct": 82.14,
+      "grouped_precision_pct": 82.14,
+      "top_human_gt": {
+        "green": 23,
+        "blue": 3,
+        "yellow": 2
+      }
+    }
+  ],
+  "stratified_review_csv": "annotation_runs/color_human_review_600.csv",
+  "stratified_review_rows": 598
+}

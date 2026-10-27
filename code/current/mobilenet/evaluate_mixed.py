@@ -52,7 +52,10 @@ TARGET_MAKES = [
     "Cupra", "Dodge", "Ford", "GMC", "Honda", "Hyundai", "Infiniti", "Isuzu",
     "Jeep", "Kia", "Land Rover", "Lexus", "Lincoln", "MINI", "Mazda", "Mitsubishi",
     "Nissan", "Opel", "Peugeot", "Porsche", "Renault", "Skoda", "Subaru", "Suzuki",
-    "Toyota", "Volkswagen", "Volvo"
+    "Toyota", "Volkswagen", "Volvo",
+    # Additional 51-make external brands
+    "BYD", "Bentley", "Chery", "Citroen", "Dacia", "Daewoo", "Fiat", "Foton",
+    "GWM", "Geely", "Haval", "JAC", "Jaguar", "Maserati", "Maybach", "Mercedes-Benz", "SEAT"
 ]
 MAKE_TO_IDX = {m: i for i, m in enumerate(TARGET_MAKES)}
 
@@ -331,7 +334,12 @@ def main():
     # Class coverage: which model classes have train images in each dataset (label indices are shared by both maps)
     df_pm_all = pd.read_csv(args.pm_test_csv)
     pm_train_counts = (df_pm_all[df_pm_all["split"] == "train"] if "split" in df_pm_all.columns else df_pm_all)["label"].value_counts()
-    ext_train_counts = pd.read_csv(args.ext_train_csv)["label"].value_counts()
+    
+    df_ext_train = pd.read_csv(args.ext_train_csv)
+    if "class_name" in df_ext_train.columns and ext_lm:
+        df_ext_train = df_ext_train[df_ext_train["class_name"].isin(ext_lm)].copy()
+        df_ext_train["label"] = df_ext_train["class_name"].map(ext_lm).astype(int)
+    ext_train_counts = df_ext_train["label"].value_counts()
     pm_train_cls, ext_train_cls = set(pm_train_counts.index.astype(int)), set(ext_train_counts.index.astype(int))
     shared_cls = sorted(pm_train_cls & ext_train_cls)
     print(f"[Coverage] classes with train images: PlatesMania {len(pm_train_cls):,} | External {len(ext_train_cls):,} "
@@ -369,6 +377,9 @@ def main():
     df_ext = pd.read_csv(args.ext_test_csv)
     if "split" in df_ext.columns:
         df_ext = df_ext[df_ext["split"] == "test"].reset_index(drop=True)
+    if "class_name" in df_ext.columns and ext_lm:
+        df_ext = df_ext[df_ext["class_name"].isin(ext_lm)].copy().reset_index(drop=True)
+        df_ext["label"] = df_ext["class_name"].map(ext_lm).astype(int)
     if len(df_ext) > args.max_eval_per_dataset:
         df_ext = df_ext.sample(n=args.max_eval_per_dataset, random_state=42).reset_index(drop=True)
 
@@ -406,6 +417,8 @@ def main():
     if same_model:
         print("\n--- Evaluating Model C (Merged) ---")
         model_c = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path)
+        pm_lm_eff = {k: int(v) for k, v in pm_lm.items() if int(v) < model_c.num_classes}
+        pm_proj = build_make_projection_matrix(pm_lm_eff) if len(pm_lm_eff) > len(TARGET_MAKES) else None
         res_a_pm, raw_a_pm = evaluate_model_on_split(
             model_c, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes,
             args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
@@ -437,6 +450,8 @@ def main():
         # Benchmark Model A (PlatesMania)
         print("\n--- Evaluating Model A (PlatesMania) ---")
         model_a = oa.MobileNetV2Evaluator(num_classes=len(pm_lm), checkpoint_path=args.pm_model_path)
+        pm_lm_eff = {k: int(v) for k, v in pm_lm.items() if int(v) < model_a.num_classes}
+        pm_proj = build_make_projection_matrix(pm_lm_eff) if len(pm_lm_eff) > len(TARGET_MAKES) else None
         res_a_pm, raw_a_pm = evaluate_model_on_split(
             model_a, pm_paths, pm_make_indices, pm_model_indices, pm_proj, pm_bboxes,
             args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
@@ -468,6 +483,8 @@ def main():
         # Benchmark Model B (External)
         print("\n--- Evaluating Model B (External Merged) ---")
         model_b = oa.MobileNetV2Evaluator(num_classes=len(ext_lm), checkpoint_path=args.ext_model_path)
+        ext_lm_eff = {k: int(v) for k, v in ext_lm.items() if int(v) < model_b.num_classes}
+        ext_proj = build_make_projection_matrix(ext_lm_eff) if len(ext_lm_eff) > len(TARGET_MAKES) else None
         res_b_ext, raw_b_ext = evaluate_model_on_split(
             model_b, ext_paths, ext_make_indices, ext_model_indices, ext_proj, ext_bboxes,
             args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size,

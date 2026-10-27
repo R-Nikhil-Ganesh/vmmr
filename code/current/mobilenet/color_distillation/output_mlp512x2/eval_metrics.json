@@ -1,0 +1,17 @@
+{
+  "val_conf_ge_070": {
+    "top1_acc": 75.85,
+    "top3_acc": 96.17,
+    "macro_f1": 63.96
+  },
+  "test_all": {
+    "top1_acc": 74.31,
+    "top3_acc": 95.4,
+    "macro_f1": 61.47
+  },
+  "test_conf_ge_070": {
+    "top1_acc": 75.53,
+    "top3_acc": 95.81,
+    "macro_f1": 62.89
+  }
+}

@@ -1,0 +1,5 @@
+outs:
+- md5: e0d84f2bdac7fc72417630515e376d3f
+  size: 8454663
+  hash: md5
+  path: efficientnet_b0_platesmania_best.onnx

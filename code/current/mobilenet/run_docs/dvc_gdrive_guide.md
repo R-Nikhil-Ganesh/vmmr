@@ -10,7 +10,7 @@ This repository uses **DVC (Data Version Control)** integrated with **Google Dri
 
 ## 1. Quick Environment Setup
 
-A dedicated runner is available at [code/current/mobilenet/bash_scripts/dvc.sh](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/bash_scripts/dvc.sh). It automatically invokes the `pt-env` DVC binary with proper lock directories.
+A dedicated runner is available at [`code/current/mobilenet/bash_scripts/dvc.sh`](../bash_scripts/dvc.sh). It automatically invokes the `pt-env` DVC binary with per-user site cache directories (`DVC_SITE_CACHE_DIR=/tmp/dvc-${USER}`).
 
 To use `dvc` directly from anywhere in your shell, add this alias to your `~/.bashrc`:
 ```bash
@@ -43,15 +43,14 @@ Run the following command, replacing `<FOLDER_ID>` with your actual folder ID:
 ./code/current/mobilenet/bash_scripts/dvc.sh remote modify gdrive-storage url "gdrive://<FOLDER_ID>"
 ```
 
-### Step 2.3: Ephemeral OAuth Client ID & Secret (Shared Multi-User Security)
-If you are on a shared workstation where multiple users SSH in, you should **never save private OAuth Client IDs or Secrets to disk**. 
-
-The environment is configured to read ephemeral credentials directly from your terminal session:
-```bash
-export DVC_GDRIVE_CLIENT_ID="your_client_id.apps.googleusercontent.com"
-export DVC_GDRIVE_CLIENT_SECRET="your_client_secret"
-```
-These variables exist only in RAM for your active SSH session. Nothing is ever written to `.dvc/config` or `.dvc/config.local`.
+### Step 2.3: OAuth Client ID & Secret Policy (Research PC vs. Personal Laptop)
+* **Research PC (shared multi-user SSH server)**: **Never save private OAuth Client IDs or Secrets to disk** (neither in `.dvc/config` nor `.dvc/config.local`). Instead, export ephemeral environment variables in your active SSH session:
+  ```bash
+  export DVC_GDRIVE_CLIENT_ID="your_client_id.apps.googleusercontent.com"
+  export DVC_GDRIVE_CLIENT_SECRET="your_client_secret"
+  ```
+  These variables exist only in RAM for your active SSH session.
+* **Personal Laptop (single-user machine)**: Storing `gdrive_client_id` and `gdrive_client_secret` in `.dvc/config.local` (which is gitignored) is acceptable for convenience.
 
 ### Step 2.4: First-Time Google Drive Authentication
 When you execute `dvc push`, DVC uses interactive OAuth 2.0 with your custom Client ID:

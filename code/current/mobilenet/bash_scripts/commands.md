@@ -7,7 +7,9 @@ Run everything from `vmmr/code/current/mobilenet/`. The runners in `bash_scripts
 | Train Model C (merged), then per-domain diagnostics + benchmark | `bash bash_scripts/run_all_pipeline.sh [trainer flags]` | `mobilenet_pipeline` |
 | Train Model C (PlatesMania + External merged) | `bash bash_scripts/run_train_merged.sh [flags]` | `train_merged` |
 | Diagnostics + mixed benchmark | `bash bash_scripts/run_diagnostics.sh [options]` | `diagnostics` |
-| Distill color into MobileNetV2 (features[16] tap) -> ONNX | `bash bash_scripts/run_train_color_distillation.sh [flags]` | `color_distill` |
+| Annotate images (make/model + Qwen3-VL color) + build `viewer.html` | `bash bash_scripts/run_annotate.sh [flags]` | `annotate` |
+| Distill color into MobileNetV2 (`features[16]` tap) -> ONNX | `bash bash_scripts/run_train_color_distillation.sh [flags]` | `color_distill` |
+| Run DVC commands (`status`, `add`, `push`, `pull`) | `./bash_scripts/dvc.sh <subcommand>` | *(foreground)* |
 
 `bash_scripts/lib/` holds helpers that are not run directly: `paths.sh` (all machine paths), `tmux_wrap.sh`, `auto_git_sync.sh`.
 
@@ -25,30 +27,32 @@ A second launch with a session name that is already running is refused (it print
 
 | Variable | Effect |
 |---|---|
-| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `merged_dataset/output_merged_<name>`, `mixed_benchmark_results_<name>`, session `<session>_<name>`. Without it, the default `merged_dataset/output_merged_run4` and `mixed_benchmark_results` folders are used. |
+| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `merged_dataset/output_merged_<name>` (training), `annotation_runs/<name>` (annotation), `mixed_benchmark_results_<name>`, session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=merged_51make` for training, `RUN_NAME=run5` for annotation). |
+| `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `merged_dataset/output_merged_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`). |
+| `CACHE_FROM=<dir>` | Used by `run_annotate.sh` to reuse predictions, embeddings, and Qwen color labels from an earlier annotation folder (defaults to `${ANNOT_OUT_DIR}/run4` if present). |
 | `NO_TMUX=1` | Run in the foreground instead of tmux (debugging, cron, CI). |
 | `AUTO_GIT_PUSH=0` | Do not commit and push results when finished (default `1`: commits `code/current/mobilenet/` and pushes). |
 | `CUDA_VISIBLE_DEVICES=1` | Choose the GPU. |
-| `ECON_ROOT`, `PM_IMG_DIR`, `PM_MANIFEST_CSV`, `PM_LABEL_MAP`, `EXT_DATASETS_DIR`, `PYTHON_BIN` | Override a path for one run. Permanent per-server values go in the gitignored `bash_scripts/lib/paths.local.sh`. |
-| `ANNOT_OUT_DIR`, `QWEN_MODEL_DIR` | Annotation output root (default `${ECON_ROOT}/annotation_runs`) and the Qwen3-VL model id or local directory (see `run_annotate.sh`). |
+| `ECON_ROOT`, `PM_IMG_DIR`, `PM_MANIFEST_CSV`, `PM_LABEL_MAP`, `EXT_DATASETS_DIR`, `PYTHON_BIN`, `DVC_BIN`, `DVC_SITE_CACHE_DIR` | Override a path for one run. Permanent per-server values go in the gitignored `bash_scripts/lib/paths.local.sh`. |
+| `ANNOT_OUT_DIR`, `QWEN_MODEL_DIR` | Annotation output root (default `${MOBILENET_DIR}/annotation_runs`) and the Qwen3-VL model id or local directory (see `run_annotate.sh`). |
 
-Example: `RUN_NAME=run5 AUTO_GIT_PUSH=0 bash bash_scripts/run_train_merged.sh --aug-strength strong`
+Example: `RUN_NAME=merged_51make AUTO_GIT_PUSH=0 bash bash_scripts/run_train_merged.sh --aug-strength strong`
 
 ---
 
 ## `run_train_merged.sh` (Model C: PlatesMania + External)
 
-Model C trains jointly on **both** datasets across the shared 1,235-class Make/Model taxonomy. Each image is cropped as in its own domain (PlatesMania top 15%, External bbox / bottom 5%).
+Model C trains jointly on **both** datasets across the unified Make/Model taxonomy (`1,235` base PlatesMania classes `0..1234`, automatically extended to `1,416` classes across `49` makes when `splits_1235models/label_map.json` includes the 51-make $\ge 50$-sample External classes `1235..1415`). Each image is cropped as in its own domain (PlatesMania top 15% banner crop, External bottom 5% watermark crop; `bbox_* = -1` in current 512×512 splits).
 
-External has ~30k train images against ~875k for PlatesMania, so `WeightedRandomSampler` draws a fixed share of External images per epoch (`--ext-fraction 0.2` by default). Checkpoints are selected on the **mean of the two domain validation losses**, and final test metrics are reported per domain in `reports/test_metrics.json`.
+External has `47,805` train images (`23,589` in the Run 4 35-make split) against `~875k` for PlatesMania, so `WeightedRandomSampler` draws a fixed share of External images per epoch (`--ext-fraction 0.2` by default). Checkpoints are selected on the **mean of the two domain validation losses**, and final test metrics are reported per domain in `reports/test_metrics.json`.
 
 Output: `merged_dataset/output_merged_run4/` (or `output_merged_<RUN_NAME>`), with `models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`), `models/label_map.json`, `reports/`, `plots/training_curves.png`, and `training.log`.
 
 | Flag | Default | What it does |
 |---|---|---|
-| `--ext-fraction F` | `0.2` | Share of External images per epoch. `0` = plain concatenation (~3% External). |
+| `--ext-fraction F` | `0.2` | Share of External images per epoch. `0` = plain concatenation. |
 | `--aug-strength {base,strong}` | `base` | `strong` = wide zoom and aspect, rotation, translation, stronger colour jitter, grayscale, blur, noise, random erasing. |
-| `--crop-jitter F` | `0` | 0 to 1. Randomizes the training crop (PlatesMania top crop, External bbox margin and bottom crop). |
+| `--crop-jitter F` | `0` | 0 to 1. Randomizes the training crop (PlatesMania 15% top crop, External 5% bottom crop). |
 | `--label-smoothing F` | `0` | Label smoothing on the training loss (e.g. `0.1`). |
 | `--make-loss-weight F` | `0` | Weight of an auxiliary loss on P(make) = sum of P(model) over the make's models (e.g. `0.3`). |
 | `--ema-decay F` | `0` | EMA of the weights (e.g. `0.999`). |
@@ -59,7 +63,7 @@ Output: `merged_dataset/output_merged_run4/` (or `output_merged_<RUN_NAME>`), wi
 
 ```bash
 bash bash_scripts/run_train_merged.sh
-RUN_NAME=run5 bash bash_scripts/run_train_merged.sh --ext-fraction 0.2 --aug-strength strong --crop-jitter 0.5
+RUN_NAME=merged_51make bash bash_scripts/run_train_merged.sh --ext-fraction 0.2 --aug-strength strong --crop-jitter 0.5
 ```
 
 ---
@@ -93,9 +97,9 @@ bash bash_scripts/run_diagnostics.sh --quick
 Annotates vehicle images across test or all splits (`train`, `val`, `test`) with make and model (merged Model C, ONNX) and color (Qwen3-VL-8B 4-bit NF4, scored over a fixed color list), then builds a self-contained `viewer.html`. tmux session `annotate_<RUN_NAME>`.
 
 ```bash
-bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color     # smoke test, no Qwen
-bash bash_scripts/run_annotate.sh --max-samples 200                  # smoke test with Qwen
-RUN_NAME=run5 bash bash_scripts/run_annotate.sh --split all         # full dataset run with run4 cache reuse
+bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color               # smoke test, no Qwen
+bash bash_scripts/run_annotate.sh --max-samples 200                            # smoke test with Qwen
+MODEL_RUN=run4 RUN_NAME=run5 bash bash_scripts/run_annotate.sh --split all     # full dataset run using Model C (run4) + run4 cache reuse
 ```
 
 Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `umap-learn` is used for 2D manifold projection. Output goes to `${ANNOT_OUT_DIR}/<RUN_NAME>/` (default `code/current/mobilenet/annotation_runs/<RUN_NAME>/`): `annotations.csv`, `embeddings.npy`, `color_cache.csv`, `viewer.html`.
@@ -124,7 +128,7 @@ To rebuild only the viewer: `python annotation/build_viewer.py --annotations <di
 
 ## `run_train_color_distillation.sh` (Color Distillation -> Multi-Task ONNX)
 
-Distills Qwen3-VL-8B color labels from `run5/annotations.csv` into a lightweight classification head branching from block `features[16]` (160 channels) of the Model C backbone. Caches extracted features to disk (`cache/features_L16_train.npy`, ~287 MB) for rapid training, trains for 25 epochs using class-weighted cross-entropy, and automatically exports a unified `mobilenet_v2_multitask.onnx`.
+Distills Qwen3-VL-8B color labels from `run5/annotations.csv` into a lightweight classification head branching from block `features[16]` (160 channels) of the Model C backbone (`MODEL_RUN=run4` by default). Caches extracted features to disk (`cache/features_L16_train.npy`, 262.45 MB for the 860,006 `color_conf >= 0.70` train rows) for rapid training, trains for 25 epochs using class-weighted cross-entropy, and automatically exports a unified `mobilenet_v2_multitask.onnx`.
 
 ```bash
 bash bash_scripts/run_train_color_distillation.sh                # train MLP head (default)
@@ -175,5 +179,11 @@ A convenience runner is located at `code/current/mobilenet/bash_scripts/dvc.sh`:
 # Pull data on a new machine
 ./code/current/mobilenet/bash_scripts/dvc.sh pull
 ```
-See the full guide in [dvc_gdrive_guide.md](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/dvc_gdrive_guide.md).
+See the full guide in [`dvc_gdrive_guide.md`](../run_docs/dvc_gdrive_guide.md).
+
+### Automated Git & DVC Integration
+- **Zero Raw Binaries in Git**: `.gitignore` globally ignores `*.onnx`, `*.npy`, `*.h5`, `*.keras`, and `annotation_runs/run*/`.
+- **Automatic DVC Registration**: When any runner finishes and calls `auto_git_sync.sh`, it automatically checks for new `.onnx` models and new `annotation_runs/run*` directories and runs `dvc add` on them before committing `.dvc` tracking files to Git.
+- **Safety Guardrail**: `auto_git_sync.sh` contains an automated pre-commit hook that verifies staged files and blocks the commit if any raw binary files $> 50\text{ MB}$ or `*.onnx` files are staged directly into Git.
+
 

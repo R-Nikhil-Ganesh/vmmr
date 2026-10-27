@@ -127,11 +127,11 @@ Linear(128 -> 13)   ──> 13 Automotive Color Logits
 ## 5. Implementation & Training Pipeline
 
 ### A. Feature Caching Strategy (`cache/`)
-Processing 1.01M images repeatedly from disk across multiple training epochs would create an unnecessary I/O bottleneck. 
-* The script extracts the $160$-dimensional pooled features from `features[16]` in a single pass using the ONNX GPU runtime and saves them as memory-mapped `float16` NumPy arrays:
-  * `cache/features_L16_train.npy` (898,284 vectors $\times$ 160 channels $\times$ 2 bytes = **~287 MB**)
-  * `cache/features_L16_val.npy` (114,252 vectors $\times$ 160 channels $\times$ 2 bytes = **~36 MB**)
-* **Result**: Once cached, a 25-epoch training run over ~800k training samples executes in **under 2 minutes** on an RTX 4090.
+Processing ~1M images repeatedly from disk across multiple training epochs would create an unnecessary I/O bottleneck. 
+* The script filters `annotations.csv` to high-confidence Qwen pseudo-labels (`color_conf >= 0.70`, retaining ~95.8% of rows), extracts the $160$-dimensional pooled features from `features[16]` in a single pass using the ONNX GPU runtime, and saves them as memory-mapped `float16` NumPy arrays (tracked in DVC via `cache.dvc`):
+  * `cache/features_L16_train.npy` (860,006 vectors $\times$ 160 channels $\times$ 2 bytes = **262.45 MB**)
+  * `cache/features_L16_val.npy` (109,454 vectors $\times$ 160 channels $\times$ 2 bytes = **33.40 MB**)
+* **Result**: Once cached, a 25-epoch training run over 860k training samples executes in **under 2 minutes** on an RTX 4090.
 
 ### B. Loss Function & Class Balancing
 Vehicle color distributions exhibit significant class imbalance (White, Black, and Silver represent ~60.9% of the fleet, while Gold, Beige, and Orange represent <2% each).
@@ -171,8 +171,9 @@ Input: input_image (B, 3, 512, 512)
     └─────────────────────────┘
 ```
 
-### Graph Integrity & Verification:
-* The original graph nodes for `predictions`, `embeddings`, and `class_maps` are **100% unaltered**.
+### Graph Integrity & Numerical Verification (`verify_multitask_onnx.py`):
+* The original graph nodes for `predictions`, `embeddings`, and `class_maps` are **100% unaltered**. Verified across 256 test images against `output_merged_run4/models/mobilenet_v2_best.onnx`: **`max |diff| = 0.000e+00`** across all three outputs (`256/256 = 100.00%` top-1 agreement).
+* The fused ONNX color branch matches the unfused PyTorch `color_head_best.pt` (`BatchNorm1d`) across 1,024 cached validation vectors with **`max |diff| = 5.722e-06`** (`float32` rounding) and **`1024/1024 = 100.00%`** top-1 argmax agreement.
 * The color branch reads from `/features/features.16/Add_output_0` in parallel without affecting the downstream computation of `features.17` and `features.18`.
 * All 4 outputs run in a single, fused engine pass with zero duplicate FLOPs.
 
@@ -185,21 +186,22 @@ Input: input_image (B, 3, 512, 512)
 code/current/mobilenet/color_distillation/
 ├── train_color_head.py             # Full distillation trainer and ONNX splicer
 ├── layer_probe.py                  # Phase 1 multi-layer empirical probing script
+├── verify_multitask_onnx.py        # Signature, latency & numerical equivalence verifier
 ├── probe_results.csv               # Empirical benchmark metrics table across 8 layers
 ├── probe_results.json              # Full per-class classification metrics
 ├── color_distillation_approach.md  # Architectural and empirical documentation (this file)
 │
-├── cache/                          # (Gitignored) Cached float16 feature tensors
-│   ├── features_L16_train.npy      # 898k x 160 float16 (~287 MB)
-│   ├── labels_train.npy            # 898k int64 labels (~7 MB)
-│   ├── features_L16_val.npy        # 114k x 160 float16 (~36 MB)
-│   └── labels_val.npy              # 114k int64 labels (~1 MB)
+├── cache/                          # (DVC-tracked via cache.dvc) Cached float16 feature tensors (color_conf >= 0.70)
+│   ├── features_L16_train.npy      # 860,006 x 160 float16 (262.45 MB)
+│   ├── labels_train.npy            # 860,006 int64 labels (6.56 MB)
+│   ├── features_L16_val.npy        # 109,454 x 160 float16 (33.40 MB)
+│   └── labels_val.npy              # 109,454 int64 labels (0.84 MB)
 │
-└── output/                         # (Gitignored) Trained model artifacts
-    ├── mobilenet_v2_multitask.onnx # Unified 4-output ONNX model (~22 MB)
-    ├── color_head_best.pt          # PyTorch checkpoint (~90 KB)
-    ├── training_history.csv        # Epoch training and validation logs
-    └── final_report.txt            # Per-class precision, recall, and F1 report
+└── output/                         # Trained model artifacts & logs
+    ├── mobilenet_v2_multitask.onnx # (DVC-tracked via .onnx.dvc) Unified 4-output ONNX model (20.61 MB)
+    ├── color_head_best.pt          # (Git-tracked) PyTorch checkpoint (93 KB)
+    ├── training_history.csv        # (Git-tracked) Epoch training and validation logs
+    └── final_report.txt            # (Git-tracked) Per-class precision, recall, and F1 report
 ```
 
 ### Quick Start Commands

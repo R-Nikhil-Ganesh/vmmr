@@ -1,25 +1,37 @@
+# Data roots & external downloads
 /compCars
 /stanford-cars
-/tf-env
 /compcars_cctv/extracted
-code/anno_test.csv
-code/anno_train.csv
 /Vehicle-Make-v1
-/archive
-*.keras
-*.h5
-test_predictions.txt
-*__pycache__
+/archive/
+
+# Python & virtual environments
 *env
+/tf-env
+*__pycache__
+*.pyc
+
+# Local machine paths & logs
+*paths.local.sh
 *logs/
 *log
-*paths.local.sh
+test_predictions.txt
 *scratch_test/
 *.btr
-/archive/
+
+# Models & Weights (keep out of git; track in DVC)
+*.keras
+*.h5
+*.onnx
+
+# Large annotation & visualization artifacts (track via DVC)
 *plotly.min.js
 **/annotation_runs*/**/*.npy
 **/annotation_runs*/**/color_cache.csv
-code/current/mobilenet/annotation_runs/run5/
+code/current/mobilenet/annotation_runs/run*/
 code/current/mobilenet/color_distillation/cache/
+code/anno_test.csv
+code/anno_train.csv
+
+# Local assistant configuration
 CLAUDE.md

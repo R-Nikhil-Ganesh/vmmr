@@ -1,0 +1,9 @@
+{
+  "num_samples": 2000,
+  "global_relative_l2": 0.029558,
+  "mean_sample_relative_l2": 0.028041,
+  "median_sample_relative_l2": 0.025281,
+  "max_abs_feature_diff": 0.285521,
+  "mean_cosine_similarity": 0.999534,
+  "color_top1_agreement_pct": 98.1
+}

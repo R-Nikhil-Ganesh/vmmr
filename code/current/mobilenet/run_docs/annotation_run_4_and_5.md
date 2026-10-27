@@ -26,13 +26,13 @@ The annotation subsystem generates multi-task vehicle annotations across:
 | **Total Images Annotated** | 114,201 images | **1,126,737 images** |
 | **PlatesMania Coverage** | 109,331 images | 1,093,408 images |
 | **External Coverage** | 4,870 images | 33,329 images |
-| **Make Accuracy** | 98.15% | **98.50%** |
-| **Model Accuracy** | 91.53% | **93.03%** |
+| **Make Accuracy** | 98.15% (Test) | **98.15% (Test)** *(98.50% across all splits incl. 79.7% train)* |
+| **Model Accuracy** | 91.53% (Test) | **91.53% (Test)** *(93.03% across all splits incl. 79.7% train)* |
 | **Mean Color Confidence** | 0.9726 | 0.9674 |
 | **Flagged for Review (`needs_review`)** | 12,982 (11.37%) | 117,829 (10.46%) |
-| **Qwen3-VL Precision** | bfloat16 (full precision) | **4-bit NF4 (`bitsandbytes`)** |
-| **Qwen Attention** | Eager / Standard SDPA | **Native SDPA (FlashAttention / Cutlass)** |
-| **Qwen Image Resolution** | `max_side=448` | `max_side=336` (fast inference) |
+| **Qwen3-VL Precision** | bfloat16 *(reconstructed; flags unlogged)* | **4-bit NF4 (`bitsandbytes`)** |
+| **Qwen Attention** | Eager / Standard SDPA *(reconstructed)* | **Native SDPA (FlashAttention / Cutlass)** |
+| **Qwen Image Resolution** | `max_side=448` *(reconstructed)* | `max_side=336` (fast inference) |
 | **Peak VRAM Allocated** | ~16.5 GB | **~5.96 GB** (allocating ~7.1 GB during batch) |
 | **Throughput (Color Stage)** | ~23.5 img/s | **~37.0–39.1 img/s** (+66% speedup) |
 | **Cache Reuse Strategy** | Cold start | **`--cache-from run4`** (instant reuse of 114k test set) |
@@ -61,8 +61,8 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
                                     ▼
 ┌────────────────────────────────────────────────────────┐
 │ Stage 2: UMAP 2D Embedding Projection                  │
-│ - Subsamples up to 30,000 points to fit manifold       │
-│ - Projects all N points into coordinates (x, y)        │
+│ - Subsamples up to 30,000 points (--coords-max 30000)  │
+│ - Populates (x, y) for landmark sample (rest are NaN)  │
 └───────────────────────────────────┬────────────────────┘
                                     │
                                     ▼
@@ -70,7 +70,7 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 │ Stage 3: Qwen3-VL-8B Color Pseudo-Labeling             │
 │ - 4-bit NF4 quantized backbone with SDPA               │
 │ - Prompt: "What is the main body color...?"            │
-│ - Batch size: 16 (load_crop with car bbox)             │
+│ - Batch size: 16 (load_crop with domain top/bot crop)  │
 │ - Incremental disk flush every 500 images              │
 └───────────────────────────────────┬────────────────────┘
                                     │
@@ -89,13 +89,14 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 * Flags predictions below confidence thresholds (`--review-conf 0.70`, `--review-color-conf 0.50`) with `needs_review=True`.
 
 ### Stage 2: 2D Manifold Projection (UMAP)
-* Fits a UMAP reducer on a balanced sample of up to 30,000 feature embeddings (`n_neighbors=15, min_dist=0.1, metric="cosine"`).
-* Transforms the entire dataset embedding matrix into normalized 2D coordinates `(x, y)`.
+* Subsamples up to `--coords-max 30000` feature embeddings (`15,000` per domain) and fits PCA(50) followed by UMAP(2) (`n_neighbors=15, min_dist=0.1, metric="cosine"`).
+* Populates normalized 2D coordinates `(x, y)` **only for that landmark subset** (14,870 rows = 13.0% in Run 4; 30,000 rows = 2.7% in Run 5) for interactive rendering in `viewer.html`. All remaining rows (`87.0%` in Run 4; `97.3%` in Run 5) have `x = NaN, y = NaN`.
 
 ### Stage 3: Vision-Language Color Tagging (Qwen3-VL-8B)
-* Pre-crops vehicles to tight bounding boxes (from PlatesMania annotations or External bounding boxes).
-* Prompts Qwen3-VL-8B with a single-token constrained classification over 13 colors:  
-  `black`, `blue`, `brown`, `gold`, `green`, `gray`, `orange`, `pink`, `purple`, `red`, `silver`, `white`, `yellow`.
+* Applies the same per-domain cropping used by the classifier (`crop_like_classifier`: 15% top banner crop for PlatesMania; 5% bottom watermark crop for External, since `bbox_* = -1` on 100% of rows in both domains).
+* Uses **`Qwen/Qwen3-VL-8B-Instruct`** (chosen over the 4B variant for higher zero-shot color fidelity under challenging street lighting while using only ~6 GB VRAM in 4-bit NF4).
+* Prompts Qwen3-VL-8B with a single-token constrained classification over the 13 colors defined in `annotation/color_heads.py` (`COLORS`):  
+  `white`, `black`, `silver`, `gray`, `red`, `blue`, `green`, `yellow`, `orange`, `brown`, `beige`, `gold`, `other`.
 * Calculates exact softmax probabilities over the first generated token logits to output the primary `color` and `color_conf`.
 * Flushes predictions incrementally to `color_cache.csv` every 500 images to prevent progress loss.
 
@@ -126,7 +127,7 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 
 ### E. Memory-Efficient Pipeline Hardening
 * Preallocated numpy arrays (`float16`) to eliminate dynamic memory fragmentation across 1.13M rows.
-* Streamlined PlatesMania manifest parsing by querying bounding box coordinates directly without overhead.
+* Streamlined PlatesMania manifest parsing (`pm_table` sets `bbox_* = -1` directly, using the 15% top banner crop without per-row bbox lookup overhead).
 * Parallelized thumbnail generation across 16 CPU cores, shrinking HTML compilation time from minutes to 6 seconds.
 
 ---
@@ -137,19 +138,19 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 
 | Dataset Split | Image Count | % of Dataset | Make Accuracy | Model Accuracy | Review Flagged | Mean Color Conf |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Train** | 898,284 | 79.72% | 98.60% | 93.39% | 10.21% | 0.9668 |
+| **Train** *(in-sample)* | 898,284 | 79.72% | 98.60% | 93.39% | 10.21% | 0.9668 |
 | **Val** | 114,252 | 10.14% | 98.10% | 91.64% | 11.46% | 0.9673 |
-| **Test** | 114,201 | 10.14% | 98.15% | 91.53% | 11.37% | 0.9726 |
-| **Combined** | **1,126,737** | **100.0%** | **98.50%** | **93.03%** | **10.46%** | **0.9674** |
+| **Test** *(generalization)* | 114,201 | 10.14% | **98.15%** | **91.53%** | 11.37% | 0.9726 |
+| **Combined** *(79.7% train)* | **1,126,737** | **100.0%** | 98.50% | 93.03% | 10.46% | 0.9674 |
 
-> **Key Observation**: Validation model accuracy (91.64%) and Test model accuracy (91.53%) are virtually identical ($\Delta = 0.11\%$). This confirms that the model generalizes consistently with zero data leakage across unseen validation and test partitions.
+> **Key Observation**: Only the **Test** row (`98.15%` Make / `91.53%` Model) represents held-out generalization accuracy (`Train` and `Combined` include the `79.72%` training split that Model C was trained on). Validation model accuracy (`91.64%`) and Test model accuracy (`91.53%`) are virtually identical ($\Delta = 0.11\%$), confirming that checkpoint selection on validation loss introduced no validation selection bias.
 
 ### Domain-Wise Breakdown (Run 5)
 
-| Domain | Image Count | Make Accuracy | Model Accuracy | Review Flagged | Mean Color Conf |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **PlatesMania** | 1,093,408 | 98.48% | 92.92% | 10.61% | 0.9675 |
-| **External** | 33,329 | 99.34% | 96.62% | 5.57% | 0.9652 |
+| Domain | All Splits (incl. ~80% Train) | All-Splits Make / Model Acc | Test Split Count | **Test Split Make / Model Acc** | Review Flagged (All) | Mean Color Conf |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **PlatesMania** | 1,093,408 | 98.48% / 92.92% | 109,331 | **98.15% / 91.46%** | 10.61% | 0.9675 |
+| **External (Run 4/5 35-Make)** | 33,329 | 99.34% / 96.62% | 4,870 | **98.19% / 93.00%** | 5.57% | 0.9652 |
 
 ---
 
@@ -186,19 +187,19 @@ Primary database containing per-image annotations:
 * `image_id`: Unique integer row index (0 to 1,126,736).
 * `domain`: Image dataset source (`platesmania` or `external`).
 * `filename` & `path`: Full filesystem path to the source image.
-* `bbox_x1, bbox_y1, bbox_x2, bbox_y2`: Cropping bounding box coordinates (-1 if uncropped).
+* `bbox_x1, bbox_y1, bbox_x2, bbox_y2`: Cropping bounding box coordinates (`-1` on 100% of rows in Run 4 and Run 5; domain top/bottom crops are applied instead).
 * `pred_model`, `pred_model_conf`: MobileNetV2 top-1 predicted model name and softmax probability.
 * `top3`: Formatted string of top-3 model predictions and scores.
 * `pred_make`, `make_conf`: Marginalized parent make prediction and aggregated probability.
 * `gt_class`, `gt_make`: Ground truth class and parent make from dataset manifest.
 * `correct_model`, `correct_make`: Boolean evaluation flags.
 * `split`: Split assignment (`train`, `val`, `test`).
-* `x`, `y`: UMAP 2D manifold projection coordinates.
+* `x`, `y`: UMAP 2D manifold projection coordinates (populated for up to `--coords-max 30000` landmark rows: `14,870` rows in Run 4, `30,000` rows in Run 5; `NaN` for all remaining rows).
 * `color`, `color_conf`: Qwen3-VL-8B assigned color category and softmax confidence.
 * `needs_review`: Boolean flag indicating confidence below threshold.
 
 ### 2. `embeddings.npy` (2.7 GB, `shape=(1126737, 1280)`, `dtype=float16`)
-Normalized penultimate MobileNetV2 feature embeddings. Supports instant similarity search, nearest-neighbor clustering, or training linear classification probes.
+Normalized penultimate MobileNetV2 feature embeddings. Supports similarity search and nearest-neighbor clustering.
 
 ### 3. `color_cache.csv` (108 MB, 1,126,738 rows)
 Resumable key-value store (`image_id,color,color_conf`) mapping each image directly to its vision-language color label.
@@ -208,15 +209,15 @@ Self-contained visualization dashboard with 15,000 embedded base64 WebP vehicle 
 
 ---
 
-## 7. Next Steps: MobileNet Color Head Distillation
+## 7. Next Steps: MobileNet Color Head Distillation *(Completed — See `color_distillation_report.md`)*
 
-With high-confidence pseudo-labels now available for **1.13M training and validation images**, the next logical milestone is distilling color prediction into MobileNet:
+With pseudo-labels available across **1.13M images**, color distillation into MobileNetV2 was implemented in [`color_distillation/`](../color_distillation/README.md) and documented in [`color_distillation_report.md`](color_distillation_report.md):
 
-1. **Phase 1: Linear Probe Training**:
-   * Train a lightweight classification head (`Linear(1280, 13)`) directly on top of the frozen `embeddings.npy` feature representations.
-   * Training duration: < 3 minutes on GPU.
-2. **Phase 2: End-to-End Fine-Tuning**:
-   * Unfreeze top MobileNet backbone blocks and fine-tune jointly on make/model + color.
-3. **Phase 3: Multi-Task ONNX Export**:
-   * Export a dual-head MobileNetV2 ONNX model (`mobilenet_v2_multitask.onnx`) with simultaneous outputs for make/model (`1235`) and color (`13`) running in < 2 ms on edge devices.
+1. **Phase 1: Multi-Layer Probing (`layer_probe.py` — Completed)**:
+   * Empirical probing revealed that a `Linear(1280, 13)` head on the penultimate `embeddings.npy` achieved only **53.52%** accuracy because `features[18]` compresses away color variance for make/model invariance.
+   * Tapping intermediate block **`features[16]`** (`160` channels) before the final bottleneck recovered **+9.1% accuracy** (`62.58%` on the 25k probe, **68.0%** on the full validation split with a `160 -> 128 -> 13` MLP head).
+2. **Phase 2: Frozen-Backbone Graph Splicing (Completed — Preserves Exact Make/Model Identity)**:
+   * Rather than unfreezing the backbone (which would alter make/model weights), the trained MLP head (with BatchNorm folded) was spliced directly onto `/features/features.16/Add_output_0`.
+3. **Phase 3: Multi-Task ONNX Export (`mobilenet_v2_multitask.onnx` — Completed)**:
+   * Exported a 4-output ONNX model (`predictions`, `embeddings`, `class_maps`, `color_predictions`) with **0.000e+00 max absolute difference** on all original make/model outputs.
 

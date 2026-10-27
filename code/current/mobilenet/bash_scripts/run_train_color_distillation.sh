@@ -39,3 +39,8 @@ echo "=================================================================="
 
 echo; echo "  Distillation complete! Model: ${OUT_DIR}/mobilenet_v2_multitask.onnx"
 
+if [ "${AUTO_GIT_PUSH:-1}" = "1" ]; then
+    bash "${SCRIPT_DIR}/lib/auto_git_sync.sh" "Color Distillation${RUN_NAME:+ (${RUN_NAME})}"
+fi
+
+

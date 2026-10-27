@@ -28,8 +28,8 @@ Running `annotate.py` executes 4 distinct stages:
    - Flags low-confidence predictions with `needs_review=True`.
 
 2. **Stage 2: 2D Manifold Projection (UMAP / t-SNE)**
-   - Fits a UMAP model on up to 30,000 feature embeddings using cosine distance.
-   - Projects all embeddings into 2D coordinates `(x, y)` for clustering visualization.
+   - Subsamples up to `--coords-max 30000` feature embeddings (`15,000` per domain) and fits PCA(50) + UMAP(2) using cosine distance.
+   - Populates 2D coordinates `(x, y)` for that landmark subset for `viewer.html` clustering visualization (remaining rows have `x, y = NaN`).
 
 3. **Stage 3: Vision-Language Color Pseudo-Labeling (Qwen3-VL-8B)**
    - Zero-shot body color tagging over 13 primary automotive paint colors.
@@ -85,6 +85,7 @@ python annotation/annotate.py \
 | `--color-batch-size N` | `16` | Batch size for Qwen inference. |
 | `--qwen-max-side N` | `336` | Maximum image side resolution for Qwen (reduces vision token count). |
 | `--no-4bit` | `False` | Disable 4-bit NF4 quantization and run in bfloat16. |
+| `--coords-max N` | `30000` | Maximum number of rows (`N/2` per domain) projected into 2D UMAP coordinates `(x, y)`. |
 | `--max-points N` | `15000` | Number of sample points with embedded base64 thumbnails in `viewer.html`. |
 | `--review-conf F` | `0.70` | Model confidence threshold below which row is marked `needs_review`. |
 | `--review-color-conf F` | `0.50` | Color confidence threshold below which row is marked `needs_review`. |
