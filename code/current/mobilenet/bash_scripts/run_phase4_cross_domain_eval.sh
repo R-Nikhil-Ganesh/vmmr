@@ -9,7 +9,7 @@ source "${SCRIPT_DIR}/lib/paths.sh"
 
 export CUDA_VISIBLE_DEVICES=0
 
-OUT_DIR="${MOBILENET_DIR}/mixed_benchmark_results_ab"
+OUT_DIR="${MOBILENET_DIR}/backup_run3/mixed_benchmark_results_ab"
 mkdir -p "${OUT_DIR}"
 
 MODEL_A="${MOBILENET_DIR}/backup_run3/platesmania_dataset/output_mobilenet_v2/models/mobilenet_v2_best.onnx"
@@ -18,8 +18,8 @@ MAP_A="${MOBILENET_DIR}/backup_run3/platesmania_dataset/output_mobilenet_v2/mode
 MODEL_B="${MOBILENET_DIR}/backup_run3/external_dataset/output_mobilenet_v2_external/models/mobilenet_v2_best.onnx"
 MAP_B="${MOBILENET_DIR}/backup_run3/external_dataset/output_mobilenet_v2_external/models/label_map.json"
 
-EXT_TEST="${MOBILENET_DIR}/merged_dataset/splits_1235models/test.csv"
-EXT_TRAIN="${MOBILENET_DIR}/merged_dataset/splits_1235models/train.csv"
+EXT_TEST="${MOBILENET_DIR}/run4/splits_1235models/test.csv"
+EXT_TRAIN="${MOBILENET_DIR}/run4/splits_1235models/train.csv"
 
 echo "=================================================================="
 echo "  Phase 4: Cross-Domain Benchmark (Model A vs Model B) [E-18]"

@@ -103,7 +103,7 @@ def main():
     models_dir, plots_dir, reports_dir = output_dir / "models", output_dir / "plots", output_dir / "reports"
     for d in [models_dir, plots_dir, reports_dir]:
         d.mkdir(parents=True, exist_ok=True)
-    save_run_config(output_dir, args, "merged_dataset/train/train_mobilenet_v2_merged.py")
+    save_run_config(output_dir, args, "run4/train/train_mobilenet_v2_merged.py")
 
     # Shared label space: PlatesMania's map; the External splits must use the same one
     def load_map(path):

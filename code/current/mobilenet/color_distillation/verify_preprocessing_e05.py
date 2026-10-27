@@ -42,7 +42,7 @@ from color_distillation.train_color_head import (
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--annotations", default=str(MOBILENET_DIR / "annotation_runs/run5/annotations.csv"))
+    p.add_argument("--annotations", default=str(MOBILENET_DIR / "annotation_runs/run2/annotations.csv"))
     p.add_argument("--multitask-onnx", default=str(SCRIPT_DIR / "output/mobilenet_v2_multitask.onnx"))
     p.add_argument("--num-samples", type=int, default=2000)
     p.add_argument("--batch-size", type=int, default=64)

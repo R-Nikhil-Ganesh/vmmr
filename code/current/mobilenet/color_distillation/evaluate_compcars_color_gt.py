@@ -2,8 +2,8 @@
 """
 E-09 Ground-Truth Color Validation: Qwen3-VL-8B & Distilled Color Heads vs. CompCars Human Labels
 =================================================================================================
-1. Matches annotation_runs/run5/annotations.csv against the 33,310 human-labeled CompCars CCTV
-   rows in external_metadata_51make.csv (19,479 matched rows in Run 5).
+1. Matches annotation_runs/run2/annotations.csv against the 33,310 human-labeled CompCars CCTV
+   rows in external_metadata_51make.csv (19,479 matched rows in Annotation Run 2).
 2. Computes Qwen3-VL-8B accuracy, per-color precision/recall, confidence calibration
    (color_conf >= 0.70 vs < 0.70), and confusion matrix against human labels.
 3. Generates a stratified 600-row human review sample (annotation_runs/color_human_review_600.csv)
@@ -75,7 +75,7 @@ QWEN_TO_COMPCARS_STRICT = {
 
 
 def main():
-    ann_path = MOBILENET_DIR / "annotation_runs/run5/annotations.csv"
+    ann_path = MOBILENET_DIR / "annotation_runs/run2/annotations.csv"
     ext_meta_path = Path(paths.EXT_DATASETS_DIR) / "external_metadata_51make.csv"
     out_report_md = MOBILENET_DIR / "run_docs/color_ground_truth_validation.md"
     out_json = SCRIPT_DIR / "output/e09_compcars_gt_validation.json"
@@ -96,7 +96,7 @@ def main():
         on="rel_path",
         how="inner",
     )
-    print(f"[E-09] Matched {len(merged):,} human-labeled CompCars rows in Run 5 annotations.csv")
+    print(f"[E-09] Matched {len(merged):,} human-labeled CompCars rows in Annotation Run 2 annotations.csv")
 
     merged["qwen_strict"] = merged["color"].map(QWEN_TO_COMPCARS_STRICT)
     merged["qwen_grouped"] = merged["color"].map(QWEN_TO_COMPCARS_GROUPED)
@@ -203,8 +203,8 @@ def main():
         "# Ground-Truth Color Validation Report (`E-09`)",
         "",
         "## 1. Overview & Ground-Truth Source",
-        f"- **Human Ground-Truth Dataset**: CompCars Surveillance (`sv_data/color_list.mat`), matched via `external_metadata_51make.csv` against [`annotation_runs/run5/annotations.csv`](../annotation_runs/run5/run_config.json).",
-        f"- **Matched Human-Labeled Rows in Run 5**: **{len(merged):,}** images (`train`: `{split_stats.get('train', {}).get('n', 0):,}`, `val`: `{split_stats.get('val', {}).get('n', 0):,}`, `test`: `{split_stats.get('test', {}).get('n', 0):,}`).",
+        f"- **Human Ground-Truth Dataset**: CompCars Surveillance (`sv_data/color_list.mat`), matched via `external_metadata_51make.csv` against [`annotation_runs/run2/annotations.csv`](../annotation_runs/run2/run_config.json).",
+        f"- **Matched Human-Labeled Rows in Annotation Run 2**: **{len(merged):,}** images (`train`: `{split_stats.get('train', {}).get('n', 0):,}`, `val`: `{split_stats.get('val', {}).get('n', 0):,}`, `test`: `{split_stats.get('test', {}).get('n', 0):,}`).",
         f"- **Stratified Manual Review Sheet**: Generated [`annotation_runs/color_human_review_600.csv`](../annotation_runs/color_human_review_600.csv) (`{len(df_review)}` rows stratified across all 13 Qwen colors, with 30% drawn from `color_conf < 0.70`).",
         "",
         "## 2. Qwen3-VL-8B Agreement with CompCars Human Color Labels",

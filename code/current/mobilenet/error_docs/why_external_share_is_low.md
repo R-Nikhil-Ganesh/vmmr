@@ -1,7 +1,7 @@
 # Analysis & Plan: Why the Share of External Images is Low (3.0%)
 
 ## Goal Description
-In the Run 4 merged dataset ([merged_dataset/splits_1235models/all_splits.csv](../merged_dataset/splits_1235models/all_splits.csv)), the total count of External images was **33,329** (23,589 train, 4,870 val, 4,870 test), compared to **1,093,408** PlatesMania images. 
+In the Run 4 merged dataset ([run4/splits_1235models/all_splits.csv](../run4/splits_1235models/all_splits.csv)), the total count of External images was **33,329** (23,589 train, 4,870 val, 4,870 test), compared to **1,093,408** PlatesMania images. 
 
 External images represent only **~2.96%** of the total dataset, and cover only **286 out of the 1,235 classes** (23.1%). This document provides the complete empirical root cause for this drop, tracing the data funnel from >594,000 raw files down to 33,329 rows.
 
@@ -96,7 +96,7 @@ $$\text{External Fraction} = \frac{25,055 \text{ (Ext Train)}}{875,199 \text{ (P
 A model seeing only 2.78% External data would treat External as negligible noise and overfit entirely to PlatesMania.
 
 ### The Solution: `WeightedRandomSampler` (`--ext-fraction 0.2`)
-In [merged_dataset/train/train_mobilenet_v2_merged.py](../merged_dataset/train/train_mobilenet_v2_merged.py#L130-L140):
+In [run4/train/train_mobilenet_v2_merged.py](../run4/train/train_mobilenet_v2_merged.py#L130-L140):
 ```python
 if args.ext_fraction > 0:
     weights = np.concatenate([
@@ -130,7 +130,7 @@ If the project requires increasing the External volume from 33k to 100k+:
 
 ## 4. Implemented Update: 51-Make Expansion + `< 50` Sample Pruning
 
-Following this analysis, [`prepare_external_1235models.py`](../merged_dataset/prepare_external_1235models.py) was updated and executed to:
+Following this analysis, [`prepare_external_1235models.py`](../run4/prepare_external_1235models.py) was updated and executed to:
 1. **Fix Unicode accent normalization** in `clean_tok()` (`é` $\to$ `e`, `ó` $\to$ `o`) and add CompCars/BoxCars model aliases (`MB_ALIASES`, `INFINITI_ALIASES`, `GLOBAL_MODEL_ALIASES`), recovering **+2,246** samples into existing PlatesMania classes (`34,135` $\to$ **`36,381`** raw candidates across **290** shared classes).
 2. **Retain all 51 makes** from `external_metadata_51make.csv` even when the Make or Model is absent from PlatesMania (`--include-51-makes`), appending new classes starting at index `1235` to preserve full backward compatibility with indices `0..1234`.
 3. **Prune any class with `< 50` samples** (`--min-samples 50`), dropping **159 small External-only classes** (`3,642` images) and keeping **181 External-only classes** (`33,195` raw candidates; **`32,131`** after the `600`/class cap).

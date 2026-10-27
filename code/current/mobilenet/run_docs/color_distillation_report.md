@@ -12,7 +12,7 @@
 
 ## 1. Executive Summary
 
-In this milestone, we distilled Vision-Language color pseudo-labels from **Qwen3-VL-8B-Instruct** (generated across 1.13M images in Annotation Run 5) into a lightweight classification head branching directly from intermediate layer **`features[16]`** (160 channels) of the production **MobileNetV2 Model C** backbone.
+In this milestone, we distilled Vision-Language color pseudo-labels from **Qwen3-VL-8B-Instruct** (generated across 1.13M images in Annotation Run 2) into a lightweight classification head branching directly from intermediate layer **`features[16]`** (160 channels) of the production **MobileNetV2 Model C** backbone.
 
 ### Key Performance Highlights
 

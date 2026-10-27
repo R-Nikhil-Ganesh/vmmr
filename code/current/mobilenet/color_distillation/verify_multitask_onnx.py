@@ -5,7 +5,7 @@ Multi-Task MobileNetV2 ONNX Model Verifier & Benchmark
 Validates the exported mobilenet_v2_multitask.onnx model:
 1. Inspects input and output tensor signatures.
 2. Benchmarks raw forward pass latency (GPU and CPU).
-3. Evaluates simultaneous Make/Model and Color predictions on test images from run5/annotations.csv.
+3. Evaluates simultaneous Make/Model and Color predictions on test images from run2/annotations.csv.
 """
 
 import os
@@ -44,11 +44,11 @@ IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(1, 3, 1
 def main():
     parser = argparse.ArgumentParser(description="Verify Multi-Task MobileNetV2 ONNX Model")
     parser.add_argument("--onnx-path", default=str(SCRIPT_DIR / "output" / "mobilenet_v2_multitask.onnx"))
-    parser.add_argument("--base-onnx-path", default=str(MOBILENET_DIR / "merged_dataset" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"))
+    parser.add_argument("--base-onnx-path", default=str(MOBILENET_DIR / "run4" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"))
     parser.add_argument("--pt-head-path", default=str(SCRIPT_DIR / "output" / "color_head_best.pt"))
     parser.add_argument("--val-features-path", default=str(SCRIPT_DIR / "cache" / "features_L16_val.npy"))
-    parser.add_argument("--label-map", default=str(MOBILENET_DIR / "merged_dataset" / "output_merged_run4" / "models" / "label_map.json"))
-    parser.add_argument("--annotations", default=str(MOBILENET_DIR / "annotation_runs" / "run5" / "annotations.csv"))
+    parser.add_argument("--label-map", default=str(MOBILENET_DIR / "run4" / "output_merged_run4" / "models" / "label_map.json"))
+    parser.add_argument("--annotations", default=str(MOBILENET_DIR / "annotation_runs" / "run2" / "annotations.csv"))
     parser.add_argument("--num-samples", type=int, default=256, help="Number of test samples to verify")
     args = parser.parse_args()
 

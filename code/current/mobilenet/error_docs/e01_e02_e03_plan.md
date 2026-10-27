@@ -20,7 +20,7 @@ This plan addresses the three core data and pipeline defects identified in [erro
 ## 1. Deep Dive: Why Did E-03 Happen?
 
 ### The Discrepancy
-In `annotation_runs/run5/annotations.csv`, the 2D projection columns `x` and `y` are `NaN` for **1,096,737 out of 1,126,737 rows (97.3%)**. In Run 4, they are `NaN` for **87.0%** of rows. Meanwhile, [run_docs/annotation_run_4_and_5.md](annotation_run_4_and_5.md) originally stated:
+In `annotation_runs/run2/annotations.csv`, the 2D projection columns `x` and `y` are `NaN` for **1,096,737 out of 1,126,737 rows (97.3%)**. In Run 4, they are `NaN` for **87.0%** of rows. Meanwhile, [run_docs/annotation_run_1_and_2.md](annotation_run_1_and_2.md) originally stated:
 > *"Stage 2: 2-D coordinates (UMAP / t-SNE). Projects all N points into coordinates (x, y) for visualization."*
 
 ### Root Cause Analysis
@@ -52,14 +52,14 @@ flowchart TD
 4. **Viewer Only Displays $\le$ 30,000 Points**:
    WebGL in Plotly crashes or stutters heavily in web browsers when rendering $>30,000$ points. [annotation/build_viewer.py](../annotation/build_viewer.py) drops rows where `x` is `NaN` and samples up to `max_points=15000`. The author only cared that the HTML viewer had enough points to render a scatter plot.
 5. **Documentation Drift**:
-   The documentation in `annotation_run_4_and_5.md` was written describing the conceptual intent rather than the implementation detail, failing to note that 97.3% of rows are intentionally left as `NaN`.
+   The documentation in `annotation_run_1_and_2.md` was written describing the conceptual intent rather than the implementation detail, failing to note that 97.3% of rows are intentionally left as `NaN`.
 
 ---
 
 ## 2. Implementation Plan: E-01 (External Bounding Boxes)
 
 ### Background & Evidence
-- In [merged_dataset/splits_1235models/all_splits.csv](../merged_dataset/splits_1235models/all_splits.csv), `bbox_x1`, `bbox_y1`, `bbox_x2`, `bbox_y2` are `-1` on **100% of rows** (`33,329` rows in the Run 4/5 35-make split, and `67,695` rows in the expanded 51-make split).
+- In [run4/splits_1235models/all_splits.csv](../run4/splits_1235models/all_splits.csv), `bbox_x1`, `bbox_y1`, `bbox_x2`, `bbox_y2` are `-1` on **100% of rows** (`33,329` rows in the Run 4/5 35-make split, and `67,695` rows in the expanded 51-make split).
 - Investigation of the source files shows:
   - In Run 3 (`backup_run3`), only Stanford Cars (4,100 images, ~9.8% of External) had manifest bboxes (`bbox_x1 >= 0`). BoxCars116k (18k) and CompCars CCTV (19.6k) were **always** `-1`.
   - For Run 4 and later, images were read from `$ECON_ROOT/external_resized_512/external_metadata_51make.csv`, where `$ECON_ROOT/scripts/rebuild_external_resized_512.py` had already YOLOv8s-cropped and letterboxed the vehicles to 512×512 during dataset creation. Because the stored 512×512 images are already cropped, the split CSVs store `bbox_* = -1`.
@@ -69,7 +69,7 @@ flowchart TD
 1. **Document Ground Truth in Code & Reports**:
    - Updated [run_docs/run_4.md](run_4.md): Explicitly states that Model C trains on 512x512 images with top 15% crop for PlatesMania and bottom 5% crop for External (`bbox_* = -1`).
    - Clarified in [annotation/common.py](../annotation/common.py) docstring that `bbox_* = -1` in current 512x512 splits.
-   - Updated [README.md](../README.md) and [run_docs/annotation_run_4_and_5.md](annotation_run_4_and_5.md).
+   - Updated [README.md](../README.md) and [run_docs/annotation_run_1_and_2.md](annotation_run_1_and_2.md).
 2. **Audit Model B vs Model C Comparability**:
    - Recorded in `run_4.md` that Model B had manifest bboxes on 9.8% of images (Stanford Cars only), whereas Model C used `external_resized_512` (`bbox = -1`).
 
@@ -96,7 +96,7 @@ flowchart LR
 
 #### Detailed Logic:
 1. **Stratified Sampling**:
-   Draw 300 images from `annotation_runs/run5/annotations.csv`:
+   Draw 300 images from `annotation_runs/run2/annotations.csv`:
    - 200 PlatesMania images, 100 External images.
    - Stratified across colors and across high/low Qwen confidence (including conf < 0.70).
 2. **Automated Vehicle Detection**:
@@ -125,7 +125,7 @@ flowchart LR
 #### [MODIFY] [annotation/common.py](../annotation/common.py)
 - Clarify in docstrings that `bbox` defaults to domain crop when `bbox_x1 == -1`.
 
-#### [MODIFY] [run_docs/annotation_run_4_and_5.md](annotation_run_4_and_5.md)
+#### [MODIFY] [run_docs/annotation_run_1_and_2.md](annotation_run_1_and_2.md)
 - Update Stage 2 description: Explicitly state that UMAP coordinates are computed for a 30,000-sample landmark subset for web visualization, and remaining rows are `NaN`.
 - Correct crop description (removes "Pre-crops vehicles to tight bounding boxes").
 

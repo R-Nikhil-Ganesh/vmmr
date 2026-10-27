@@ -12,7 +12,7 @@ if str(_MOBILENET_DIR) not in sys.path:
     sys.path.insert(0, str(_MOBILENET_DIR))
 import paths  # noqa: E402
 
-# Same per-domain preprocessing as the diagnostics (merged_dataset/analysis/output_analysis_merged.py)
+# Same per-domain preprocessing as the diagnostics (run4/analysis/output_analysis_merged.py)
 DOMAINS = {
     "platesmania": {"crop_top_pct": 0.15, "crop_bottom_pct": 0.0},
     "external":    {"crop_top_pct": 0.0,  "crop_bottom_pct": 0.05},

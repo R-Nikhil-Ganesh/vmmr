@@ -51,8 +51,8 @@ The easiest way to execute annotations is using the tmux-wrapped runner:
 ```bash
 cd vmmr/code/current/mobilenet
 
-# Run annotation across the full dataset (all splits) with automatic run4 cache reuse
-RUN_NAME=run5 bash bash_scripts/run_annotate.sh --split all
+# Run annotation across the full dataset (all splits) with automatic run1 cache reuse
+RUN_NAME=run2 bash bash_scripts/run_annotate.sh --split all
 
 # Smoke test on 200 samples without Qwen
 bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color
@@ -62,10 +62,10 @@ bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color
 
 ```bash
 python annotation/annotate.py \
-    --model-path merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx \
-    --label-map merged_dataset/output_merged_run4/models/label_map.json \
-    --output-dir annotation_runs/run5 \
-    --cache-from annotation_runs/run4 \
+    --model-path run4/output_merged_run4/models/mobilenet_v2_best.onnx \
+    --label-map run4/output_merged_run4/models/label_map.json \
+    --output-dir annotation_runs/run2 \
+    --cache-from annotation_runs/run1 \
     --split all \
     --color-batch-size 16 \
     --qwen-max-side 336
@@ -76,7 +76,7 @@ python annotation/annotate.py \
 | Argument | Default | Description |
 | :--- | :--- | :--- |
 | `--split {test,all,train,val}` | `test` | Which dataset splits to process (`all` processes train, val, and test). |
-| `--cache-from DIR` | `None` | Path to a previous run (e.g. `run4`) to reuse existing predictions, embeddings, and color labels. |
+| `--cache-from DIR` | `None` | Path to a previous run (e.g. `run1`) to reuse existing predictions, embeddings, and color labels. |
 | `--domain {both,pm,ext}` | `both` | Which dataset domains to include (`pm` = PlatesMania, `ext` = External). |
 | `--max-samples N` | `None` | Cap maximum samples per domain (useful for quick ablations and smoke tests). |
 | `--skip-color` | `False` | Skip vision-language color pseudo-labeling. |
@@ -99,8 +99,8 @@ To rebuild the viewer independently from an existing `annotations.csv` without r
 
 ```bash
 python annotation/build_viewer.py \
-    --annotations annotation_runs/run5/annotations.csv \
-    --out annotation_runs/run5/viewer.html \
+    --annotations annotation_runs/run2/annotations.csv \
+    --out annotation_runs/run2/viewer.html \
     --max-points 20000 \
     --workers 16
 ```

@@ -1,7 +1,7 @@
 # Ground-Truth Color Validation Report (`E-09`)
 
 ## 1. Overview & Ground-Truth Source
-- **Human Ground-Truth Dataset**: CompCars Surveillance (`sv_data/color_list.mat`), matched via `external_metadata_51make.csv` against [`annotation_runs/run5/annotations.csv`](../annotation_runs/run5/run_config.json).
+- **Human Ground-Truth Dataset**: CompCars Surveillance (`sv_data/color_list.mat`), matched via `external_metadata_51make.csv` against [`annotation_runs/run2/annotations.csv`](../annotation_runs/run2/run_config.json).
 - **Matched Human-Labeled Rows in Run 5**: **19,479** images (`train`: `13,753`, `val`: `2,859`, `test`: `2,867`).
 - **Stratified Manual Review Sheet**: Generated [`annotation_runs/color_human_review_600.csv`](../annotation_runs/color_human_review_600.csv) (`598` rows stratified across all 13 Qwen colors, with 30% drawn from `color_conf < 0.70`).
 

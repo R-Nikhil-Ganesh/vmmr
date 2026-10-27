@@ -1,10 +1,10 @@
-# MobileNetV2 Annotation Pipeline Report: Run 4 & Run 5
+# MobileNetV2 Annotation Pipeline Report: Annotation Run 1 & Annotation Run 2
 
 **System**: Fine-Grained Vehicle Recognition (MobileNetV2 Model C) + Vision-Language Color Tagging (Qwen3-VL-8B)  
 **Directory**: `vmmr/code/current/mobilenet/annotation/`  
 **Artifact Outputs**:  
-- Run 4: `annotation_runs/run4/` (Test split baseline)  
-- Run 5: `annotation_runs/run5/` (Full dataset: train, val, and test)  
+- Annotation Run 1: `annotation_runs/run1/` (Test split baseline)  
+- Annotation Run 2: `annotation_runs/run2/` (Full dataset: train, val, and test)  
 **Date**: October 14–16, 2026  
 **Hardware**: Single NVIDIA GeForce RTX 4090 (24 GB VRAM), 64 GB System RAM, Ubuntu Linux  
 **Environment**: PyTorch 2.14+cu121, ONNX Runtime GPU (CUDAExecutionProvider), Hugging Face Transformers (`bitsandbytes` 4-bit NF4)
@@ -20,7 +20,7 @@ The annotation subsystem generates multi-task vehicle annotations across:
 
 ### Run Comparison Matrix
 
-| Attribute | Annotation Run 4 | Annotation Run 5 |
+| Attribute | Annotation Run 1 | Annotation Run 2 |
 | :--- | :--- | :--- |
 | **Scope** | Test split only (unseen baseline) | **Full dataset** (`train`, `val`, `test`) |
 | **Total Images Annotated** | 114,201 images | **1,126,737 images** |
@@ -35,7 +35,7 @@ The annotation subsystem generates multi-task vehicle annotations across:
 | **Qwen Image Resolution** | `max_side=448` *(reconstructed)* | `max_side=336` (fast inference) |
 | **Peak VRAM Allocated** | ~16.5 GB | **~5.96 GB** (allocating ~7.1 GB during batch) |
 | **Throughput (Color Stage)** | ~23.5 img/s | **~37.0–39.1 img/s** (+66% speedup) |
-| **Cache Reuse Strategy** | Cold start | **`--cache-from run4`** (instant reuse of 114k test set) |
+| **Cache Reuse Strategy** | Cold start | **`--cache-from run1`** (instant reuse of 114k test set) |
 | **Embeddings Tensor** | (114,201, 1280) float16 (279 MB) | **(1,126,737, 1280) float16 (2.7 GB)** |
 | **CSV Footprint** | 34 MB `annotations.csv` | 340 MB `annotations.csv` |
 | **HTML Viewer** | 16 MB (3,000 thumbnails) | 76 MB (15,000 thumbnails + split toggles) |
@@ -90,7 +90,7 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 
 ### Stage 2: 2D Manifold Projection (UMAP)
 * Subsamples up to `--coords-max 30000` feature embeddings (`15,000` per domain) and fits PCA(50) followed by UMAP(2) (`n_neighbors=15, min_dist=0.1, metric="cosine"`).
-* Populates normalized 2D coordinates `(x, y)` **only for that landmark subset** (14,870 rows = 13.0% in Run 4; 30,000 rows = 2.7% in Run 5) for interactive rendering in `viewer.html`. All remaining rows (`87.0%` in Run 4; `97.3%` in Run 5) have `x = NaN, y = NaN`.
+* Populates normalized 2D coordinates `(x, y)` **only for that landmark subset** (14,870 rows = 13.0% in Annotation Run 1; 30,000 rows = 2.7% in Annotation Run 2) for interactive rendering in `viewer.html`. All remaining rows (`87.0%` in Annotation Run 1; `97.3%` in Annotation Run 2) have `x = NaN, y = NaN`.
 
 ### Stage 3: Vision-Language Color Tagging (Qwen3-VL-8B)
 * Applies the same per-domain cropping used by the classifier (`crop_like_classifier`: 15% top banner crop for PlatesMania; 5% bottom watermark crop for External, since `bbox_* = -1` on 100% of rows in both domains).
@@ -107,10 +107,10 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 
 ---
 
-## 3. Run 5 Optimizations & Breakthroughs
+## 3. Annotation Run 2 Optimizations & Breakthroughs
 
-### A. Instant Cache Reuse (`--cache-from run4`)
-* Avoided redundant computation by importing all 114,201 test set predictions, embeddings, and Qwen color labels directly from `run4`.
+### A. Instant Cache Reuse (`--cache-from run1`)
+* Avoided redundant computation by importing all 114,201 test set predictions, embeddings, and Qwen color labels directly from `run1`.
 * Verified identity match: zero recalculation was needed for the test split, reducing the overnight workload from 1.13M to 1.01M images.
 
 ### B. 4-bit NF4 Quantization (`bitsandbytes`)
@@ -134,7 +134,7 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 
 ## 4. Performance & Accuracy Breakdown
 
-### Split-Wise Breakdown (Run 5)
+### Split-Wise Breakdown (Annotation Run 2)
 
 | Dataset Split | Image Count | % of Dataset | Make Accuracy | Model Accuracy | Review Flagged | Mean Color Conf |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -145,20 +145,20 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 
 > **Key Observation**: Only the **Test** row (`98.15%` Make / `91.53%` Model) represents held-out generalization accuracy (`Train` and `Combined` include the `79.72%` training split that Model C was trained on). Validation model accuracy (`91.64%`) and Test model accuracy (`91.53%`) are virtually identical ($\Delta = 0.11\%$), confirming that checkpoint selection on validation loss introduced no validation selection bias.
 
-### Domain-Wise Breakdown (Run 5)
+### Domain-Wise Breakdown (Annotation Run 2)
 
 | Domain | All Splits (incl. ~80% Train) | All-Splits Make / Model Acc | Test Split Count | **Test Split Make / Model Acc** | Review Flagged (All) | Mean Color Conf |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **PlatesMania** | 1,093,408 | 98.48% / 92.92% | 109,331 | **98.15% / 91.46%** | 10.61% | 0.9675 |
-| **External (Run 4/5 35-Make)** | 33,329 | 99.34% / 96.62% | 4,870 | **98.19% / 93.00%** | 5.57% | 0.9652 |
+| **External (Run 4 35-Make)** | 33,329 | 99.34% / 96.62% | 4,870 | **98.19% / 93.00%** | 5.57% | 0.9652 |
 
 ---
 
 ## 5. Vehicle Color Distribution Analysis
 
-Comparing the color distributions between Run 4 (test set only, 114,201 images) and Run 5 (entire dataset, 1,126,737 images) reveals exceptional consistency:
+Comparing the color distributions between Annotation Run 1 (test set only, 114,201 images) and Annotation Run 2 (entire dataset, 1,126,737 images) reveals exceptional consistency:
 
-| Color | Run 4 Count | Run 4 Share (%) | Run 5 Count | Run 5 Share (%) | Delta (%) |
+| Color | Run 1 Count | Run 1 Share (%) | Run 2 Count | Run 2 Share (%) | Delta (%) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **White** | 24,974 | 21.87% | 246,019 | 21.83% | -0.04% |
 | **Black** | 23,751 | 20.80% | 235,749 | 20.92% | +0.12% |
@@ -180,21 +180,21 @@ The top 3 neutral vehicle colors (White, Black, Silver) account for **60.9%** of
 
 ## 6. Directory Artifacts & File Schemas
 
-All artifacts are persisted in `code/current/mobilenet/annotation_runs/run5/`:
+All artifacts are persisted in `code/current/mobilenet/annotation_runs/run2/`:
 
 ### 1. `annotations.csv` (340 MB, 1,126,738 rows)
 Primary database containing per-image annotations:
 * `image_id`: Unique integer row index (0 to 1,126,736).
 * `domain`: Image dataset source (`platesmania` or `external`).
 * `filename` & `path`: Full filesystem path to the source image.
-* `bbox_x1, bbox_y1, bbox_x2, bbox_y2`: Cropping bounding box coordinates (`-1` on 100% of rows in Run 4 and Run 5; domain top/bottom crops are applied instead).
+* `bbox_x1, bbox_y1, bbox_x2, bbox_y2`: Cropping bounding box coordinates (`-1` on 100% of rows in Annotation Run 1 and Annotation Run 2; domain top/bottom crops are applied instead).
 * `pred_model`, `pred_model_conf`: MobileNetV2 top-1 predicted model name and softmax probability.
 * `top3`: Formatted string of top-3 model predictions and scores.
 * `pred_make`, `make_conf`: Marginalized parent make prediction and aggregated probability.
 * `gt_class`, `gt_make`: Ground truth class and parent make from dataset manifest.
 * `correct_model`, `correct_make`: Boolean evaluation flags.
 * `split`: Split assignment (`train`, `val`, `test`).
-* `x`, `y`: UMAP 2D manifold projection coordinates (populated for up to `--coords-max 30000` landmark rows: `14,870` rows in Run 4, `30,000` rows in Run 5; `NaN` for all remaining rows).
+* `x`, `y`: UMAP 2D manifold projection coordinates (populated for up to `--coords-max 30000` landmark rows: `14,870` rows in Annotation Run 1, `30,000` rows in Annotation Run 2; `NaN` for all remaining rows).
 * `color`, `color_conf`: Qwen3-VL-8B assigned color category and softmax confidence.
 * `needs_review`: Boolean flag indicating confidence below threshold.
 

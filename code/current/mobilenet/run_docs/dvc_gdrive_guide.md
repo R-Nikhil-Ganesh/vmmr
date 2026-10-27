@@ -2,7 +2,7 @@
 
 ## Overview
 This repository uses **DVC (Data Version Control)** integrated with **Google Drive (`dvc-gdrive`)** to:
-1. **Version Large Datasets & Caches**: Track multi-gigabyte files (e.g., 2.7 GB Run 5 `embeddings.npy`, 340 MB `annotations.csv`, 263 MB feature caches) without hitting GitHub's 100 MB hard limit.
+1. **Version Large Datasets & Caches**: Track multi-gigabyte files (e.g., 2.7 GB Annotation Run 2 `embeddings.npy`, 340 MB `annotations.csv`, 263 MB feature caches) without hitting GitHub's 100 MB hard limit.
 2. **Offload Heavy Git Blobs**: Keep the Git repository lightweight, fast, and clean. Git tracks tiny text pointer files (`.dvc`), while Google Drive securely stores the underlying binaries.
 3. **Zero-Copy Disk Efficiency**: Configured with `cache.type = reflink,hardlink,symlink,copy`. On our Linux ext4 filesystem, DVC creates hardlinks/symlinks rather than duplicating files on disk, saving tens of gigabytes of NVMe storage.
 
@@ -89,7 +89,7 @@ When you execute `dvc push`, DVC uses interactive OAuth 2.0 with your custom Cli
 
 | Target Path | Size | Reason for DVC Tracking |
 | :--- | :--- | :--- |
-| `code/current/mobilenet/annotation_runs/run5/` | **3.3 GB** | 1.12M image Qwen annotations, 2.7 GB `embeddings.npy`, 340 MB `annotations.csv`, color cache |
+| `code/current/mobilenet/annotation_runs/run2/` | **3.3 GB** | 1.12M image Qwen annotations, 2.7 GB `embeddings.npy`, 340 MB `annotations.csv`, color cache |
 | `code/current/mobilenet/color_distillation/cache/` | **304 MB** | Pre-extracted MobileNetV2 L16 features (`features_L16_train.npy`, `features_L16_val.npy`) |
 | `code/current/mobilenet/color_distillation/output/mobilenet_v2_multitask.onnx` | **20.6 MB** | Dual-head ONNX model artifact (can be migrated from git to dvc) |
 | Future teacher / student models (`*.pt`, `*.onnx`) | **20 - 200 MB** | Future multi-head teacher and student distilled checkpoints |
@@ -101,13 +101,13 @@ When you execute `dvc push`, DVC uses interactive OAuth 2.0 with your custom Cli
 ### Adding New Datasets or Caches to DVC
 ```bash
 # 1. Track the directory with DVC
-./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/annotation_runs/run5
+./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/annotation_runs/run2
 
 # 2. Track the feature cache
 ./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/color_distillation/cache
 
 # 3. Commit the lightweight .dvc pointers to Git (autostage is enabled)
-git commit -m "Track Run 5 annotations and color distillation cache in DVC"
+git commit -m "Track Annotation Run 2 annotations and color distillation cache in DVC"
 
 # 4. Push large files to Google Drive
 ./code/current/mobilenet/bash_scripts/dvc.sh push

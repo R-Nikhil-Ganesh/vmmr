@@ -41,7 +41,7 @@ fi
 : "${PM_MANIFEST_CSV:=${ECON_ROOT}/models/dataset_manifests/dataset_1235models_splits.csv}"
 : "${PM_LABEL_MAP:=${ECON_ROOT}/models/dataset_manifests/label_map_1235models.json}"
 
-# External datasets (used by merged_dataset/prepare_external_1235models.py)
+# External datasets (used by run4/prepare_external_1235models.py)
 : "${EXT_DATASETS_DIR:=${ECON_ROOT}/external_resized_512}"
 
 # Annotation tool (annotation/): outputs live outside the git tree; Qwen3-VL is a Hugging Face id or a local directory

@@ -11,11 +11,11 @@ run_in_tmux color_distill "${SCRIPT_DIR}/run_train_color_distillation.sh" "$@"
 
 [ -x "${PYTHON_BIN}" ] || { echo "[ERROR] Python not found or not executable: ${PYTHON_BIN}" >&2; exit 1; }
 
-RUN_NAME="${RUN_NAME:-run5}"
+RUN_NAME="${RUN_NAME:-run2}"
 MODEL_RUN="${MODEL_RUN:-run4}"
 
 ANNOTATIONS="${ANNOT_OUT_DIR}/${RUN_NAME}/annotations.csv"
-BASE_MODEL="${MOBILENET_DIR}/merged_dataset/output_merged_${MODEL_RUN}/models/mobilenet_v2_best.onnx"
+BASE_MODEL="${MOBILENET_DIR}/run4/output_merged_${MODEL_RUN}/models/mobilenet_v2_best.onnx"
 OUT_DIR="${MOBILENET_DIR}/color_distillation/output"
 
 echo "=================================================================="

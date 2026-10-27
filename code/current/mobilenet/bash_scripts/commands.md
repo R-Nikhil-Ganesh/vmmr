@@ -27,9 +27,9 @@ A second launch with a session name that is already running is refused (it print
 
 | Variable | Effect |
 |---|---|
-| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `merged_dataset/output_merged_<name>` (training), `annotation_runs/<name>` (annotation), `mixed_benchmark_results_<name>`, session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=merged_51make` for training, `RUN_NAME=run5` for annotation). |
-| `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `merged_dataset/output_merged_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`). |
-| `CACHE_FROM=<dir>` | Used by `run_annotate.sh` to reuse predictions, embeddings, and Qwen color labels from an earlier annotation folder (defaults to `${ANNOT_OUT_DIR}/run4` if present). |
+| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `run4/output_merged_<name>` (training, diagnostics, and `benchmark/`), `annotation_runs/<name>` (annotation), session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=merged_51make` for training, `RUN_NAME=run2` for annotation). |
+| `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `run4/output_merged_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`). |
+| `CACHE_FROM=<dir>` | Used by `run_annotate.sh` to reuse predictions, embeddings, and Qwen color labels from an earlier annotation folder (defaults to `${ANNOT_OUT_DIR}/run1` if present). |
 | `NO_TMUX=1` | Run in the foreground instead of tmux (debugging, cron, CI). |
 | `AUTO_GIT_PUSH=0` | Do not commit and push results when finished (default `1`: commits `code/current/mobilenet/` and pushes). |
 | `CUDA_VISIBLE_DEVICES=1` | Choose the GPU. |
@@ -46,7 +46,7 @@ Model C trains jointly on **both** datasets across the unified Make/Model taxono
 
 External has `47,805` train images (`23,589` in the Run 4 35-make split) against `~875k` for PlatesMania, so `WeightedRandomSampler` draws a fixed share of External images per epoch (`--ext-fraction 0.2` by default). Checkpoints are selected on the **mean of the two domain validation losses**, and final test metrics are reported per domain in `reports/test_metrics.json`.
 
-Output: `merged_dataset/output_merged_run4/` (or `output_merged_<RUN_NAME>`), with `models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`), `models/label_map.json`, `reports/`, `plots/training_curves.png`, and `training.log`.
+Output: `run4/output_merged_run4/` (or `output_merged_<RUN_NAME>`), with `models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`), `models/label_map.json`, `reports/`, `plots/training_curves.png`, and `training.log`.
 
 | Flag | Default | What it does |
 |---|---|---|
@@ -71,9 +71,9 @@ RUN_NAME=merged_51make bash bash_scripts/run_train_merged.sh --ext-fraction 0.2 
 ## `run_diagnostics.sh`
 
 Evaluates Model C on:
-1. Full PlatesMania test split (`merged_dataset/output_.../diagnostics_platesmania/`)
-2. Full External test split (`merged_dataset/output_.../diagnostics_external/`)
-3. 5,000-image per-domain and 10,000-image Mixed benchmark (`merged_dataset/output_.../benchmark/`, synced to `mixed_benchmark_results/`)
+1. Full PlatesMania test split (`run4/output_.../diagnostics_platesmania/`)
+2. Full External test split (`run4/output_.../diagnostics_external/`)
+3. 5,000-image per-domain and 10,000-image Mixed benchmark (`run4/output_.../benchmark/`)
 
 | Option | What it does |
 |---|---|
@@ -99,7 +99,7 @@ Annotates vehicle images across test or all splits (`train`, `val`, `test`) with
 ```bash
 bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color               # smoke test, no Qwen
 bash bash_scripts/run_annotate.sh --max-samples 200                            # smoke test with Qwen
-MODEL_RUN=run4 RUN_NAME=run5 bash bash_scripts/run_annotate.sh --split all     # full dataset run using Model C (run4) + run4 cache reuse
+MODEL_RUN=run4 RUN_NAME=run2 bash bash_scripts/run_annotate.sh --split all     # full dataset run using Model C (run4) + run1 cache reuse
 ```
 
 Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `umap-learn` is used for 2D manifold projection. Output goes to `${ANNOT_OUT_DIR}/<RUN_NAME>/` (default `code/current/mobilenet/annotation_runs/<RUN_NAME>/`): `annotations.csv`, `embeddings.npy`, `color_cache.csv`, `viewer.html`.
@@ -107,7 +107,7 @@ Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `u
 | Option | Meaning |
 |---|---|
 | `--split {test,all,train,val}` | Which split(s) to annotate (default: `test`; use `all` for full dataset) |
-| `--cache-from DIR` | Previous run to reuse annotations, embeddings, and colors from (default: `run4` if available) |
+| `--cache-from DIR` | Previous run to reuse annotations, embeddings, and colors from (default: `run1` if available) |
 | `--domain both\|pm\|ext` | Which dataset(s) (default `both`) |
 | `--max-samples N` | Random subsample per domain (default: all split images) |
 | `--skip-color` | make/model only |
@@ -128,7 +128,7 @@ To rebuild only the viewer: `python annotation/build_viewer.py --annotations <di
 
 ## `run_train_color_distillation.sh` (Color Distillation -> Multi-Task ONNX)
 
-Distills Qwen3-VL-8B color labels from `run5/annotations.csv` into a lightweight classification head branching from block `features[16]` (160 channels) of the Model C backbone (`MODEL_RUN=run4` by default). Caches extracted features to disk (`cache/features_L16_train.npy`, 262.45 MB for the 860,006 `color_conf >= 0.70` train rows) for rapid training, trains for 25 epochs using class-weighted cross-entropy, and automatically exports a unified `mobilenet_v2_multitask.onnx`.
+Distills Qwen3-VL-8B color labels from `run2/annotations.csv` into a lightweight classification head branching from block `features[16]` (160 channels) of the Model C backbone (`MODEL_RUN=run4` by default). Caches extracted features to disk (`cache/features_L16_train.npy`, 262.45 MB for the 860,006 `color_conf >= 0.70` train rows) for rapid training, trains for 25 epochs using class-weighted cross-entropy, and automatically exports a unified `mobilenet_v2_multitask.onnx`.
 
 ```bash
 bash bash_scripts/run_train_color_distillation.sh                # train MLP head (default)
@@ -154,10 +154,10 @@ Output: `code/current/mobilenet/color_distillation/output/` containing:
 
 ## Building the External Splits
 
-Only needed when the External splits change (they are committed in `merged_dataset/splits_1235models/`):
+Only needed when the External splits change (they are committed in `run4/splits_1235models/`):
 
 ```bash
-python merged_dataset/prepare_external_1235models.py
+python run4/prepare_external_1235models.py
 ```
 
 ---
@@ -170,7 +170,7 @@ A convenience runner is located at `code/current/mobilenet/bash_scripts/dvc.sh`:
 
 ```bash
 # Add a large dataset or directory to DVC
-./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/annotation_runs/run5
+./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/annotation_runs/run2
 ./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/color_distillation/cache
 
 # Push data to Google Drive (standard)

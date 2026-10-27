@@ -25,7 +25,7 @@ This plan maps the current status of all 21 items and defines a **5-phase execut
 | **E-08** | P0 | Retrain color head without class-weight handicap + `512x2` / spatial tap | **OPEN** | **Phase 3** (`train_color_head.py` ablations) |
 | **E-09** | P0 | Validate Qwen3-VL & distilled head against human color labels | **OPEN** | **Phase 2 & 3** (19,479 CompCars GT rows + review CSV) |
 | **E-10** | P1 | Production camera domain shift (night/IR) | **DEFERRED** | Awaits production camera frames (documented) |
-| **E-11** | P1 | Fix `annotation_run_4_and_5.md` errors | **DONE** | Completed |
+| **E-11** | P1 | Fix `annotation_run_1_and_2.md` errors | **DONE** | Completed |
 | **E-12** | P1 | Fix `dvc_gdrive_guide.md` & `paths.py` DVC keys | **DONE** | Completed (`paths.py --check` verified) |
 | **E-13** | P1 | Update stale `README.md` | **DONE** | Completed |
 | **E-14** | P1 | Fix `bash_scripts/commands.md` `RUN_NAME` / `MODEL_RUN` | **DONE** | Completed |
@@ -43,7 +43,7 @@ This plan maps the current status of all 21 items and defines a **5-phase execut
 
 > [!TIP]
 > **19,479 Human-Labeled CompCars Color Ground-Truth Annotations Already Match Run 5!**
-> During our inspection of `compcars_cctv/extracted/sv_data_extracted/sv_data/color_list.mat` and `external_resized_512/external_metadata_51make.csv`, we discovered that `external_metadata_51make.csv` already carries a `color_label` column (`0..9`, mapped from CompCars `color_list.mat`) for **33,310 CompCars CCTV images**, and **19,479 of those rows are present in `annotation_runs/run5/annotations.csv`**!
+> During our inspection of `compcars_cctv/extracted/sv_data_extracted/sv_data/color_list.mat` and `external_resized_512/external_metadata_51make.csv`, we discovered that `external_metadata_51make.csv` already carries a `color_label` column (`0..9`, mapped from CompCars `color_list.mat`) for **33,310 CompCars CCTV images**, and **19,479 of those rows are present in `annotation_runs/run2/annotations.csv`**!
 > - **CompCars 10-Color Schema**: `0: black`, `1: white`, `2: red`, `3: yellow`, `4: blue`, `5: green`, `6: purple`, `7: brown`, `8: champagne`, `9: silver` *(note: CompCars groups gray and silver together under `9: silver`, and champagne under `8: champagne`)*.
 > - **Preliminary Check on all 19,479 rows**: Qwen3-VL-8B achieves **70.55%** strict 10-class agreement (which penalizes Qwen whenever it predicts `gray` on a CompCars `9=silver` vehicle) and **78.85%** agreement when `silver`/`gray` and `champagne`/`beige`/`gold` are aligned!
 > - We can use this **19,479-image human-labeled subset** (plus a stratified 600-image PlatesMania/External review sheet) to benchmark both **Qwen3-VL-8B** and every **distilled MobileNetV2 color head (`E-08`)** against true human labels!
@@ -58,7 +58,7 @@ This plan maps the current status of all 21 items and defines a **5-phase execut
 > - For **`E-02`** (loading `Qwen3-VL-8B` + `yolov8n.pt` on 300 images, ~3 mins on GPU), should we run it directly during execution if the GPU is free, or provide the ready-to-run command for you to launch in `tmux`?
 >
 > **2. `E-19` DVC Migration Scope**:
-> Git currently tracks **12 `.onnx` files** (~165 MB total across `merged_dataset/output_merged_run4`, `backup_run1`, `backup_run3`, and `code/current/efficientnet`) plus `annotation_runs/run4/{annotations.csv,viewer.html}` (50 MB). Moving all of them to DVC (`git rm --cached` + `./bash_scripts/dvc.sh add`) will keep the Git working tree light while preserving every file on disk and in Google Drive. Confirm if you want all 12 `.onnx` files and `annotation_runs/run4` migrated to DVC, or only the `backup_run*` and `efficientnet` ones.
+> Git currently tracks **12 `.onnx` files** (~165 MB total across `run4/output_merged_run4`, `backup_run1`, `backup_run3`, and `code/current/efficientnet`) plus `annotation_runs/run1/{annotations.csv,viewer.html}` (50 MB). Moving all of them to DVC (`git rm --cached` + `./bash_scripts/dvc.sh add`) will keep the Git working tree light while preserving every file on disk and in Google Drive. Confirm if you want all 12 `.onnx` files and `annotation_runs/run1` migrated to DVC, or only the `backup_run*` and `efficientnet` ones.
 
 ---
 
@@ -87,19 +87,19 @@ flowchart LR
       """Resolve either a portable relative path or legacy absolute path against current paths.py roots."""
       ...
   ```
-- Convert `merged_dataset/splits_1235models/{train,val,test,all_splits}.csv` `image_path` column to relative paths (e.g. `images/Acura/acura_stanford_cars_00004.jpg`), and update `ExternalMergedDataset` in `train_common.py`, `output_analysis.py`, and `evaluate_mixed.py` to join `paths.EXT_DATASETS_DIR` when `image_path` is relative.
+- Convert `run4/splits_1235models/{train,val,test,all_splits}.csv` `image_path` column to relative paths (e.g. `images/Acura/acura_stanford_cars_00004.jpg`), and update `ExternalMergedDataset` in `train_common.py`, `output_analysis.py`, and `evaluate_mixed.py` to join `paths.EXT_DATASETS_DIR` when `image_path` is relative.
 
 #### [MODIFY] [`train_common.py`](../train_common.py) (`E-17`)
 - Add `save_run_config(output_dir: Path, args: Any, script_name: str, extra: Optional[dict] = None) -> Path`:
   - Records `argv`, `resolved_args`, `git_commit` (`git rev-parse HEAD`), `git_dirty`, `hostname`, `user`, `python_version`, `torch_version`, `onnxruntime_version`, `cuda_device_name`, `seed`, `start_time_iso`, and `end_time_iso` into `<output_dir>/run_config.json`.
 - Wire `save_run_config()` into:
-  - [`merged_dataset/train/train_mobilenet_v2_merged.py`](../merged_dataset/train/train_mobilenet_v2_merged.py)
+  - [`run4/train/train_mobilenet_v2_merged.py`](../run4/train/train_mobilenet_v2_merged.py)
   - [`annotation/annotate.py`](../annotation/annotate.py)
   - [`color_distillation/train_color_head.py`](../color_distillation/train_color_head.py)
 - Backfill reconstructed `run_config.json` files (clearly marked `"reconstructed": true`) into:
-  - `merged_dataset/output_merged_run4/run_config.json`
-  - `annotation_runs/run4/run_config.json`
-  - `annotation_runs/run5/run_config.json`
+  - `run4/output_merged_run4/run_config.json`
+  - `annotation_runs/run1/run_config.json`
+  - `annotation_runs/run2/run_config.json`
   - `color_distillation/output/run_config.json`
 
 #### [MODIFY] [`output_analysis.py`](../output_analysis.py) (`E-21`)
@@ -117,7 +117,7 @@ flowchart LR
 - Updates `train_color_head.py` (`ImageExtractDataset`) to use `DiagnosticDataset`'s exact antialiased bilinear resize convention (`CLAUDE.md` rule).
 
 #### [NEW] [`color_distillation/evaluate_compcars_color_gt.py`](../color_distillation/train_color_head.py) (`E-09`)
-- Joins `annotation_runs/run5/annotations.csv` against the **19,479 human-labeled CompCars CCTV rows** in `external_metadata_51make.csv` (`color_label 0..9`).
+- Joins `annotation_runs/run2/annotations.csv` against the **19,479 human-labeled CompCars CCTV rows** in `external_metadata_51make.csv` (`color_label 0..9`).
 - Evaluates:
   1. **Qwen3-VL-8B pseudo-labels** vs. CompCars human ground truth (overall, by `color_conf >= 0.70` vs `< 0.70`, and per-color confusion matrix), and
   2. **Distilled MobileNetV2 color heads** vs. CompCars human ground truth on the held-out `test` split.
@@ -125,7 +125,7 @@ flowchart LR
 - Writes a comprehensive report to `run_docs/color_ground_truth_validation.md`.
 
 #### [NEW] [`annotation/verify_crop_agreement.py`](../annotation/annotate.py) (`E-02`)
-- Samples 300 stratified rows (200 PlatesMania, 100 External) from `annotation_runs/run5/annotations.csv`.
+- Samples 300 stratified rows (200 PlatesMania, 100 External) from `annotation_runs/run2/annotations.csv`.
 - Runs a pretrained YOLO detector (`yolov8n.pt` / `yolo11n.pt`) to obtain tight vehicle bounding boxes (+8% margin) and compares Qwen3-VL-8B color predictions on full-frame domain crops vs. tight vehicle crops.
 - Saves agreement metrics and confusion pairs to `run_docs/crop_agreement_study.md`.
 
@@ -174,6 +174,6 @@ flowchart LR
    - Untrack from Git (`git rm --cached`) and track via DVC (`./bash_scripts/dvc.sh add`):
      - `code/current/mobilenet/backup_run1` ONNX models
      - `code/current/mobilenet/backup_run3` ONNX models
-     - `code/current/mobilenet/merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx`
-     - `code/current/mobilenet/annotation_runs/run4`
+     - `code/current/mobilenet/run4/output_merged_run4/models/mobilenet_v2_best.onnx`
+     - `code/current/mobilenet/annotation_runs/run1`
      - `code/current/efficientnet` ONNX models

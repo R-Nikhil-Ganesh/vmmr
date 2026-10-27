@@ -1,7 +1,7 @@
 # MobileNetV2 Run 4 Report: Model C, One Model Trained on PlatesMania + External
 
 **Experiment**: Run 4 - a single model (Model C) trained on both datasets, as a separate experiment from the A/B generalization study
-**Directory**: `vmmr/code/current/mobilenet/merged_dataset/` (outputs in `output_merged_run4/`)
+**Directory**: `vmmr/code/current/mobilenet/run4/` (outputs in `output_merged_run4/`)
 **Date**: training synced 2026-10-10 13:43 IST, diagnostics 2026-10-12 11:46 IST, benchmark re-synced 2026-10-12 19:39 IST (from the auto-sync commits)
 **Hardware / stack**: RTX 4090, `pt-env` (PyTorch + ONNX Runtime)
 **Design**: Models A (PlatesMania) and B (External) are untouched and stay single-dataset. Model C trains on both and is never fed back into them. Because C has seen both domains, there is no cross-domain number for it, so this report measures what merging costs or gains in-domain.
@@ -41,7 +41,7 @@ C's PlatesMania test evaluated 109,331 of 109,340 images (9 unreadable). B's row
 
 ## 2. Comparison with Models A and B (`E-18` Like-for-Like Re-Evaluation)
 
-In Phase 4 (`E-18`), Models A and B were re-evaluated on the exact regenerated External test split (5,205 images across the 1,235 base classes) and PlatesMania test split (`mixed_benchmark_results_ab/`):
+In Phase 4 (`E-18`), Models A and B were re-evaluated on the exact regenerated External test split (5,205 images across the 1,235 base classes) and PlatesMania test split (`backup_run3/mixed_benchmark_results_ab/`):
 
 | Model | Test Domain | Domain Type | Model Accuracy | Make Accuracy | Model Macro F1 | Make Macro F1 |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -64,7 +64,7 @@ Reading it:
 
 - **Label space**: the same 1,235 classes, 35 makes, shared with A and B.
 - **PlatesMania**: manifest train/val/test as in Runs 2-3. Test split 109,340 images.
-- **External (Run 4 snapshot)**: regenerated splits in `merged_dataset/splits_1235models/` at the time of Run 4 had 23,589 train, 4,870 val, 4,870 test (33,329 in total). 286 classes had External training images, and all of them also had PlatesMania training images. PlatesMania covers all 1,235 classes. *(Note: Following Run 4 and Run 5 annotation, `splits_1235models/` was expanded across all 51 makes with `< 50`-sample pruning to 67,695 images / 1,416 classes for subsequent runs; see `why_external_share_is_low.md`).*
+- **External (Run 4 snapshot)**: regenerated splits in `run4/splits_1235models/` at the time of Run 4 had 23,589 train, 4,870 val, 4,870 test (33,329 in total). 286 classes had External training images, and all of them also had PlatesMania training images. PlatesMania covers all 1,235 classes. *(Note: Following Run 4 and Annotation Run 2, `splits_1235models/` was expanded across all 51 makes with `< 50`-sample pruning to 67,695 images / 1,416 classes for subsequent runs; see `why_external_share_is_low.md`).*
 - **Sampling**: `WeightedRandomSampler` with `--ext-fraction` (default 0.2) of each epoch drawn from External; an epoch has as many samples as the PlatesMania train split. External is therefore oversampled heavily relative to its size.
 - **Crops**: PlatesMania uses the full 512×512 image minus a 15% top crop; External uses a 5% bottom crop of the pre-letterboxed 512×512 image (`bbox_* = -1` across all 33,329 rows in `splits_1235models/`, unlike Run 3 where the 9.8% Stanford Cars subset had manifest bbox coordinates).
 
@@ -94,7 +94,7 @@ Classes with test support and F1 below 0.5: **81 of 1,234** on PlatesMania, **17
 
 - **Coverage**: 1,235 classes have PlatesMania training images; 290 classes have External training images; all 290 are in the PlatesMania set.
 - **Does External data help on shared classes?**:
-  - In PlatesMania test evaluation (`mixed_benchmark_results_ab/shared_class_summary.csv` vs `mixed_benchmark_results/shared_class_summary.csv`):
+  - In PlatesMania test evaluation (`backup_run3/mixed_benchmark_results_ab/shared_class_summary.csv` vs `run4/output_merged_run4/benchmark/shared_class_summary.csv`):
     - **Model A on PlatesMania (Shared Classes)**: **`92.94%`** model accuracy (**`95.66%`** restricted to the 290 shared classes).
     - **Model C on PlatesMania (Shared Classes)**: **`94.28%`** model accuracy (**`96.93%`** restricted to the 290 shared classes).
     - **Empirical Answer**: **YES**. Co-training with External data directly improved PlatesMania in-domain representation on those 290 shared classes by **`+1.34 pp`** (unrestricted) and **`+1.27 pp`** (restricted).
@@ -111,7 +111,7 @@ Classes with test support and F1 below 0.5: **81 of 1,234** on PlatesMania, **17
 
 ---
 
-## 7. Artifacts (`merged_dataset/output_merged_run4/`)
+## 7. Artifacts (`run4/output_merged_run4/`)
 
 - `models/mobilenet_v2_best.onnx`, `models/label_map.json`
 - `reports/test_metrics.json`, `reports/training_history.csv`, `plots/training_curves.png`

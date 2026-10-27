@@ -1,6 +1,6 @@
 {
   "reconstructed": true,
-  "script": "merged_dataset/train/train_mobilenet_v2_merged.py",
+  "script": "run4/train/train_mobilenet_v2_merged.py",
   "runner": "bash_scripts/run_train_merged.sh",
   "run_name": "run4",
   "args": {

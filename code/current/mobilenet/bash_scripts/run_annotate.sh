@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Annotate test images with make/model (merged Model C) and color (Qwen3-VL-8B), then build the HTML viewer.
-# Runs in a tmux session by default. Output goes outside the git tree: ${ANNOT_OUT_DIR}/<RUN_NAME or run4>/.
+# Runs in a tmux session by default. Output goes outside the git tree: ${ANNOT_OUT_DIR}/<RUN_NAME or run2>/.
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,14 +11,14 @@ run_in_tmux annotate "${SCRIPT_DIR}/run_annotate.sh" "$@"
 [ -x "${PYTHON_BIN}" ] || { echo "[ERROR] Python not found or not executable: ${PYTHON_BIN}" >&2; exit 1; }
 
 # MODEL_RUN=<name> sets which model checkpoint to evaluate (defaults to run4)
-# RUN_NAME=<name> sets the annotation output folder name (defaults to run5)
+# RUN_NAME=<name> sets the annotation output folder name (defaults to run2)
 MODEL_RUN="${MODEL_RUN:-run4}"
-RUN_NAME="${RUN_NAME:-run5}"
-MERGED_RUN_DIR="${MOBILENET_DIR}/merged_dataset/output_merged_${MODEL_RUN}"
+RUN_NAME="${RUN_NAME:-run2}"
+MERGED_RUN_DIR="${MOBILENET_DIR}/run4/output_merged_${MODEL_RUN}"
 OUT_DIR="${ANNOT_OUT_DIR}/${RUN_NAME}"
 
-# Cache directory to reuse (defaults to run4 if available)
-CACHE_DIR="${CACHE_FROM:-${ANNOT_OUT_DIR}/run4}"
+# Cache directory to reuse (defaults to run1 if available)
+CACHE_DIR="${CACHE_FROM:-${ANNOT_OUT_DIR}/run1}"
 CACHE_FLAG=""
 if [ -d "${CACHE_DIR}" ] && [ -f "${CACHE_DIR}/annotations.csv" ]; then
     CACHE_FLAG="--cache-from ${CACHE_DIR}"

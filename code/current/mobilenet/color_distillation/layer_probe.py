@@ -287,8 +287,8 @@ def train_and_eval_probe(
 
 def main():
     parser = argparse.ArgumentParser(description="MobileNetV2 Layer Selection Probing for Color Distillation")
-    parser.add_argument("--annotations", default="code/current/mobilenet/annotation_runs/run5/annotations.csv")
-    parser.add_argument("--model-path", default="code/current/mobilenet/merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx")
+    parser.add_argument("--annotations", default="code/current/mobilenet/annotation_runs/run2/annotations.csv")
+    parser.add_argument("--model-path", default="code/current/mobilenet/run4/output_merged_run4/models/mobilenet_v2_best.onnx")
     parser.add_argument("--out-dir", default="code/current/mobilenet/color_distillation")
     parser.add_argument("--num-train", type=int, default=25000, help="Number of training samples")
     parser.add_argument("--num-val", type=int, default=5000, help="Number of validation samples")

@@ -56,9 +56,9 @@ def prep_for_onnx(im: Image.Image) -> np.ndarray:
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--annotations", default=str(MOBILENET_DIR / "annotation_runs/run5/annotations.csv"))
+    p.add_argument("--annotations", default=str(MOBILENET_DIR / "annotation_runs/run2/annotations.csv"))
     p.add_argument("--multitask-onnx", default=str(MOBILENET_DIR / "color_distillation/output/mobilenet_v2_multitask.onnx"))
-    p.add_argument("--boxcars-bboxes", default=str(MOBILENET_DIR / "merged_dataset/boxcars116k_bboxes_512.json"))
+    p.add_argument("--boxcars-bboxes", default=str(MOBILENET_DIR / "run4/boxcars116k_bboxes_512.json"))
     p.add_argument("--num-samples", type=int, default=300)
     p.add_argument("--run-qwen", action="store_true", help="Also run Qwen3-VL-8B-Instruct on the 300 pairs (requires GPU)")
     p.add_argument("--seed", type=int, default=42)
@@ -109,8 +109,8 @@ def main():
         records.append({
             "domain": dom,
             "path": to_rel_image_path(str(r.path), dom),
-            "qwen_run5_color": str(r.color),
-            "qwen_run5_conf": float(r.color_conf),
+            "qwen_run2_color": str(r.color),
+            "qwen_run2_conf": float(r.color_conf),
             "onnx_legacy_color": COLORS[int(c_leg.argmax())],
             "onnx_tight_color": COLORS[int(c_tight.argmax())],
             "onnx_agree": int(c_leg.argmax()) == int(c_tight.argmax()),

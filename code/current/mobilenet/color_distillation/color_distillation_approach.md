@@ -1,8 +1,8 @@
 # MobileNetV2 Color Distillation: Architecture, Empirical Layer Selection, and Multi-Task ONNX Export
 
 **Module**: `code/current/mobilenet/color_distillation/`  
-**Teacher Model**: Vision-Language pseudo-labels from Qwen3-VL-8B (`annotation_runs/run5/annotations.csv`, 1,126,737 images)  
-**Student Model**: MobileNetV2 Model C (`output_merged_run4/models/mobilenet_v2_best.onnx`)  
+**Teacher Model**: Vision-Language pseudo-labels from Qwen3-VL-8B (`annotation_runs/run2/annotations.csv`, 1,126,737 images)  
+**Student Model**: MobileNetV2 Model C (`run4/output_merged_run4/models/mobilenet_v2_best.onnx`)  
 **Deployment Target**: Unified Dual-Head ONNX Model (`output/mobilenet_v2_multitask.onnx`)  
 **Date**: October 2026  
 
@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary & Objective
 
-In **Annotation Run 5**, the zero-shot Vision-Language model **Qwen3-VL-8B-Instruct** generated high-confidence vehicle color annotations across **1.13 million images** spanning the PlatesMania and External datasets. While Qwen achieves high visual fidelity, its 8-billion parameter size, 6 GB VRAM memory requirement (in 4-bit NF4), and ~37 img/s throughput make it unsuitable for high-throughput edge deployment.
+In **Annotation Run 2**, the zero-shot Vision-Language model **Qwen3-VL-8B-Instruct** generated high-confidence vehicle color annotations across **1.13 million images** spanning the PlatesMania and External datasets. While Qwen achieves high visual fidelity, its 8-billion parameter size, 6 GB VRAM memory requirement (in 4-bit NF4), and ~37 img/s throughput make it unsuitable for high-throughput edge deployment.
 
 The objective of this module is to **distill Qwen's color recognition capabilities directly into MobileNetV2 Model C**, enabling:
 1. **Simultaneous Make/Model (1,235 classes) and Body Color (13 classes) recognition** in a single forward pass.
@@ -172,7 +172,7 @@ Input: input_image (B, 3, 512, 512)
 ```
 
 ### Graph Integrity & Numerical Verification (`verify_multitask_onnx.py`):
-* The original graph nodes for `predictions`, `embeddings`, and `class_maps` are **100% unaltered**. Verified across 256 test images against `output_merged_run4/models/mobilenet_v2_best.onnx`: **`max |diff| = 0.000e+00`** across all three outputs (`256/256 = 100.00%` top-1 agreement).
+* The original graph nodes for `predictions`, `embeddings`, and `class_maps` are **100% unaltered**. Verified across 256 test images against `run4/output_merged_run4/models/mobilenet_v2_best.onnx`: **`max |diff| = 0.000e+00`** across all three outputs (`256/256 = 100.00%` top-1 agreement).
 * The fused ONNX color branch matches the unfused PyTorch `color_head_best.pt` (`BatchNorm1d`) across 1,024 cached validation vectors with **`max |diff| = 5.722e-06`** (`float32` rounding) and **`1024/1024 = 100.00%`** top-1 argmax agreement.
 * The color branch reads from `/features/features.16/Add_output_0` in parallel without affecting the downstream computation of `features.17` and `features.18`.
 * All 4 outputs run in a single, fused engine pass with zero duplicate FLOPs.

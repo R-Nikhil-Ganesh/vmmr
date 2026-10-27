@@ -2,7 +2,7 @@
 """
 MobileNetV2 Color Head Distillation Training (features[16] tap)
 ===============================================================
-Distills Qwen3-VL-8B color annotations (from run5/annotations.csv) into a lightweight
+Distills Qwen3-VL-8B color annotations (from run2/annotations.csv) into a lightweight
 color classification head branching from block features[16] (160 channels) of the Model C backbone.
 
 Features:
@@ -353,8 +353,8 @@ def eval_head_split(head: nn.Module, X_np: np.ndarray, y_np: np.ndarray, mean: n
 
 def main():
     parser = argparse.ArgumentParser(description="MobileNetV2 Color Distillation Training")
-    parser.add_argument("--annotations", default="code/current/mobilenet/annotation_runs/run5/annotations.csv")
-    parser.add_argument("--model-path", default="code/current/mobilenet/merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx")
+    parser.add_argument("--annotations", default="code/current/mobilenet/annotation_runs/run2/annotations.csv")
+    parser.add_argument("--model-path", default="code/current/mobilenet/run4/output_merged_run4/models/mobilenet_v2_best.onnx")
     parser.add_argument("--out-dir", default="code/current/mobilenet/color_distillation/output")
     parser.add_argument("--head-type", choices=["mlp", "mlp_512x2", "mlp_512x3", "linear"], default="mlp", help="Color head architecture")
     parser.add_argument("--min-conf", type=float, default=0.70, help="Minimum Qwen color confidence filter for training")

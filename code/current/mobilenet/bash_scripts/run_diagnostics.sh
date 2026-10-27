@@ -25,12 +25,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# RUN_NAME=<name> diagnoses merged_dataset/output_merged_<name> (defaults to output_merged_run4)
-MERGED_RUN_DIR="${MOBILENET_DIR}/merged_dataset/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run4}"
-BENCH_DIR="${MOBILENET_DIR}/mixed_benchmark_results${RUN_NAME:+_${RUN_NAME}}"
+# RUN_NAME=<name> diagnoses run4/output_merged_<name> (defaults to output_merged_run4)
+MERGED_RUN_DIR="${MOBILENET_DIR}/run4/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run4}"
 M_MODEL="${MERGED_RUN_DIR}/models/mobilenet_v2_best.onnx"
 M_MAP="${MERGED_RUN_DIR}/models/label_map.json"
-EXT_SPLITS_DIR="${MOBILENET_DIR}/merged_dataset/splits_1235models"
+EXT_SPLITS_DIR="${MOBILENET_DIR}/run4/splits_1235models"
 
 echo "=================================================================="
 echo "  MobileNetV2 diagnostics (Model C Merged)   $(date '+%Y-%m-%d %H:%M:%S')"
@@ -40,7 +39,7 @@ echo "=================================================================="
 
 if [ "${RUN_PM}" -eq 1 ]; then
     echo; echo "=== Model C (merged) on the PlatesMania test split ==="
-    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/merged_dataset/analysis/output_analysis_merged.py" \
+    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/run4/analysis/output_analysis_merged.py" \
         --domain platesmania \
         --test-csv "${PM_MANIFEST_CSV}" --base-img-dir "${PM_IMG_DIR}" \
         --model-path "${M_MODEL}" --label-map "${M_MAP}" \
@@ -50,7 +49,7 @@ fi
 
 if [ "${RUN_EXT}" -eq 1 ]; then
     echo; echo "=== Model C (merged) on the External test split ==="
-    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/merged_dataset/analysis/output_analysis_merged.py" \
+    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/run4/analysis/output_analysis_merged.py" \
         --domain external \
         --test-csv "${EXT_SPLITS_DIR}/test.csv" \
         --model-path "${M_MODEL}" --label-map "${M_MAP}" \
@@ -60,7 +59,7 @@ fi
 
 if [ "${RUN_BENCH}" -eq 1 ]; then
     echo; echo "=== Model C mixed benchmark (5,000-image samples per domain) ==="
-    mkdir -p "${MERGED_RUN_DIR}/benchmark" "${BENCH_DIR}"
+    mkdir -p "${MERGED_RUN_DIR}/benchmark"
     "${PYTHON_BIN}" -u "${MOBILENET_DIR}/evaluate_mixed.py" \
         --pm-model-path "${M_MODEL}" --pm-label-map "${M_MAP}" \
         --ext-model-path "${M_MODEL}" --ext-label-map "${M_MAP}" \
@@ -69,7 +68,6 @@ if [ "${RUN_BENCH}" -eq 1 ]; then
         --ext-train-csv "${EXT_SPLITS_DIR}/train.csv" \
         --output-dir "${MERGED_RUN_DIR}/benchmark" \
         --img-size 512 --batch-size 64 --num-workers 10 --max-eval-per-dataset 5000
-    cp -f "${MERGED_RUN_DIR}/benchmark/"* "${BENCH_DIR}/"
 fi
 
 echo; echo "  Diagnostics finished   $(date '+%Y-%m-%d %H:%M:%S')"

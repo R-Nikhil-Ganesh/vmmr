@@ -95,7 +95,7 @@ def pm_table(split, n, seed):
 
 
 def ext_table(split, n, seed):
-    splits_dir = MOBILENET_DIR / "merged_dataset" / "splits_1235models"
+    splits_dir = MOBILENET_DIR / "run4" / "splits_1235models"
     if split == "all":
         parts = []
         for s in ("train", "val", "test"):
@@ -129,7 +129,7 @@ def stage_model(table, label_map, args):
     from tqdm import tqdm
     import output_analysis as oa
 
-    ext_lm_path = MOBILENET_DIR / "merged_dataset" / "splits_1235models" / "label_map.json"
+    ext_lm_path = MOBILENET_DIR / "run4" / "splits_1235models" / "label_map.json"
     full_label_map = dict(label_map)
     if ext_lm_path.exists():
         raw_ext = json.load(open(ext_lm_path))

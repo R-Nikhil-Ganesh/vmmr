@@ -13,16 +13,16 @@ This plan maps out every single collision with exact file and line references an
 > **1. Separating the Three Dataset Eras Clearly Across All Docs**:
 > Right now, different docs mix numbers from three different generations of `splits_1235models/`:
 > - **Era 1 — Run 3 (`backup_run3`, Model B)**: `41,880` External images (`29,554` train / `6,163` val / `6,163` test), `268` train classes (`264` test) across `32` makes; `4,100` Stanford Cars rows had real bounding boxes (`9.8%`).
-> - **Era 2 — Run 4 & Annotation Runs 4–5 (`output_merged_run4`, Model C)**: `33,329` External images (`23,589` train / `4,870` val / `4,870` test), `286` classes across `35` makes; `0` bounding boxes (`bbox_* = -1` on `100%` of rows).
+> - **Era 2 — Run 4 & Annotation Runs 1–2 (`output_merged_run4`, Model C)**: `33,329` External images (`23,589` train / `4,870` val / `4,870` test), `286` classes across `35` makes; `0` bounding boxes (`bbox_* = -1` on `100%` of rows).
 > - **Era 3 — Expanded 51-Make + `< 50` Pruned Splits (Current `splits_1235models/`)**: `67,695` External images (`47,805` train / `9,945` val / `9,945` test), `471` External classes (`290` in PM + `181` External-only $\ge 50$ samples) across `49` makes (`1,416` unified classes); `0` bounding boxes (`bbox_* = -1` on `100%` of rows).
 >
-> We will explicitly label which era each report and README section refers to so historical reports (`run_3.md`, `run_4.md`, `annotation_run_4_and_5.md`) stay historically accurate for the checkpoints they describe while current guides (`README.md`, `CLAUDE.md`, `commands.md`, `e01_e02_e03_plan.md`) document both the Run 4 baseline and the expanded 1,416-class splits.
+> We will explicitly label which era each report and README section refers to so historical reports (`run_3.md`, `run_4.md`, `annotation_run_1_and_2.md`) stay historically accurate for the checkpoints they describe while current guides (`README.md`, `CLAUDE.md`, `commands.md`, `e01_e02_e03_plan.md`) document both the Run 4 baseline and the expanded 1,416-class splits.
 
 > [!WARNING]
 > **2. Resolving Unverified Technical Claims (`E-01`, `E-02`, `E-03`, `E-06`, `E-07`)**:
 > Rather than leaving unverified claims in the docs, we propose:
-> - **E-01 (BBoxes)**: Fix all docs/docstrings that falsely claim tight vehicle bounding boxes were used in Model C or Annotation Runs 4–5. Document that `external_resized_512` was pre-letterboxed to 512×512 during dataset creation (`bbox_* = -1` in the split CSVs), so Model C and Qwen used full 512×512 images with domain banner/watermark crops (`15%` top for PlatesMania, `5%` bottom for External).
-> - **E-03 (UMAP `NaN`s)**: Update `annotation_run_4_and_5.md` and `annotation/README.md` to state accurately that `stage_coords` computes 2D UMAP coordinates for a `--coords-max 30000` landmark sample (`14,870` rows in Run 4; `30,000` rows = `2.7%` in Run 5) and leaves the remaining `87.0%` / `97.3%` as `NaN` (or optionally project all rows via `reducer.transform` if desired).
+> - **E-01 (BBoxes)**: Fix all docs/docstrings that falsely claim tight vehicle bounding boxes were used in Model C or Annotation Runs 1–2. Document that `external_resized_512` was pre-letterboxed to 512×512 during dataset creation (`bbox_* = -1` in the split CSVs), so Model C and Qwen used full 512×512 images with domain banner/watermark crops (`15%` top for PlatesMania, `5%` bottom for External).
+> - **E-03 (UMAP `NaN`s)**: Update `annotation_run_1_and_2.md` and `annotation/README.md` to state accurately that `stage_coords` computes 2D UMAP coordinates for a `--coords-max 30000` landmark sample (`14,870` rows in Run 4; `30,000` rows = `2.7%` in Run 5) and leaves the remaining `87.0%` / `97.3%` as `NaN` (or optionally project all rows via `reducer.transform` if desired).
 > - **E-06 (Bit-for-Bit ONNX Identity)**: Upgrade `color_distillation/verify_multitask_onnx.py` to actually run `np.max(np.abs(...))` comparisons against `output_merged_run4/models/mobilenet_v2_best.onnx` and `color_head_best.pt` on 256 images and record the exact numerical diff in `color_distillation_report.md`.
 
 ---
@@ -38,19 +38,19 @@ flowchart TD
     end
 
     subgraph CropCollisions["2. BBox & Crop Collisions (E-01, E-02)"]
-        ANN_MD["run_docs/annotation_run_4_and_5.md (Claims tight car bboxes & PM bbox parsing)"]
+        ANN_MD["run_docs/annotation_run_1_and_2.md (Claims tight car bboxes & PM bbox parsing)"]
         TR_PY["train_mobilenet_v2_merged.py & common.py (Docstrings imply active bboxes)"]
         CMD_MD["bash_scripts/commands.md (Claims External bbox crop)"]
     end
 
     subgraph UMAPCollisions["3. UMAP Coordinate Collisions (E-03)"]
-        UMAP_1["annotation_run_4_and_5.md (Claims all 1.13M points projected)"]
+        UMAP_1["annotation_run_1_and_2.md (Claims all 1.13M points projected)"]
         UMAP_2["annotation/README.md (Claims all embeddings projected; omits --coords-max)"]
     end
 
     subgraph ColorCollisions["4. Annotation & Color Distillation Collisions (E-06, E-07, E-11)"]
-        COL_LIST["annotation_run_4_and_5.md L98 (Lists pink/purple instead of beige/other)"]
-        LEAK["annotation_run_4_and_5.md L29,140 (Reports 80%-train Combined acc as headline)"]
+        COL_LIST["annotation_run_1_and_2.md L98 (Lists pink/purple instead of beige/other)"]
+        LEAK["annotation_run_1_and_2.md L29,140 (Reports 80%-train Combined acc as headline)"]
         CACHE_SZ["color_distillation_approach.md (Says 898k/287MB vs actual 860k/262MB)"]
         DVC_TRACK["color_distillation_report.md vs approach.md (Git-tracked vs Gitignored vs DVC)"]
     end
@@ -73,7 +73,7 @@ flowchart TD
 | :--- | :--- | :--- |
 | **10–38** | Directory tree omits `annotation/`, `annotation_runs/`, `color_distillation/`, `bash_scripts/dvc.sh`, `bash_scripts/run_train_color_distillation.sh`, `errors.md`, and `run_docs/run_4.md`+. | Update directory tree to include all active modules, runners, DVC pointers, and `run_docs/` reports. |
 | **47–52** | Quick Start omits color distillation (`run_train_color_distillation.sh`) and DVC (`dvc.sh`). | Add both commands to Quick Start. |
-| **58–61, 75** | Describes Model C (`merged_dataset/`) using **Run 3's** External stats: *"41,880 curated images across 268 active models and 32 makes (train.csv: 29,554, val.csv: 6,163, test.csv: 6,163) with on-the-fly bounding-box cropping"*. | Separate into: (a) **Run 4 Model C baseline** (`33,329` External images across `286` classes / `35` makes; `23,589` train / `4,870` val / `4,870` test; `1,235` total classes) and (b) **Expanded 51-Make splits** (`67,695` External images across `471` classes / `49` makes; `47,805` train / `9,945` val / `9,945` test; `1,416` total classes with $\ge 50$ samples/class). State clearly that `external_resized_512` has `bbox_* = -1` and uses a `5%` bottom crop. |
+| **58–61, 75** | Describes Model C (`run4/`) using **Run 3's** External stats: *"41,880 curated images across 268 active models and 32 makes (train.csv: 29,554, val.csv: 6,163, test.csv: 6,163) with on-the-fly bounding-box cropping"*. | Separate into: (a) **Run 4 Model C baseline** (`33,329` External images across `286` classes / `35` makes; `23,589` train / `4,870` val / `4,870` test; `1,235` total classes) and (b) **Expanded 51-Make splits** (`67,695` External images across `471` classes / `49` makes; `47,805` train / `9,945` val / `9,945` test; `1,416` total classes with $\ge 50$ samples/class). State clearly that `external_resized_512` has `bbox_* = -1` and uses a `5%` bottom crop. |
 | **59** | Lists PlatesMania as `1,093,501` images without noting that `1,093,408` are readable (`93` unreadable across splits; `109,331 / 109,340` readable in test). | Note both manifest row count (`1,093,501`) and readable image count (`1,093,408`). |
 | **108** | `--crop-jitter 0.5`: *"randomizes the train-split crop (PlatesMania top crop, External bbox margin / bottom crop)"* | Clarify that in `splits_1235models` (`bbox_* = -1`), `--crop-jitter` randomizes the `15%` top crop (PlatesMania) and `5%` bottom crop (External). |
 
@@ -83,11 +83,11 @@ flowchart TD
 *(Note: `CLAUDE.md` is gitignored per-machine context; we will update the Research PC copy in place).*
 | Line(s) | Current Colliding / Stale Text | Ground Truth & Proposed Fix |
 | :--- | :--- | :--- |
-| **27** | *"Classes are 1235 Make/Model labels (e.g. `Toyota/Corolla`) over 35 makes."* | Note that Run 3/Run 4 models use the base `1,235` classes (`35` makes), while `merged_dataset/splits_1235models/` now extends indices `1235..1415` (`1,416` classes across `49` makes, $\ge 50$ samples/class) for next-generation training. |
+| **27** | *"Classes are 1235 Make/Model labels (e.g. `Toyota/Corolla`) over 35 makes."* | Note that Run 3/Run 4 models use the base `1,235` classes (`35` makes), while `run4/splits_1235models/` now extends indices `1235..1415` (`1,416` classes across `49` makes, $\ge 50$ samples/class) for next-generation training. |
 | **33** | Lists `platesmania_dataset/train/train_mobilenet_v2.py` and `external_dataset/train/train_mobilenet_v2_external.py` at top level. | Update path to `backup_run3/platesmania_dataset/...` and `backup_run3/external_dataset/...`. |
-| **38** | Lists `external_dataset/prepare_external_1235models.py`. | Fix path to `merged_dataset/prepare_external_1235models.py` (`E-16`). |
+| **38** | Lists `external_dataset/prepare_external_1235models.py`. | Fix path to `run4/prepare_external_1235models.py` (`E-16`). |
 | **39–42** | Omits `color_distillation/`, `bash_scripts/run_train_color_distillation.sh`, and `bash_scripts/dvc.sh`. | Add `color_distillation/` and `dvc.sh` (ephemeral `DVC_GDRIVE_CLIENT_ID` / `DVC_GDRIVE_CLIENT_SECRET` rule on Research PC). |
-| **49** | *"Large binaries (`*.npy`, `color_cache.csv`) in `annotation_runs/` are gitignored; reports (`annotations.csv`) and `viewer.html` are versioned."* | Clarify that `annotation_runs/run4/{annotations.csv,viewer.html}` are in Git, whereas `annotation_runs/run5/` (`3.44 GB`), `color_distillation/cache/` (`304 MB`), and `mobilenet_v2_multitask.onnx` (`20.6 MB`) are tracked in **DVC** (`*.dvc`). |
+| **49** | *"Large binaries (`*.npy`, `color_cache.csv`) in `annotation_runs/` are gitignored; reports (`annotations.csv`) and `viewer.html` are versioned."* | Clarify that `annotation_runs/run1/{annotations.csv,viewer.html}` are in Git, whereas `annotation_runs/run2/` (`3.44 GB`), `color_distillation/cache/` (`304 MB`), and `mobilenet_v2_multitask.onnx` (`20.6 MB`) are tracked in **DVC** (`*.dvc`). |
 
 ---
 
@@ -97,7 +97,7 @@ flowchart TD
 | Line(s) | Current Colliding / Stale Text | Ground Truth & Proposed Fix |
 | :--- | :--- | :--- |
 | **18, 52** | Notes that Run 4's External test set has `4,870` images vs `6,163` in Run 3, but omits the **crop difference** between Model B (Run 3) and Model C (Run 4). | Add explicit note (`E-01`): In Run 3, Stanford Cars (`4,100 / 41,880 = 9.8%` of External) had tight bounding boxes in the manifest, whereas in Run 4 all `33,329` images come from `external_resized_512` (pre-cropped/letterboxed to 512×512 during dataset build) with `bbox_* = -1` and a `5%` bottom crop. |
-| **61** | Describes `merged_dataset/splits_1235models/` as having `33,329` total (`23,589` train / `4,870` val / `4,870` test). | Keep the `33,329` numbers as the exact historical record for Run 4 (`output_merged_run4`), and add a footnote that `splits_1235models/` was subsequently expanded to `67,695` images (`1,416` classes across `49` makes) for post-Run-4 experiments. |
+| **61** | Describes `run4/splits_1235models/` as having `33,329` total (`23,589` train / `4,870` val / `4,870` test). | Keep the `33,329` numbers as the exact historical record for Run 4 (`output_merged_run4`), and add a footnote that `splits_1235models/` was subsequently expanded to `67,695` images (`1,416` classes across `49` makes) for post-Run-4 experiments. |
 | **63** | *"Crops: PlatesMania uses the full image minus 15% top; External uses the vehicle bbox where present and a 5% bottom crop otherwise, as in A and B."* | Correct (`E-01`): While the dataset loader supports `bbox_* >= 0`, `all_splits.csv` in Run 4 has `bbox_* = -1` on **100% of rows**, so External always uses the `5%` bottom crop of the 512×512 image. |
 
 ---
@@ -118,7 +118,7 @@ flowchart TD
 
 ### Component 3: Annotation Pipeline Docs (`E-01`, `E-02`, `E-03`, `E-11`)
 
-#### [MODIFY] [annotation_run_4_and_5.md](annotation_run_4_and_5.md)
+#### [MODIFY] [annotation_run_1_and_2.md](annotation_run_1_and_2.md)
 | Line(s) | Current Colliding / Stale Text | Ground Truth & Proposed Fix |
 | :--- | :--- | :--- |
 | **29–30** | Run Comparison Matrix compares Run 4 (`Test split only`: `98.15%` Make / `91.53%` Model) directly against Run 5 (`Full dataset`: **`98.50%` Make / `93.03%` Model**) without warning that **79.72% of Run 5 is training data** (`E-11`). | In the Run 5 column, report **Test Split (`98.15%` Make / `91.53%` Model)** alongside `(All splits incl. 80% train: 98.50% / 93.03%)` so readers do not mistake in-sample training accuracy for test generalization. |
@@ -182,7 +182,7 @@ flowchart TD
 ---
 
 #### [MODIFY] Code Docstrings & Config Verification (`E-01`, `E-06`, `E-12`, `E-21`)
-1. **[`train_mobilenet_v2_merged.py`](../merged_dataset/train/train_mobilenet_v2_merged.py#L9-L15)**:
+1. **[`train_mobilenet_v2_merged.py`](../run4/train/train_mobilenet_v2_merged.py#L9-L15)**:
    - Update module docstring to reflect that External images in `splits_1235models/` use the `5%` bottom crop (`bbox_* = -1`) and that the trainer supports both the base `1,235`-class map and the expanded `1,416`-class (`51`-make, $\ge 50$ samples) superset label map.
 2. **[`annotation/common.py`](../annotation/common.py#L30-L32)**:
    - Clarify in `crop_like_classifier` docstring that when `bbox_* = -1` (which is true for all rows in current PlatesMania and External 512×512 splits), the function applies the domain crop (`15%` top for PlatesMania, `5%` bottom for External).

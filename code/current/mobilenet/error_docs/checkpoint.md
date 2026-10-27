@@ -13,10 +13,10 @@
   - Verified on disk (`/home/researchadmin/Econ/resized_512` and `/home/researchadmin/Econ/external_resized_512`) that **PlatesMania (`1,105,650` images)** and **4 of the 5 External sources** (`stanford_cars` `6,495`, `compcars_web` `13,290`, `compcars_cctv` `33,324`, `resized_cupra` `1,590`) were already `100%` cropped to vehicle bounding boxes and letterboxed to `512×512` before Run 4/5.
   - Identified that **`boxcars116k` (`18,520` images in `external_resized_512`, `15,641` in `splits_1235models`)** was the only source whose `inst["2DBB"] = [x, y, w, h]` vehicle bounding box from `BoxCars116k/dataset.pkl` had been ignored (`"bbox": None`), leaving a 30-pixel road/pavement border around each vehicle.
   - Matched all `18,520` `boxcars116k` images to `BoxCars116k/dataset.pkl`, mapped their `2DBB` coordinates into the `512×512` letterboxed coordinate space, and saved them in:
-    - [`code/current/mobilenet/merged_dataset/boxcars116k_bboxes_512.json`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/merged_dataset/boxcars116k_bboxes_512.json)
+    - [`code/current/mobilenet/run4/boxcars116k_bboxes_512.json`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run4/boxcars116k_bboxes_512.json)
     - `/home/researchadmin/Econ/external_resized_512/external_metadata_51make.csv`
-    - `code/current/mobilenet/merged_dataset/splits_1235models/{train,val,test,all_splits}.csv` (`15,641` rows now have `bbox_x1 >= 0`)
-  - Updated [`code/current/mobilenet/merged_dataset/prepare_external_1235models.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/merged_dataset/prepare_external_1235models.py) and `/home/researchadmin/Econ/scripts/rebuild_external_resized_512.py`.
+    - `code/current/mobilenet/run4/splits_1235models/{train,val,test,all_splits}.csv` (`15,641` rows now have `bbox_x1 >= 0`)
+  - Updated [`code/current/mobilenet/run4/prepare_external_1235models.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run4/prepare_external_1235models.py) and `/home/researchadmin/Econ/scripts/rebuild_external_resized_512.py`.
 - **`E-02` (300-Sample Crop Sensitivity Study)**:
   - Executed [`code/current/mobilenet/annotation/verify_crop_agreement.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation/verify_crop_agreement.py) and generated [`code/current/mobilenet/run_docs/crop_agreement_study.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/crop_agreement_study.md):
     - **Overall Agreement**: **`71.33%`** (`300` images)
@@ -30,11 +30,11 @@
 ### Phase 1: Reproducibility, Relative Paths & API Cleanup (`E-04`, `E-17`, `E-21`) — **COMPLETED**
 - **`E-04` (Portable Relative Paths)**:
   - Added `to_rel_image_path()` and `resolve_image_path()` to [`code/current/mobilenet/annotation/common.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation/common.py).
-  - Updated [`prepare_external_1235models.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/merged_dataset/prepare_external_1235models.py), [`annotation/annotate.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation/annotate.py), [`train_common.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/train_common.py) (`ExternalMergedDataset`), and [`output_analysis.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/output_analysis.py) (`DiagnosticDataset` & `load_and_preprocess_image`).
-  - Regenerated `code/current/mobilenet/merged_dataset/splits_1235models/{train,val,test,all_splits}.csv` with portable relative paths (`images/<Make>/<file>.jpg`).
+  - Updated [`prepare_external_1235models.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run4/prepare_external_1235models.py), [`annotation/annotate.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation/annotate.py), [`train_common.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/train_common.py) (`ExternalMergedDataset`), and [`output_analysis.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/output_analysis.py) (`DiagnosticDataset` & `load_and_preprocess_image`).
+  - Regenerated `code/current/mobilenet/run4/splits_1235models/{train,val,test,all_splits}.csv` with portable relative paths (`images/<Make>/<file>.jpg`).
 - **`E-17` (`run_config.json` Provenance)**:
   - Added `save_run_config()` in [`code/current/mobilenet/train_common.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/train_common.py) and wired it into `train_mobilenet_v2_merged.py`, `annotate.py`, and `train_color_head.py`.
-  - Backfilled `run_config.json` into `merged_dataset/output_merged_run4/`, `annotation_runs/run4/`, `annotation_runs/run5/`, and `color_distillation/output/`.
+  - Backfilled `run_config.json` into `run4/output_merged_run4/`, `annotation_runs/run1/`, `annotation_runs/run2/`, and `color_distillation/output/`.
 - **`E-21` (`MobileNetV2Evaluator` Parameter Rename)**:
   - Renamed primary parameter `checkpoint_path` $\to$ `model_path` in [`code/current/mobilenet/output_analysis.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/output_analysis.py) while maintaining backward compatibility via `checkpoint_path` keyword alias.
 
@@ -51,7 +51,7 @@
   - Verified bit-identical Make/Model outputs (`max_abs_diff = 0.0`) on `mobilenet_v2_multitask.onnx` in [`code/current/mobilenet/color_distillation/verify_multitask_onnx.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/verify_multitask_onnx.py).
 - **`E-09` (Ground-Truth Color Audit on 19,479 CompCars CCTV Images & 600-Row Human Review Set)**:
   - Executed [`code/current/mobilenet/color_distillation/evaluate_compcars_color_gt.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/evaluate_compcars_color_gt.py) and generated [`code/current/mobilenet/run_docs/color_ground_truth_validation.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/color_ground_truth_validation.md) and [`code/current/mobilenet/annotation_runs/color_human_review_600.csv`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation_runs/color_human_review_600.csv):
-    - **Matched CompCars CCTV Ground-Truth Rows in `run5/annotations.csv`**: **`19,479`**
+    - **Matched CompCars CCTV Ground-Truth Rows in `run2/annotations.csv`**: **`19,479`**
     - **Strict Exact Agreement**: **`70.21%`** | **Taxonomy-Aligned Agreement** (`grey`/`silver`, `gold`/`beige`/`yellow`/`brown`): **`78.44%`**
     - **High-Confidence (`color_conf >= 0.70`, `94.6%` of rows)**: **`79.70%`** aligned agreement vs. **Low-Confidence (`color_conf < 0.70`, `5.4%` of rows)**: **`56.21%`** aligned agreement (`+23.49 pp` gain).
 
@@ -83,7 +83,7 @@
 ## 2. Remaining Work to Resume Next
 
 ### Phase 4: Cross-Domain & Shared-Class Benchmark (`E-18`) — **COMPLETED**
-- Re-evaluated **Model A** (PlatesMania) and **Model B** (External) on the regenerated External test split (`splits_1235models/test.csv`, `5,205` base-class images) and PlatesMania test split in [`mixed_benchmark_results_ab/`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/mixed_benchmark_results_ab/):
+- Re-evaluated **Model A** (PlatesMania) and **Model B** (External) on the regenerated External test split (`splits_1235models/test.csv`, `5,205` base-class images) and PlatesMania test split in [`backup_run3/mixed_benchmark_results_ab/`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/backup_run3/mixed_benchmark_results_ab/):
   - **Model B on External (In-Domain)**: **`58.58%`** Model Acc, **`71.35%`** Make Acc (revealing Run 3's `93.4%` was overfit to the CCTV subset; Model C achieves **`92.83%`** Model Acc, a **`+34.25 pp`** margin!).
   - **Model A on PlatesMania (In-Domain)**: **`91.24%`** Model Acc, **`97.39%`** Make Acc (Model C matches and beats at **`91.94%`** Model Acc, **`98.20%`** Make Acc).
   - **Model A on External (Out-of-Domain)**: Collapses to **`37.10%`** Model Acc, **`55.04%`** Make Acc (Model C closes the gap at **`92.83%`**, **`+55.73 pp`**).
@@ -99,10 +99,10 @@
   - Added global `*.onnx` rule to prevent new multi-megabyte model checkpoints from being inadvertently staged by `git add -A` / `auto_git_sync.sh`.
   - Preserved ignores for `*plotly.min.js`, `__pycache__`, and intermediate caches.
 - **Migrated all 11 legacy Git-tracked `.onnx` models to DVC** (`git rm --cached` + `dvc add`):
-  - MobileNetV2: `backup_run1/ext/`, `backup_run1/pm/`, `backup_run3/external_dataset/`, `backup_run3/platesmania_dataset/`, `merged_dataset/output_merged_run4/`.
+  - MobileNetV2: `backup_run1/ext/`, `backup_run1/pm/`, `backup_run3/external_dataset/`, `backup_run3/platesmania_dataset/`, `run4/output_merged_run4/`.
   - EfficientNet-B0: `output_efficientnet_b0_merged/`, `output_efficientnet_b0/`, `sample_inference/`.
 - **Migrated new multi-task ONNX models to DVC**: `output_mlp512x2/mobilenet_v2_multitask.onnx.dvc` and `output_unweighted_mlp128/mobilenet_v2_multitask.onnx.dvc`.
-- **Migrated `annotation_runs/run4/` to DVC**: untracked Git-tracked `annotations.csv` (34 MB) and `viewer.html` (16 MB) and tracked entire directory via `annotation_runs/run4.dvc`.
+- **Migrated `annotation_runs/run1/` to DVC**: untracked Git-tracked `annotations.csv` (34 MB) and `viewer.html` (16 MB) and tracked entire directory via `annotation_runs/run1.dvc`.
 - Zero `.onnx` files remain tracked by Git (`git ls-files "*.onnx"` returns 0). Commits stay strictly $< 100\text{ MB}$.
 - Updated [`code/current/mobilenet/errors.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/errors.md) to mark all items `E-01` through `E-21` as `[RESOLVED]` with exact empirical metrics and file references (with `E-10` documented for production night/IR deployment).
 
