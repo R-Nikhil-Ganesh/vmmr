@@ -173,8 +173,13 @@ A convenience runner is located at `code/current/mobilenet/bash_scripts/dvc.sh`:
 ./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/annotation_runs/run5
 ./code/current/mobilenet/bash_scripts/dvc.sh add code/current/mobilenet/color_distillation/cache
 
-# Push data to Google Drive
+# Push data to Google Drive (standard)
 ./code/current/mobilenet/bash_scripts/dvc.sh push
+
+# Ephemeral Push for Shared Research PC (keeps Client ID, Secret, and OAuth token strictly in RAM / Temp storage)
+export DVC_GDRIVE_CLIENT_ID="<your_client_id>"
+export DVC_GDRIVE_CLIENT_SECRET="<your_client_secret>"
+./code/current/mobilenet/bash_scripts/dvc_ephemeral.sh push
 
 # Pull data on a new machine
 ./code/current/mobilenet/bash_scripts/dvc.sh pull

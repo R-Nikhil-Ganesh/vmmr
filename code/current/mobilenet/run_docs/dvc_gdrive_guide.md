@@ -43,13 +43,22 @@ Run the following command, replacing `<FOLDER_ID>` with your actual folder ID:
 ./code/current/mobilenet/bash_scripts/dvc.sh remote modify gdrive-storage url "gdrive://<FOLDER_ID>"
 ```
 
-### Step 2.3: OAuth Client ID & Secret Policy (Research PC vs. Personal Laptop)
-* **Research PC (shared multi-user SSH server)**: **Never save private OAuth Client IDs or Secrets to disk** (neither in `.dvc/config` nor `.dvc/config.local`). Instead, export ephemeral environment variables in your active SSH session:
-  ```bash
-  export DVC_GDRIVE_CLIENT_ID="your_client_id.apps.googleusercontent.com"
-  export DVC_GDRIVE_CLIENT_SECRET="your_client_secret"
-  ```
-  These variables exist only in RAM for your active SSH session.
+### Step 2.3: Ephemeral Runner for Shared Research PC (`dvc_ephemeral.sh`)
+* **Zero Disk Footprint**: To ensure private OAuth Client IDs, Client Secrets, and refresh tokens never remain on disk on this shared multi-user server, use [`code/current/mobilenet/bash_scripts/dvc_ephemeral.sh`](../bash_scripts/dvc_ephemeral.sh).
+* **How It Works**:
+  1. Creates an isolated temporary cache directory (`mktemp -d /tmp/dvc_ephemeral_XXXXXX`, permissions `700`).
+  2. Sets `XDG_CACHE_HOME` and `DVC_SITE_CACHE_DIR` to this temporary directory so PyDrive2 stores OAuth tokens strictly in `/tmp`.
+  3. Registers an automated `EXIT / INT / TERM` trap that completely wipes the temporary token directory and unsets environment secrets immediately upon command completion or termination.
+
+```bash
+# Set your credentials in RAM (or pass inline)
+export DVC_GDRIVE_CLIENT_ID="your_client_id.apps.googleusercontent.com"
+export DVC_GDRIVE_CLIENT_SECRET="your_client_secret"
+
+# Run ephemeral push
+./code/current/mobilenet/bash_scripts/dvc_ephemeral.sh push
+```
+
 * **Personal Laptop (single-user machine)**: Storing `gdrive_client_id` and `gdrive_client_secret` in `.dvc/config.local` (which is gitignored) is acceptable for convenience.
 
 ### Step 2.4: First-Time Google Drive Authentication
