@@ -14,6 +14,7 @@ Outputs: annotations.csv (one row per image), embeddings.npy (float16, row-align
 """
 
 import argparse
+import json
 import sys
 import time
 from pathlib import Path
@@ -373,6 +374,11 @@ def main():
                 cached_table = table[cached_mask].reset_index(drop=True)
                 uncached_table = table[~cached_mask].reset_index(drop=True)
                 print(f"[cache] {len(cached_table):,} images found in cache, {len(uncached_table):,} uncached images to process")
+                for dom in table["domain"].unique():
+                    m = (table["domain"] == dom).to_numpy()
+                    miss = uncached_table.loc[uncached_table["domain"] == dom, "path"]
+                    print(f"[cache]   {dom}: {int(cached_mask[m].sum()):,}/{int(m.sum()):,} cached"
+                          + (f"; e.g. uncached {miss.iloc[0]!r}" if len(miss) else ""))
 
                 c_idx_map = {k: i for i, k in enumerate(zip(c_df["path"].astype(str), c_df["domain"].astype(str)))}
                 cached_indices = [c_idx_map[k] for k in zip(cached_table["path"].astype(str), cached_table["domain"].astype(str))]
