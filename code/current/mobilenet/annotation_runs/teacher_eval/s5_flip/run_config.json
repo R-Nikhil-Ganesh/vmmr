@@ -1,0 +1,47 @@
+{
+  "script": "annotation/eval_color_teacher.py",
+  "timestamp_utc": "2026-10-29T16:00:38.185465+00:00",
+  "argv": [
+    "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation/eval_color_teacher.py",
+    "--tag",
+    "s5_flip",
+    "--qwen-model",
+    "Qwen/Qwen3-VL-8B-Instruct",
+    "--no-4bit",
+    "--scoring",
+    "variants",
+    "--tta",
+    "flip"
+  ],
+  "args": {
+    "tag": "s5_flip",
+    "annotations": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation_runs/run2/annotations.csv",
+    "ext_meta": "/home/researchadmin/Econ/external_resized_512/external_metadata_51make.csv",
+    "split": "val",
+    "review_csv": null,
+    "max_samples": null,
+    "seed": 42,
+    "out_dir": null,
+    "batch_size": 8,
+    "num_workers": 8,
+    "color_head": "qwen3vl",
+    "qwen_model": "Qwen/Qwen3-VL-8B-Instruct",
+    "max_side": 336,
+    "no_4bit": true,
+    "scoring": "variants",
+    "prompt_style": "short",
+    "center_crop": 0.0,
+    "tta": "flip"
+  },
+  "git_commit": "72ec80548ba8b23aa6616b1677ac7bb9f92bae13",
+  "git_dirty": true,
+  "environment": {
+    "hostname": "RMP-RESEARCH4",
+    "user": "researchadmin",
+    "python_version": "3.10.12",
+    "torch_version": "2.14.1+cu130",
+    "onnxruntime_version": "1.23.2",
+    "cuda_available": true,
+    "cuda_device": "NVIDIA GeForce RTX 4090"
+  }
+}

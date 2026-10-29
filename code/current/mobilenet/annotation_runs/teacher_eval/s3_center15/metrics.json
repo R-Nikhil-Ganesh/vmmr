@@ -1,0 +1,163 @@
+{
+  "tag": "s3_center15",
+  "split": "val",
+  "n_unreadable": 0,
+  "img_per_s": 32.3,
+  "mean_option_mass": 1.0,
+  "compcars": {
+    "n": 2859,
+    "strict_acc_pct": 71.28,
+    "grouped_acc_pct": 79.64,
+    "grouped_recall_pct": {
+      "black": 93.39,
+      "white": 78.69,
+      "red": 82.13,
+      "yellow": 25.81,
+      "blue": 50.65,
+      "green": 12.0,
+      "purple": 84.62,
+      "brown": 6.02,
+      "champagne": 4.69,
+      "silver": 84.75
+    },
+    "grouped_precision_pct": {
+      "black": 79.83,
+      "white": 98.01,
+      "red": 94.44,
+      "yellow": 100.0,
+      "blue": 97.5,
+      "green": 100.0,
+      "purple": 78.57,
+      "brown": 13.89,
+      "champagne": 25.0,
+      "silver": 71.03
+    },
+    "confusion_grouped": {
+      "black": {
+        "black": 946,
+        "white": 2,
+        "red": 1,
+        "yellow": 0,
+        "blue": 1,
+        "green": 0,
+        "purple": 0,
+        "brown": 0,
+        "champagne": 1,
+        "silver": 62
+      },
+      "white": {
+        "black": 1,
+        "white": 395,
+        "red": 2,
+        "yellow": 0,
+        "blue": 0,
+        "green": 0,
+        "purple": 0,
+        "brown": 0,
+        "champagne": 0,
+        "silver": 104
+      },
+      "red": {
+        "black": 11,
+        "white": 1,
+        "red": 170,
+        "yellow": 0,
+        "blue": 0,
+        "green": 0,
+        "purple": 2,
+        "brown": 23,
+        "champagne": 0,
+        "silver": 0
+      },
+      "yellow": {
+        "black": 7,
+        "white": 1,
+        "red": 6,
+        "yellow": 16,
+        "blue": 0,
+        "green": 0,
+        "purple": 0,
+        "brown": 8,
+        "champagne": 7,
+        "silver": 17
+      },
+      "blue": {
+        "black": 17,
+        "white": 0,
+        "red": 0,
+        "yellow": 0,
+        "blue": 39,
+        "green": 0,
+        "purple": 0,
+        "brown": 0,
+        "champagne": 0,
+        "silver": 21
+      },
+      "green": {
+        "black": 15,
+        "white": 0,
+        "red": 0,
+        "yellow": 0,
+        "blue": 0,
+        "green": 3,
+        "purple": 0,
+        "brown": 0,
+        "champagne": 0,
+        "silver": 7
+      },
+      "purple": {
+        "black": 2,
+        "white": 0,
+        "red": 0,
+        "yellow": 0,
+        "blue": 0,
+        "green": 0,
+        "purple": 11,
+        "brown": 0,
+        "champagne": 0,
+        "silver": 0
+      },
+      "brown": {
+        "black": 51,
+        "white": 0,
+        "red": 1,
+        "yellow": 0,
+        "blue": 0,
+        "green": 0,
+        "purple": 1,
+        "brown": 5,
+        "champagne": 0,
+        "silver": 25
+      },
+      "champagne": {
+        "black": 15,
+        "white": 1,
+        "red": 0,
+        "yellow": 0,
+        "blue": 0,
+        "green": 0,
+        "purple": 0,
+        "brown": 0,
+        "champagne": 3,
+        "silver": 45
+      },
+      "silver": {
+        "black": 120,
+        "white": 3,
+        "red": 0,
+        "yellow": 0,
+        "blue": 0,
+        "green": 0,
+        "purple": 0,
+        "brown": 0,
+        "champagne": 1,
+        "silver": 689
+      }
+    }
+  },
+  "compcars_old_teacher_same_rows": {
+    "n": 2859,
+    "strict_acc_pct": 70.23,
+    "grouped_acc_pct": 78.91
+  }
+}

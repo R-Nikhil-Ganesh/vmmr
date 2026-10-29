@@ -1,0 +1,10 @@
+tag,split,max_side,4bit,scoring,prompt,center_crop,tta,model,img_per_s,n,strict,grouped,old_grouped,rec_black,rec_white,rec_red,rec_yellow,rec_blue,rec_green,rec_purple,rec_brown,rec_champagne,rec_silver
+s0_original,val,336,True,first_token,short,0.0,none,Qwen3-VL-8B-Instruct,29.9,2859,70.23,78.7,78.91,92.1,74.9,79.23,27.42,51.95,12.0,84.62,10.84,6.25,85.24
+s1_bf16,val,336,False,first_token,short,0.0,none,Qwen3-VL-8B-Instruct,32.87,2859,72.58,80.62,78.91,92.79,79.48,84.54,29.03,53.25,12.0,84.62,10.84,7.81,86.59
+s2_variants,val,336,False,variants,short,0.0,none,Qwen3-VL-8B-Instruct,32.68,2859,72.02,80.41,78.91,92.6,78.88,83.57,29.03,53.25,12.0,84.62,10.84,7.81,86.72
+s2_letters,val,336,False,letters,short,0.0,none,Qwen3-VL-8B-Instruct,29.11,2859,72.58,82.16,78.91,94.37,83.47,90.34,32.26,53.25,12.0,69.23,10.84,7.81,86.1
+s3_side672,val,672,False,variants,short,0.0,none,Qwen3-VL-8B-Instruct,17.74,2859,71.74,80.55,78.91,92.0,76.29,84.54,29.03,53.25,16.0,84.62,10.84,7.81,89.18
+s3_side1024,val,1024,False,variants,short,0.0,none,Qwen3-VL-8B-Instruct,16.55,2859,71.7,80.62,78.91,92.2,76.1,84.54,29.03,53.25,16.0,84.62,12.05,7.81,89.18
+s3_center15,val,336,False,variants,short,0.15,none,Qwen3-VL-8B-Instruct,32.3,2859,71.28,79.64,78.91,93.39,78.69,82.13,25.81,50.65,12.0,84.62,6.02,4.69,84.75
+s4_defined,val,336,False,variants,defined,0.0,none,Qwen3-VL-8B-Instruct,20.74,2859,72.44,76.01,78.91,94.87,57.57,82.13,24.19,55.84,12.0,84.62,14.46,7.81,81.67
+s5_flip,val,336,False,variants,short,0.0,flip,Qwen3-VL-8B-Instruct,16.64,2859,72.16,80.38,78.91,93.09,78.88,84.06,29.03,51.95,12.0,84.62,12.05,6.25,85.98
