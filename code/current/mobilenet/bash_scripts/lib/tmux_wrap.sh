@@ -35,7 +35,7 @@ run_in_tmux() {
 
     # The tmux server has its own environment, so forward what the script needs
     local envs="" k a args=""
-    for k in PATH VIRTUAL_ENV CUDA_VISIBLE_DEVICES RUN_NAME MODEL_RUN CACHE_FROM AUTO_GIT_PUSH ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV \
+    for k in PATH VIRTUAL_ENV CUDA_VISIBLE_DEVICES RUN_NAME MODEL_RUN CACHE_FROM SWEEP AUTO_GIT_PUSH ECON_ROOT PM_IMG_DIR PM_MANIFEST_CSV \
              PM_LABEL_MAP EXT_DATASETS_DIR PYTHON_BIN REPO_ROOT MOBILENET_DIR ANNOT_OUT_DIR QWEN_MODEL_DIR HF_HOME HF_TOKEN; do
         if [ -n "${!k+x}" ]; then envs="${envs} ${k}=$(printf '%q' "${!k}")"; fi
     done

@@ -8,6 +8,7 @@ Run everything from `vmmr/code/current/mobilenet/`. The runners in `bash_scripts
 | Train Model C (PlatesMania + External merged) | `bash bash_scripts/run_train_merged.sh [flags]` | `train_merged` |
 | Diagnostics + mixed benchmark | `bash bash_scripts/run_diagnostics.sh [options]` | `diagnostics` |
 | Annotate images (make/model + Qwen3-VL color) + build `viewer.html` | `bash bash_scripts/run_annotate.sh [flags]` | `annotate` |
+| Score the Qwen color teacher against CompCars human labels (one config or a sweep) | `RUN_NAME=<tag> bash bash_scripts/run_eval_color_teacher.sh [flags]` / `SWEEP=1 bash ...` | `eval_color_teacher` |
 | Distill color into MobileNetV2 (`features[16]` tap) -> ONNX | `bash bash_scripts/run_train_color_distillation.sh [flags]` | `color_distill` |
 | Run DVC commands (`status`, `add`, `push`, `pull`) | `./bash_scripts/dvc.sh <subcommand>` | *(foreground)* |
 
@@ -28,6 +29,7 @@ A second launch with a session name that is already running is refused (it print
 | Variable | Effect |
 |---|---|
 | `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `run4/output_merged_<name>` (training, diagnostics, and `benchmark/`), `annotation_runs/<name>` (annotation), session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=merged_51make` for training, `RUN_NAME=run2` for annotation). |
+| `SWEEP=1` | `run_eval_color_teacher.sh` runs the one-factor teacher sweep (`s0_original` ... `s5_flip`) instead of a single `RUN_NAME` configuration. |
 | `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `run4/output_merged_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`). |
 | `CACHE_FROM=<dir>` | Used by `run_annotate.sh` to reuse predictions, embeddings, and Qwen color labels from an earlier annotation folder (defaults to `${ANNOT_OUT_DIR}/run1` if present). |
 | `NO_TMUX=1` | Run in the foreground instead of tmux (debugging, cron, CI). |
@@ -116,6 +118,9 @@ Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `u
 | `--color-batch-size N` | Qwen batch (default `16`) |
 | `--qwen-max-side N` | Max image side for Qwen vision tokens (default: `336` for fast inference) |
 | `--no-4bit` | Disable 4-bit NF4 quantization and use bfloat16 |
+| `--qwen-scoring first_token\|variants\|letters` | How answers are scored. `first_token` (default, Runs 1/2) only sees lowercase, no-space color tokens, so a `White` answer is missed; `variants` sums case/space variants; `letters` scores `A)`..`M)` options |
+| `--qwen-prompt short\|defined` | `defined` adds color definitions and "body paint only" instructions |
+| `--qwen-center-crop F` / `--qwen-tta none\|flip` | Trim fraction F around the center; average over a horizontal flip |
 | `--reuse-model-stage` | Skip the ONNX stage if `annotations.csv` and `embeddings.npy` exist |
 | `--coords-max N` | Rows that get 2-D embedding coordinates (default 30000) |
 | `--max-points N` | Points with thumbnails embedded in the viewer (default `15000`) |
@@ -123,6 +128,29 @@ Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `u
 | `--no-viewer` | Skip building the HTML |
 
 To rebuild only the viewer: `python annotation/build_viewer.py --annotations <dir>/annotations.csv --max-points 15000 --workers 16`.
+
+---
+
+## `run_eval_color_teacher.sh` (Qwen color teacher vs human labels)
+
+Scores a teacher configuration on the CompCars human-labeled rows (19,479 matched; default `--split val`, 2,859 rows) and writes `${ANNOT_OUT_DIR}/teacher_eval/<tag>/` (`predictions.csv` with the full 13-color probabilities, `metrics.json`) plus one line in `teacher_eval/summary.csv`. Tune on `val`; score `test` once at the end.
+
+```bash
+SWEEP=1 bash bash_scripts/run_eval_color_teacher.sh --max-samples 200     # dry run of every configuration
+SWEEP=1 bash bash_scripts/run_eval_color_teacher.sh                       # one-factor sweep on val (s0_original ... s5_flip)
+RUN_NAME=best_val   bash bash_scripts/run_eval_color_teacher.sh --no-4bit --scoring letters --max-side 672 --prompt-style defined
+RUN_NAME=best_train bash bash_scripts/run_eval_color_teacher.sh --split train <same flags>          # for calibration
+python annotation/calibrate_color_teacher.py --train-dir annotation_runs/teacher_eval/best_train --val-dir annotation_runs/teacher_eval/best_val
+```
+
+| Option | Meaning |
+|---|---|
+| `--split train\|val\|test\|all` | CompCars human-GT rows to score (default `val`) |
+| `--review-csv PATH` | Also score filled-in rows of `annotation_runs/color_human_review_600.csv` (13-color, both domains) |
+| `--max-samples N` | Random subsample |
+| `--no-4bit`, `--max-side N`, `--scoring`, `--prompt-style`, `--center-crop F`, `--tta` | Head options, same meaning as the `--qwen-*` flags of `run_annotate.sh`; defaults = Runs 1/2 |
+
+`calibrate_color_teacher.py` fits a logistic regression from the teacher's probabilities to the human labels on the train rows and reports val accuracy before/after. Its output is in the CompCars 10-color taxonomy (gray inside silver, beige/gold inside champagne).
 
 ---
 

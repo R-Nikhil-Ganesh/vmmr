@@ -51,6 +51,11 @@ def parse_args():
     p.add_argument("--color-batch-size", type=int, default=16)
     p.add_argument("--qwen-max-side", type=int, default=336, help="Max image dimension for Qwen (default: 336 for fast inference)")
     p.add_argument("--no-4bit", action="store_true", help="Disable 4-bit quantization and use bfloat16")
+    p.add_argument("--qwen-scoring", default="first_token", choices=["first_token", "variants", "letters"],
+                   help="how Qwen answers are scored (see color_heads.Qwen3VLHead); default = Runs 1/2")
+    p.add_argument("--qwen-prompt", default="short", help="color_heads.PROMPTS key ('short' = Runs 1/2, 'defined')")
+    p.add_argument("--qwen-center-crop", type=float, default=0.0, help="fraction trimmed off around the center")
+    p.add_argument("--qwen-tta", default="none", choices=["none", "flip"])
     p.add_argument("--review-conf", type=float, default=0.70, help="model confidence below this -> needs_review")
     p.add_argument("--review-color-conf", type=float, default=0.50, help="color confidence below this -> needs_review")
     p.add_argument("--max-points", type=int, default=15000, help="points (with thumbnails) embedded in the viewer")
@@ -273,7 +278,8 @@ def stage_color(df, out_dir, args):
 
     if len(todo):
         head = build_head(args.color_head, model_id=args.qwen_model, max_side=args.qwen_max_side,
-                          load_in_4bit=not args.no_4bit)
+                          load_in_4bit=not args.no_4bit, scoring=args.qwen_scoring, prompt_style=args.qwen_prompt,
+                          center_crop=args.qwen_center_crop, tta=args.qwen_tta)
         new, t0 = [], time.time()
         recs = todo.to_dict("records")
         for i in range(0, len(recs), args.color_batch_size):
