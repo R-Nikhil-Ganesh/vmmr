@@ -87,6 +87,14 @@ COMMIT_MSG="feat(mobilenet): auto-sync ${TASK_DESC} [$(date '+%Y-%m-%d %H:%M:%S'
 
 git commit -m "${COMMIT_MSG}"
 
+# Ensure SSH_AUTH_SOCK is available for git push if user has an active SSH agent
+if [ -z "${SSH_AUTH_SOCK:-}" ] || [ ! -S "${SSH_AUTH_SOCK}" ]; then
+    ACTIVE_SOCK=$(find /tmp -name "agent.*" -type s -user "${USER:-$(whoami)}" 2>/dev/null | head -n 1 || true)
+    if [ -n "${ACTIVE_SOCK}" ]; then
+        export SSH_AUTH_SOCK="${ACTIVE_SOCK}"
+    fi
+fi
+
 echo "  [Git Auto-Sync] Pushing to origin ${BRANCH}..."
 if git push origin "${BRANCH}"; then
     echo "  [Git Auto-Sync] Push successful! Commit: $(git rev-parse --short HEAD)"
