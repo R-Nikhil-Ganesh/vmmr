@@ -30,7 +30,9 @@ vmmr/code/current/mobilenet/
 │   ├── layer_probe.py                        # 8-layer empirical linear/MLP color probe
 │   ├── verify_multitask_onnx.py              # Signature, latency, and numerical equivalence verifier
 │   ├── cache.dvc                             # DVC pointer for L16 feature cache (304 MB)
-│   └── output/                               # Trained color head & mobilenet_v2_multitask.onnx (.dvc)
+│   ├── output_mlp512x2/                      # [REFERENCE] Deep MLP-512x2 head & mobilenet_v2_multitask.onnx (.dvc, 75.5% test / 77.4% human GT)
+│   ├── output_unweighted_mlp128/             # [ABLATION 1] Unweighted 128-unit MLP (73.2% test / 74.9% human GT)
+│   └── output/                               # [BASELINE] Historical 128-unit weighted MLP head & ONNX (.dvc, 68.0% val)
 │
 ├── backup_run3/                          # Archived Run 3 single-dataset pipelines (platesmania_dataset, external_dataset, mixed_benchmark_results_ab)
 ├── backup_run2/                          # Archived Run 2 35-make diagnostics
@@ -48,7 +50,7 @@ vmmr/code/current/mobilenet/
 ├── paths.py                              # Python side of the single path config (bash_scripts/lib/paths.sh)
 ├── train_common.py                       # Shared datasets, model builder, ONNX export, GPU augmentation, objective & EMA
 ├── error_docs/                           # Audit logs, error trackers, verification studies, and resolution plans
-├── run_docs/                             # Benchmark & architecture reports (run_1..4, annotation, color distillation, DVC)
+├── run_docs/                             # Benchmark & architecture reports (run_1..4, run_5_implementation_plan, color distillation, DVC)
 └── README.md                             # Documentation & user guide
 ```
 

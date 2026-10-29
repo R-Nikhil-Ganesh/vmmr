@@ -128,29 +128,53 @@ To rebuild only the viewer: `python annotation/build_viewer.py --annotations <di
 
 ## `run_train_color_distillation.sh` (Color Distillation -> Multi-Task ONNX)
 
-Distills Qwen3-VL-8B color labels from `run2/annotations.csv` into a lightweight classification head branching from block `features[16]` (160 channels) of the Model C backbone (`MODEL_RUN=run4` by default). Caches extracted features to disk (`cache/features_L16_train.npy`, 262.45 MB for the 860,006 `color_conf >= 0.70` train rows) for rapid training, trains for 25 epochs using class-weighted cross-entropy, and automatically exports a unified `mobilenet_v2_multitask.onnx`.
+Distills Qwen3-VL-8B color labels from `run5/annotations.csv` into a lightweight classification head branching from block `features[16]` (160 channels) of the Model C backbone (`MODEL_RUN=run4` by default). Caches extracted features to disk (`cache/features_L16_train.npy`, 262.45 MB for the 860,006 `color_conf >= 0.70` train rows) for rapid training, trains over cached vectors in <2 minutes, and automatically exports a unified `mobilenet_v2_multitask.onnx`.
+
+> **Reference Production Head**: The production standard is the **Unweighted Deep MLP-512×2** head in `output_mlp512x2/` (**75.53% held-out test top-1**, **77.43% CompCars human ground truth**), trained via `run_phase3_color_ablations.sh`.
 
 ```bash
-bash bash_scripts/run_train_color_distillation.sh                # train MLP head (default)
-bash bash_scripts/run_train_color_distillation.sh --head-type linear   # train fast linear head
-bash bash_scripts/run_train_color_distillation.sh --skip-extract       # train on existing cached features
+# 1. Train the Reference Production Head (Deep MLP-512x2, Unweighted, LS 0.0)
+bash bash_scripts/run_phase3_color_ablations.sh
+
+# 2. Or train Reference Head directly via Python
+python3 color_distillation/train_color_head.py \
+  --head-type mlp_512x2 \
+  --no-class-weights \
+  --label-smoothing 0.0 \
+  --batch-size 2048 \
+  --skip-extract \
+  --out-dir color_distillation/output_mlp512x2
+
+# 3. Train historical baseline 128-unit MLP head (weighted, LS 0.05)
+bash bash_scripts/run_train_color_distillation.sh
+
+# 4. Verify Reference Multi-Task ONNX model signature, latency & accuracy
+python3 color_distillation/verify_multitask_onnx.py \
+  --onnx-path color_distillation/output_mlp512x2/mobilenet_v2_multitask.onnx \
+  --pt-head-path color_distillation/output_mlp512x2/color_head_best.pt
 ```
 
 | Option | Meaning |
 |---|---|
-| `--head-type {mlp,linear}` | Color head architecture (`mlp`: 160 -> 128 -> 13; `linear`: 160 -> 13) |
+| `--head-type {mlp_512x2,mlp,linear}` | Color head architecture (`mlp_512x2`: 160 -> 512 -> 512 -> 13 [Reference]; `mlp`: 160 -> 128 -> 13; `linear`: 160 -> 13) |
+| `--no-class-weights` | Disables inverse-frequency weights (crucial: fixes rare-color precision collapse [E-08]) |
 | `--epochs N` | Training epochs (default `25`) |
-| `--batch-size N` | Batch size for training (default `512`) |
+| `--batch-size N` | Batch size for training (default `512` or `2048`) |
 | `--lr F` | Learning rate with cosine annealing (default `1e-3`) |
-| `--label-smoothing F` | Label smoothing for regularization (default `0.05`) |
+| `--label-smoothing F` | Label smoothing for regularization (`0.0` for reference head, `0.05` for baseline) |
 | `--min-conf F` | Minimum Qwen color confidence filter (default `0.70`) |
 | `--extract-batch-size N`| Batch size for ONNX feature extraction (default `128`) |
 | `--skip-extract` | Skip feature extraction and immediately train on cached `.npy` |
+| `--out-dir DIR` | Target output directory (default: `output/`; use `output_mlp512x2/` for reference) |
 
-Output: `code/current/mobilenet/color_distillation/output/` containing:
-- `color_head_best.pt` (PyTorch state dict)
-- `mobilenet_v2_multitask.onnx` (Unified ONNX model with `predictions`, `color_predictions`, `embeddings`, `class_maps`)
-- `training_history.csv` & `final_report.txt`
+Output Directories:
+- **`code/current/mobilenet/color_distillation/output_mlp512x2/` [REFERENCE PRODUCTION MODEL]**:
+  - `mobilenet_v2_multitask.onnx` (Unified ONNX model, 22.4 MB, DVC-tracked)
+  - `color_head_best.pt` (Deep MLP-512×2 PyTorch state dict, 1.4 MB)
+  - `eval_metrics.json`, `training_history.csv`, `final_report.txt`
+- `code/current/mobilenet/color_distillation/output/` [HISTORICAL BASELINE]:
+  - `mobilenet_v2_multitask.onnx` (128-unit weighted ONNX, 20.61 MB)
+  - `color_head_best.pt` (128-unit PyTorch state dict, 93 KB)
 
 ## Building the External Splits
 

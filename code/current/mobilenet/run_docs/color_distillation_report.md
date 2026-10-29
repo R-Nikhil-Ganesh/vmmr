@@ -2,28 +2,33 @@
 
 **Experiment**: Color Distillation from Qwen3-VL-8B into MobileNetV2 Model C via `features[16]` Tap  
 **Directory**: `vmmr/code/current/mobilenet/color_distillation/`  
-**Date**: October 16, 2026  
+**Date**: October 2026 (Updated with Phase 3 E-08 Reference Head)  
 **Hardware**: NVIDIA GeForce RTX 4090 (24 GB VRAM), 64 GB RAM, Ubuntu Linux  
 **Models Produced**:
-- PyTorch Head: `color_distillation/output/color_head_best.pt` (93 KB)
-- Multi-Task ONNX Model: `color_distillation/output/mobilenet_v2_multitask.onnx` (20.61 MB)
+- ⭐ **Reference Multi-Task ONNX Model**: `color_distillation/output_mlp512x2/mobilenet_v2_multitask.onnx` (**22.4 MB**, DVC-tracked)
+  - PyTorch Head: `color_distillation/output_mlp512x2/color_head_best.pt` (**1.4 MB**, Git-tracked)
+  - Configuration: Deep MLP-512×2, unweighted cross-entropy (`--no-class-weights`), label smoothing 0.0
+- **Historical Baseline ONNX Model**: `color_distillation/output/mobilenet_v2_multitask.onnx` (20.61 MB, DVC-tracked)
+  - PyTorch Head: `color_distillation/output/color_head_best.pt` (93 KB, 128-unit weighted MLP)
 
 ---
 
 ## 1. Executive Summary
 
-In this milestone, we distilled Vision-Language color pseudo-labels from **Qwen3-VL-8B-Instruct** (generated across 1.13M images in Annotation Run 2) into a lightweight classification head branching directly from intermediate layer **`features[16]`** (160 channels) of the production **MobileNetV2 Model C** backbone.
+In this milestone, we distilled Vision-Language color pseudo-labels from **Qwen3-VL-8B-Instruct** (generated across 1.13M images in Annotation Run 5) into a lightweight classification head branching directly from intermediate layer **`features[16]`** (160 channels) of the production **MobileNetV2 Model C** backbone.
 
 ### Key Performance Highlights
 
 * **Unified Multi-Task Model**: Evaluates Make/Model (`1,235` classes), Body Color (`13` classes), Latent Embeddings (`1,280`-D), and Class Activation Maps (`16 \times 16`) simultaneously in a single forward pass.
-* **Inference Latency**: **1.11 ms per image (905 FPS)** on RTX 4090 using `CUDAExecutionProvider`.
-* **Accuracy on High-Confidence Validation Subset (109,454 / 114,252 images with `color_conf >= 0.70`, 95.8% coverage)**:
-  * **Top-1 Color Agreement (vs. Qwen3-VL-8B pseudo-labels)**: **68.0%**
-  * **Weighted Average F1**: **69.0%** (Macro F1: **57.0%**)
-  * **Top Performing Colors**: Red (90% F1), Yellow (81% F1), White (82% F1), Black (73% F1), Orange (69% F1), Silver (67% F1).
-  * *Evaluation Caveat (`E-07`/`E-08`)*: These metrics are scored on the `color_conf >= 0.70` validation subset against Qwen pseudo-labels (excluding the 4.2% lowest-confidence rows), and inverse-frequency class weights (`[0.25, 4.0]`) boost recall on rare classes (`green`, `brown`, `beige`) at the expense of precision (`21–28%`).
-* **Model Footprint**: The multi-task model is **20.61 MB** (adding only ~90 KB over the single-task Model C ONNX).
+* **Inference Latency**: **1.11 ms per image (~900 FPS)** on RTX 4090 using `CUDAExecutionProvider` for both the baseline and the Deep MLP-512×2 reference head (<0.04 ms isolated compute difference).
+* **Reference Head Accuracy (Deep MLP-512×2, `output_mlp512x2`)**:
+  * **Held-Out Test Top-1 (`color_conf >= 0.70`, 110,217 images)**: **`75.53%`** (Macro F1: **`62.89%`**, Top-3: **`95.81%`**)
+  * **All Held-Out Test Rows (114,201 images, 100% coverage)**: **`74.31%`** (Top-3: **`95.40%`**)
+  * **Independent CompCars Human Ground-Truth (2,867 test images)**: **`77.43%`** (recovering **98.7%** of the Qwen3-VL-8B teacher model's `78.44%` score with zero human labels used during training).
+  * **Rare-Color Precision Recovery (`E-08`)**: Removing inverse-frequency class weights eliminated false-positive explosions: `green` precision rose from `28% -> 66%`, `brown` from `27% -> 61%`, and `beige` from `21% -> 52%` (Macro precision average: **`71.0%`** vs `56.0%`).
+* **Historical Baseline (Weighted MLP-128, `output`)**:
+  * Scored `68.0%` validation accuracy on high-confidence images with severe rare-color precision collapse due to class weighting.
+* **Model Footprint**: The reference multi-task model is **22.4 MB** (adding ~1.4 MB over the base Model C ONNX).
 * **Zero Make/Model Degradation (Verified)**: Splicing the color head preserves exact bit-for-bit numerical identity (`max |diff| = 0.000e+00` across 256 test images) for all original make/model outputs (`predictions`, `embeddings`, `class_maps`).
 
 ---
@@ -137,7 +142,7 @@ Removing class weights directly resolved the precision collapse on rare colors:
 
 ## 5. Multi-Task ONNX Model Verification
 
-The multi-task model `color_distillation/output/mobilenet_v2_multitask.onnx` was verified via `verify_multitask_onnx.py`:
+Both the baseline and the **reference `output_mlp512x2`** multi-task models were verified via `verify_multitask_onnx.py`:
 
 ```text
 --- Model Signatures ---
@@ -148,9 +153,13 @@ Outputs:
   - class_maps          : shape=['batch_size', 1235, 16, 16], type=tensor(float)
   - color_predictions   : shape=['batch_size', 13], type=tensor(float)
 
---- Latency Benchmark (RTX 4090) ---
-Single-image forward latency: 1.11 ms (904.7 FPS)
-Batched (batch=32) latency:   1.09 ms per image (917.0 FPS)
+--- Latency Benchmark on RTX 4090 (CUDAExecutionProvider) ---
+Reference Model (Deep MLP-512x2, output_mlp512x2):
+  Single-image forward latency: 1.11 ms (902.8 FPS)
+  Batched (batch=32) latency:   1.28 ms per image (779.0 FPS)
+Baseline Model (MLP-128, output):
+  Single-image forward latency: 1.13 ms (881.6 FPS)
+  Batched (batch=32) latency:   1.27 ms per image (784.9 FPS)
 
 --- Numerical Equivalence vs Base Model C ONNX (256 images) ---
 Checked 256 test images:
@@ -160,7 +169,7 @@ Checked 256 test images:
 
 --- Numerical Equivalence: PyTorch Color Head vs Fused ONNX Weights ---
 Checked 1,024 cached validation feature vectors:
-  color_predictions max |diff| (unfused BN vs fused ONNX GEMM): 5.722e-06
+  color_predictions max |diff| (unfused BN vs fused ONNX GEMMs): 6.840e-06
   color_predictions top-1 argmax agreement: 1024/1024 (100.00%)
 ```
 
@@ -172,10 +181,13 @@ Large binaries (`mobilenet_v2_multitask.onnx` and `cache/`) are tracked via **DV
 
 | File | Size | Tracking | Description |
 | :--- | :---: | :---: | :--- |
-| `color_distillation/output/mobilenet_v2_multitask.onnx` | **20.61 MB** | **DVC** (`.onnx.dvc`) | Spliced 4-output ONNX production model |
+| ⭐ `color_distillation/output_mlp512x2/mobilenet_v2_multitask.onnx` | **22.40 MB** | **DVC** (`.onnx.dvc`) | **Reference Production Multi-Task ONNX Model** |
+| `color_distillation/output_mlp512x2/color_head_best.pt` | **1.41 MB** | Git | Reference Deep MLP-512×2 PyTorch weights |
+| `color_distillation/output_mlp512x2/eval_metrics.json` | **400 B** | Git | Held-out test (all & conf>=0.70) evaluation metrics |
+| `color_distillation/output_mlp512x2/final_report.txt` | **1.8 KB** | Git | Full per-class classification report (val & test) |
+| `color_distillation/output_unweighted_mlp128/mobilenet_v2_multitask.onnx` | **21.00 MB** | **DVC** (`.onnx.dvc`) | Ablation 1 unweighted 128-unit ONNX model |
+| `color_distillation/output/mobilenet_v2_multitask.onnx` | **20.61 MB** | **DVC** (`.onnx.dvc`) | Historical baseline 128-unit weighted ONNX model |
+| `color_distillation/output/color_head_best.pt` | **93 KB** | Git | Historical baseline PyTorch weights state dict |
 | `color_distillation/cache/` | **303.25 MB** | **DVC** (`cache.dvc`) | Cached `features_L16_{train,val}.npy` & `labels_{train,val}.npy` |
-| `color_distillation/output/color_head_best.pt` | **93 KB** | Git | Trained PyTorch weights state dict |
-| `color_distillation/output/training_history.csv` | **2.4 KB** | Git | Epoch-by-epoch training and validation loss/acc |
-| `color_distillation/output/final_report.txt` | **920 B** | Git | Full per-class classification report |
 | `color_distillation/probe_results.csv` | **7.5 KB** | Git | Phase 1 8-layer benchmark table |
 | `color_distillation/probe_results.json` | **11.4 KB** | Git | Full per-class layer probe JSON metrics |

@@ -64,7 +64,7 @@
 - **Ablation Results**:
   - Removing inverse-frequency class weights eliminated rare-class false-positives: `green` precision rose from `28% -> 66%`, `brown` from `27% -> 61%`, `beige` from `21% -> 52%`, and macro precision average jumped from `56% -> 71%`.
   - Deep MLP-512×2 lifted validation Top-1 accuracy to **`75.85%`** (+7.85 pp), Top-3 to **`96.17%`**, and Macro F1 to **`63.96%`** (+8.30 pp).
-  - Unbiased held-out test evaluation on `110,217` high-confidence test images reached **`75.53%`** Top-1 and **`95.81%`** Top-3 (`74.31%` Top-1 across all `114,201` test images). Spliced ONNX exported to `color_distillation/output_mlp512x2/mobilenet_v2_multitask.onnx`.
+  - Unbiased held-out test evaluation on `110,217` high-confidence test images reached **`75.53%`** Top-1 and **`95.81%`** Top-3 (`74.31%` Top-1 across all `114,201` test images). Spliced ONNX exported to `color_distillation/output_mlp512x2/mobilenet_v2_multitask.onnx` and adopted as the **Reference Production Model**.
 
 #### E-09 (P0) Ground-Truth Color Validation [RESOLVED]
 - **CompCars Audit**: Executed [`color_distillation/evaluate_compcars_color_gt.py`](color_distillation/evaluate_compcars_color_gt.py) matching 19,479 CompCars CCTV images. Qwen teacher achieved `78.44%` aligned accuracy. Distilled Deep MLP-512×2 achieved **`77.43%`** on the 2,867 human-labeled test images (recovering 98.7% of teacher quality).

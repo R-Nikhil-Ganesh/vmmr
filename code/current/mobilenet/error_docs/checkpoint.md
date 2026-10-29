@@ -70,7 +70,7 @@
     - Unbiased Test (`conf >= 0.70`, `110,217` images): **`73.23%`** Top-1, **`95.05%`** Top-3, **`58.05%`** Macro F1.
     - All Test Rows (`114,201` images): **`72.02%`** Top-1.
     - CompCars Human Ground-Truth Test (`2,867` images): **`74.89%`** (+3.81 pp over baseline `71.08%`).
-- **Ablation 2 (Deep MLP-512×2, `output_mlp512x2`)**:
+- **Ablation 2 (Deep MLP-512×2, `output_mlp512x2`) [ADOPTED REFERENCE PRODUCTION HEAD]**:
   - Added capacity via 2-layer `512 -> 512 -> 13` MLP with BatchNorm1d + Dropout + fused ONNX export:
     - Val Top-1: **`75.85%`** (+7.85 pp over baseline), Top-3: **`96.17%`**, Macro F1: **`63.96%`** (+8.30 pp).
     - Unbiased Test (`conf >= 0.70`, `110,217` images): **`75.53%`** Top-1, **`95.81%`** Top-3, **`62.89%`** Macro F1.

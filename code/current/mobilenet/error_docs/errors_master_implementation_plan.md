@@ -21,9 +21,9 @@ This plan maps the current status of all 21 items and defines a **5-phase execut
 | **E-04** | P1 | Relative paths in split & annotation CSVs + common resolver | **OPEN** | **Phase 1** (`annotation/common.py` + CSVs) |
 | **E-05** | P1 | `train_color_head.py` `Image.BILINEAR` vs antialiased resize | **OPEN** | **Phase 2** (2,000-image check + dataset unification) |
 | **E-06** | P0 | Verify bit-for-bit identity of `mobilenet_v2_multitask.onnx` | **DONE** | Verified (`0.000e+00` diff on 256 images) |
-| **E-07** | P1 | Unbiased color head evaluation on `test` split (all vs $\ge 0.70$) | **OPEN** | **Phase 3** (`train_color_head.py`) |
-| **E-08** | P0 | Retrain color head without class-weight handicap + `512x2` / spatial tap | **OPEN** | **Phase 3** (`train_color_head.py` ablations) |
-| **E-09** | P0 | Validate Qwen3-VL & distilled head against human color labels | **OPEN** | **Phase 2 & 3** (19,479 CompCars GT rows + review CSV) |
+| **E-07** | P1 | Unbiased color head evaluation on `test` split (all vs $\ge 0.70$) | **DONE** | Completed (`74.31%` all, `75.53%` conf>=0.70) |
+| **E-08** | P0 | Retrain color head without class-weight handicap + `512x2` / spatial tap | **DONE** | **Phase 3** (Deep MLP-512×2 adopted as reference in `output_mlp512x2/`) |
+| **E-09** | P0 | Validate Qwen3-VL & distilled head against human color labels | **DONE** | Completed (`77.43%` human GT on Deep MLP-512×2) |
 | **E-10** | P1 | Production camera domain shift (night/IR) | **DEFERRED** | Awaits production camera frames (documented) |
 | **E-11** | P1 | Fix `annotation_run_1_and_2.md` errors | **DONE** | Completed |
 | **E-12** | P1 | Fix `dvc_gdrive_guide.md` & `paths.py` DVC keys | **DONE** | Completed (`paths.py --check` verified) |

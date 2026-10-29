@@ -1,22 +1,24 @@
 # MobileNetV2 Color Distillation: Architecture, Empirical Layer Selection, and Multi-Task ONNX Export
 
 **Module**: `code/current/mobilenet/color_distillation/`  
-**Teacher Model**: Vision-Language pseudo-labels from Qwen3-VL-8B (`annotation_runs/run2/annotations.csv`, 1,126,737 images)  
-**Student Model**: MobileNetV2 Model C (`run4/output_merged_run4/models/mobilenet_v2_best.onnx`)  
-**Deployment Target**: Unified Dual-Head ONNX Model (`output/mobilenet_v2_multitask.onnx`)  
+**Teacher Model**: Vision-Language pseudo-labels from Qwen3-VL-8B (`annotation_runs/run5/annotations.csv`, 1,126,737 images)  
+**Student Model**: MobileNetV2 Model C (`merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx`)  
+**Deployment Target (Reference)**: Unified Dual-Head ONNX Model (`output_mlp512x2/mobilenet_v2_multitask.onnx`, Deep MLP-512×2)  
+**Historical Baseline**: `output/mobilenet_v2_multitask.onnx` (128-unit weighted MLP)  
 **Date**: October 2026  
 
 ---
 
 ## 1. Executive Summary & Objective
 
-In **Annotation Run 2**, the zero-shot Vision-Language model **Qwen3-VL-8B-Instruct** generated high-confidence vehicle color annotations across **1.13 million images** spanning the PlatesMania and External datasets. While Qwen achieves high visual fidelity, its 8-billion parameter size, 6 GB VRAM memory requirement (in 4-bit NF4), and ~37 img/s throughput make it unsuitable for high-throughput edge deployment.
+In **Annotation Run 5**, the zero-shot Vision-Language model **Qwen3-VL-8B-Instruct** generated high-confidence vehicle color annotations across **1.13 million images** spanning the PlatesMania and External datasets. While Qwen achieves high visual fidelity, its 8-billion parameter size, 6 GB VRAM memory requirement (in 4-bit NF4), and ~37 img/s throughput make it unsuitable for high-throughput edge deployment.
 
 The objective of this module is to **distill Qwen's color recognition capabilities directly into MobileNetV2 Model C**, enabling:
 1. **Simultaneous Make/Model (1,235 classes) and Body Color (13 classes) recognition** in a single forward pass.
-2. **Sub-2 millisecond inference** per frame on GPU and sub-15 ms on edge CPU.
-3. **Zero memory overhead**: Adding less than 90 KB (0.4%) to the 22 MB MobileNetV2 model.
-4. **Preserved Make/Model accuracy**: 100% bit-for-bit identity preserved on all existing Model C outputs (`predictions`, `embeddings`, `class_maps`).
+2. **Sub-2 millisecond inference** per frame on GPU (~900 FPS) and sub-30 ms on edge CPU.
+3. **Reference Architecture**: The production-adopted reference head is the **Unweighted Deep MLP-512×2** (`output_mlp512x2/`), which achieves **75.53% held-out test Top-1** accuracy (Macro F1 62.89%) and **77.43% on independent CompCars human ground truth** (recovering 98.7% of the Qwen teacher's 78.44%), adding only 39 microseconds (<0.04 ms) isolated compute over the 128-unit baseline.
+4. **Zero memory overhead**: Adding only ~1.4 MB (6%) to the 22 MB MobileNetV2 ONNX graph.
+5. **Preserved Make/Model accuracy**: 100% bit-for-bit identity preserved on all existing Model C outputs (`predictions`, `embeddings`, `class_maps`).
 
 ---
 
@@ -89,38 +91,49 @@ To scientifically verify where color information resides in the Model C backbone
 
 ## 4. Head Architecture & Mathematical Formulation
 
-### Why an MLP Head Outperforms a Pure Linear Head
-In Phase 1, the **MLP Head** achieved a **+4.10% Top-1 accuracy** and **+4.32% Macro F1 gain** over a single Linear layer ($62.58\%$ vs $58.48\%$).
+### Evolution from MLP-128 Baseline to Reference Deep MLP-512×2
+
+In Phase 1, an initial **128-unit MLP Head** achieved a **+4.10% Top-1 accuracy** and **+4.32% Macro F1 gain** over a single Linear layer ($62.58\%$ vs $58.48\%$). However, evaluating on held-out test data (`E-07`) and against CompCars human ground truth (`E-09`) revealed that expanding capacity to a **2-layer Deep MLP-512×2** provided a massive accuracy leap while keeping latency completely negligible.
 
 ```
-Pooled Activation: x in R^160
+[REFERENCE PRODUCTION HEAD: Deep MLP-512×2]
+
+Pooled Activation: x in R^160 (features[16] tap)
          │
          ▼
-Linear(160 -> 128)  ──> First Dense Projection
+Linear(160 -> 512)     ──> First Expansion Projection
          │
          ▼
-BatchNorm1d(128)    ──> Adaptive Lighting Normalization
+BatchNorm1d(512)       ──> Adaptive Lighting Normalization
          │
          ▼
-ReLU                ──> Non-linear Activation
+ReLU + Dropout(p=0.2)  ──> Non-linear Activation & Regularization
          │
          ▼
-Dropout(p=0.2)      ──> Feature Regularization (Training only)
+Linear(512 -> 512)     ──> Second Hidden Representation
          │
          ▼
-Linear(128 -> 13)   ──> 13 Automotive Color Logits
+BatchNorm1d(512)       ──> Intermediate Normalization
+         │
+         ▼
+ReLU + Dropout(p=0.2)  ──> Non-linear Activation
+         │
+         ▼
+Linear(512 -> 13)      ──> 13 Automotive Color Logits
 ```
 
-#### Physical / Mathematical Reasons:
+#### Physical & Mathematical Rationale:
 1. **Non-linear Conjunctions for Metallic & Subtle Finishes**:
    CNN feature channels do not represent isolated RGB pigments; they encode edge gradients, reflectance, and specular highlights.
-   * **Silver vs. Gray vs. White**: All three have zero chromatic saturation. The distinction lies in specular glints vs. matte diffuse surfaces. A linear boundary cannot separate specular glints on a gray background; the MLP's hidden layer learns conjunctions ($x_{\text{specular}} > \tau_1 \text{ AND } x_{\text{diffuse}} > \tau_2$).
+   * **Silver vs. Gray vs. White**: All three have zero chromatic saturation. The distinction lies in specular glints vs. matte diffuse surfaces. A linear boundary cannot separate specular glints on a gray background; the MLP's hidden layers learn conjunctions ($x_{\text{specular}} > \tau_1 \text{ AND } x_{\text{diffuse}} > \tau_2$).
    * **Brown vs. Orange**: Brown is low-luminance dark orange.
    * **Beige vs. Gold**: Requires non-linear thresholds on yellow saturation and metallic shine.
-2. **Zero Runtime Overhead via BatchNorm Folding**:
-   During ONNX export, the BatchNorm parameters ($\gamma, \beta, \mu, \sigma^2$) are **mathematically folded** into the first dense layer's weights:
-   $$W_{\text{fused}} = W_1 \cdot \frac{\gamma}{\sqrt{\sigma^2 + \epsilon}}, \quad b_{\text{fused}} = (b_1 - \mu) \cdot \frac{\gamma}{\sqrt{\sigma^2 + \epsilon}} + \beta$$
-   In production ONNX execution, the head runs as two standard GEMM operations with **$< 0.05\text{ ms}$ latency** on GPU.
+2. **Double Non-Linearity Disentangles Lighting Variations**:
+   The two stacked 512-unit layers allow the network to first map raw photometric features into an illumination-normalized color manifold (layer 1) before computing decision hyperplanes between subtly overlapping vehicle paint formulations (layer 2).
+3. **Zero Runtime Overhead via BatchNorm Folding**:
+   During ONNX export, both BatchNorm layers ($\gamma_i, \beta_i, \mu_i, \sigma_i^2$) are **mathematically folded** into the respective preceding dense layers' weights:
+   $$W_{\text{fused}} = W_i \cdot \frac{\gamma_i}{\sqrt{\sigma_i^2 + \epsilon}}, \quad b_{\text{fused}} = (b_i - \mu_i) \cdot \frac{\gamma_i}{\sqrt{\sigma_i^2 + \epsilon}} + \beta_i$$
+   In production ONNX execution, the entire 512×2 head runs as three fused GEMM + ReLU operations adding only **39 microseconds (0.039 ms)** of isolated compute, with **zero change to the 1.11 ms end-to-end forward pass latency**.
 
 ---
 
@@ -131,13 +144,13 @@ Processing ~1M images repeatedly from disk across multiple training epochs would
 * The script filters `annotations.csv` to high-confidence Qwen pseudo-labels (`color_conf >= 0.70`, retaining ~95.8% of rows), extracts the $160$-dimensional pooled features from `features[16]` in a single pass using the ONNX GPU runtime, and saves them as memory-mapped `float16` NumPy arrays (tracked in DVC via `cache.dvc`):
   * `cache/features_L16_train.npy` (860,006 vectors $\times$ 160 channels $\times$ 2 bytes = **262.45 MB**)
   * `cache/features_L16_val.npy` (109,454 vectors $\times$ 160 channels $\times$ 2 bytes = **33.40 MB**)
+  * `cache/features_L16_test_all.npy` (114,201 vectors $\times$ 160 channels $\times$ 2 bytes = **34.86 MB**)
 * **Result**: Once cached, a 25-epoch training run over 860k training samples executes in **under 2 minutes** on an RTX 4090.
 
-### B. Loss Function & Class Balancing
-Vehicle color distributions exhibit significant class imbalance (White, Black, and Silver represent ~60.9% of the fleet, while Gold, Beige, and Orange represent <2% each).
-* To prevent majority collapse, the training uses **bounded inverse-frequency class weights**:
-  $$w_c = \text{clip}\left(\frac{N}{13 \cdot N_c}, 0.25, 4.0\right)$$
-* Combined with **Label Smoothing ($0.05$)** to prevent overconfidence on ambiguous lighting edge cases.
+### B. Loss Function & Resolution of Rare-Color Collapse (`E-08`)
+Vehicle color distributions exhibit natural class imbalance (White, Black, and Silver represent ~60.9% of the fleet, while Gold, Beige, and Orange represent <2% each).
+* **The Baseline Flaw**: The original baseline used inverse-frequency class weights $[0.25, 4.0]$. This boosted minority recall by flooding predictions with false-positives, causing rare-class precision to collapse to unacceptable levels (`green` 28%, `brown` 27%, `beige` 21%).
+* **The Production Resolution**: In Phase 3 ablations (`E-08`), removing class weights (`--no-class-weights`) and setting `label_smoothing=0.0` eliminated false-positive explosions, dramatically lifting precision across all minority colors (`green` $28\% \to 66\%$, `brown` $27\% \to 61\%$, `beige` $21\% \to 52\%$) and boosting macro precision average from **$56\% \to 71\%$**. This unweighted scheme is the adopted production standard.
 
 ---
 
@@ -184,24 +197,35 @@ Input: input_image (B, 3, 512, 512)
 ### Directory Structure
 ```text
 code/current/mobilenet/color_distillation/
-├── train_color_head.py             # Full distillation trainer and ONNX splicer
-├── layer_probe.py                  # Phase 1 multi-layer empirical probing script
-├── verify_multitask_onnx.py        # Signature, latency & numerical equivalence verifier
-├── probe_results.csv               # Empirical benchmark metrics table across 8 layers
-├── probe_results.json              # Full per-class classification metrics
-├── color_distillation_approach.md  # Architectural and empirical documentation (this file)
+├── train_color_head.py                 # Full distillation trainer and ONNX splicer
+├── layer_probe.py                      # Phase 1 multi-layer empirical probing script
+├── verify_multitask_onnx.py            # Signature, latency & numerical equivalence verifier
+├── probe_results.csv                   # Empirical benchmark metrics table across 8 layers
+├── probe_results.json                  # Full per-class classification metrics
+├── color_distillation_approach.md      # Architectural and empirical documentation (this file)
 │
-├── cache/                          # (DVC-tracked via cache.dvc) Cached float16 feature tensors (color_conf >= 0.70)
-│   ├── features_L16_train.npy      # 860,006 x 160 float16 (262.45 MB)
-│   ├── labels_train.npy            # 860,006 int64 labels (6.56 MB)
-│   ├── features_L16_val.npy        # 109,454 x 160 float16 (33.40 MB)
-│   └── labels_val.npy              # 109,454 int64 labels (0.84 MB)
+├── cache/                              # (DVC-tracked via cache.dvc) Cached float16 feature tensors
+│   ├── features_L16_train.npy          # 860,006 x 160 float16 (262.45 MB)
+│   ├── labels_train.npy                # 860,006 int64 labels (6.56 MB)
+│   ├── features_L16_val.npy            # 109,454 x 160 float16 (33.40 MB)
+│   ├── labels_val.npy                  # 109,454 int64 labels (0.84 MB)
+│   ├── features_L16_test_all.npy       # 114,201 x 160 float16 (34.86 MB)
+│   ├── labels_test_all.npy             # 114,201 int64 labels (0.87 MB)
+│   └── confs_test_all.npy              # 114,201 float32 confidences (0.44 MB)
 │
-└── output/                         # Trained model artifacts & logs
-    ├── mobilenet_v2_multitask.onnx # (DVC-tracked via .onnx.dvc) Unified 4-output ONNX model (20.61 MB)
-    ├── color_head_best.pt          # (Git-tracked) PyTorch checkpoint (93 KB)
-    ├── training_history.csv        # (Git-tracked) Epoch training and validation logs
-    └── final_report.txt            # (Git-tracked) Per-class precision, recall, and F1 report
+├── output_mlp512x2/                    # [REFERENCE PRODUCTION HEAD] Deep MLP-512x2
+│   ├── mobilenet_v2_multitask.onnx     # (DVC-tracked via .onnx.dvc) Reference multi-task ONNX (22.4 MB)
+│   ├── color_head_best.pt              # (Git-tracked) PyTorch checkpoint (1.4 MB)
+│   ├── training_history.csv            # (Git-tracked) Epoch training and validation logs
+│   ├── eval_metrics.json               # (Git-tracked) Unbiased held-out test and validation metrics
+│   └── final_report.txt                # (Git-tracked) Per-class precision, recall, and F1 report
+│
+├── output_unweighted_mlp128/           # [ABLATION 1] Unweighted 128-unit MLP
+│   └── mobilenet_v2_multitask.onnx     # (DVC-tracked via .onnx.dvc) 21.0 MB
+│
+└── output/                             # [HISTORICAL BASELINE] Weighted 128-unit MLP
+    ├── mobilenet_v2_multitask.onnx     # (DVC-tracked via .onnx.dvc) 20.61 MB
+    └── color_head_best.pt              # (Git-tracked) 93 KB
 ```
 
 ### Quick Start Commands
@@ -209,13 +233,23 @@ code/current/mobilenet/color_distillation/
 ```bash
 cd vmmr/code/current/mobilenet
 
-# 1. Full training in tmux session 'color_distill' (extracts features on first run, then trains)
-bash bash_scripts/run_train_color_distillation.sh
+# 1. Train Reference Deep MLP-512x2 head (Unweighted, LS 0.0)
+"${PYTHON_BIN:-python3}" -u color_distillation/train_color_head.py \
+  --head-type mlp_512x2 \
+  --no-class-weights \
+  --label-smoothing 0.0 \
+  --batch-size 2048 \
+  --skip-extract \
+  --out-dir color_distillation/output_mlp512x2
 
-# 2. Re-train with Linear head instead of MLP
-bash bash_scripts/run_train_color_distillation.sh --head-type linear
+# 2. Re-train baseline 128-unit head
+"${PYTHON_BIN:-python3}" -u color_distillation/train_color_head.py \
+  --head-type mlp \
+  --out-dir color_distillation/output
 
-# 3. Instant re-training on cached features (skips extraction, finishes in <2 min)
-bash bash_scripts/run_train_color_distillation.sh --skip-extract --epochs 30 --lr 5e-4
+# 3. Verify reference multi-task ONNX model signature, latency & accuracy
+python3 color_distillation/verify_multitask_onnx.py \
+  --onnx-path color_distillation/output_mlp512x2/mobilenet_v2_multitask.onnx \
+  --pt-head-path color_distillation/output_mlp512x2/color_head_best.pt
 ```
 
