@@ -29,17 +29,23 @@ echo "=================================================================="
 # 1. Automatic DVC Tracking for Large Artifacts (Future Run Protection)
 DVC_CMD="${DVC_BIN:-dvc}"
 if command -v "${DVC_CMD}" >/dev/null 2>&1 || [ -x "${DVC_CMD}" ]; then
-    # Auto-register any new .onnx models in DVC
+    # Auto-register any new .onnx models in DVC (skip scratch/git-ignored directories)
     while IFS= read -r onnx_path; do
         if [ -n "${onnx_path}" ] && [ ! -f "${onnx_path}.dvc" ]; then
+            if git check-ignore -q "${onnx_path}.dvc" 2>/dev/null; then
+                continue
+            fi
             echo "  [DVC Auto-Track] Tracking new model in DVC: ${onnx_path}"
             "${DVC_CMD}" add "${onnx_path}"
         fi
-    done < <(find code/current/mobilenet/ -type f -name "*.onnx" 2>/dev/null || true)
+    done < <(find code/current/mobilenet/ -type d \( -name "*scratch*" -o -name ".*" \) -prune -o -type f -name "*.onnx" -print 2>/dev/null || true)
 
     # Auto-register any new annotation_runs/run* directories in DVC
     while IFS= read -r run_dir; do
         if [ -n "${run_dir}" ] && [ ! -f "${run_dir}.dvc" ]; then
+            if git check-ignore -q "${run_dir}.dvc" 2>/dev/null; then
+                continue
+            fi
             echo "  [DVC Auto-Track] Tracking new annotation run directory in DVC: ${run_dir}"
             "${DVC_CMD}" add "${run_dir}"
         fi
