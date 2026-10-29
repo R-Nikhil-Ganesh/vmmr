@@ -56,6 +56,8 @@ def parse_args():
     p.add_argument("--qwen-prompt", default="short", help="color_heads.PROMPTS key ('short' = Runs 1/2, 'defined')")
     p.add_argument("--qwen-center-crop", type=float, default=0.0, help="fraction trimmed off around the center")
     p.add_argument("--qwen-tta", default="none", choices=["none", "flip"])
+    p.add_argument("--fresh-color", action="store_true",
+                   help="do not copy color_cache.csv from --cache-from (use when the color settings changed)")
     p.add_argument("--review-conf", type=float, default=0.70, help="model confidence below this -> needs_review")
     p.add_argument("--review-color-conf", type=float, default=0.50, help="color confidence below this -> needs_review")
     p.add_argument("--max-points", type=int, default=15000, help="points (with thumbnails) embedded in the viewer")
@@ -257,11 +259,11 @@ def stage_coords(df, emb, args):
 # Stage 3: color
 # ------------------------------------------------------------------------------
 def stage_color(df, out_dir, args):
-    from color_heads import build_head
+    from color_heads import COLORS, build_head
     cache_path = out_dir / "color_cache.csv"
 
     # Seed color cache from cache_from if destination does not exist
-    if not cache_path.exists() and args.cache_from:
+    if not cache_path.exists() and args.cache_from and not args.fresh_color:
         src_cache = Path(args.cache_from) / "color_cache.csv"
         if src_cache.exists():
             import shutil
@@ -291,13 +293,22 @@ def stage_color(df, out_dir, args):
                     keep.append(r)
                 except Exception as e:
                     print(f"[color] cannot read {r['path']}: {e}")
-            if imgs:
+            if imgs and hasattr(head, "predict_proba"):
+                # Keep the full 13-color vector and option mass so a calibrator can be applied afterwards
+                probs, mass = head.predict_proba(imgs)
+                for r, pr, m in zip(keep, probs, mass):
+                    new.append({"path": r["path"], "domain": r["domain"], "color": COLORS[int(pr.argmax())],
+                                "color_conf": float(pr.max()), "option_mass": float(m),
+                                **{f"p_{c}": float(v) for c, v in zip(COLORS, pr)}})
+            elif imgs:
                 for r, (c, p) in zip(keep, head.predict(imgs)):
                     new.append({"path": r["path"], "domain": r["domain"], "color": c, "color_conf": p})
             # Append every 500 images or at the final batch
-            if len(new) >= 500 or i + args.color_batch_size >= len(recs):
+            if new and (len(new) >= 500 or i + args.color_batch_size >= len(recs)):
                 df_new = pd.DataFrame(new)
                 is_empty = not cache_path.exists() or cache_path.stat().st_size == 0
+                if not is_empty:   # an older cache without probability columns keeps its header
+                    df_new = df_new.reindex(columns=pd.read_csv(cache_path, nrows=0).columns)
                 df_new.to_csv(cache_path, mode="a", header=is_empty, index=False)
                 new = []
                 rate = (i + len(chunk)) / (time.time() - t0)
@@ -373,7 +384,7 @@ def main():
                 # Seed color cache if not present
                 src_color = c_dir / "color_cache.csv"
                 dst_color = out_dir / "color_cache.csv"
-                if src_color.exists() and not dst_color.exists():
+                if src_color.exists() and not dst_color.exists() and not args.fresh_color:
                     import shutil
                     shutil.copy2(src_color, dst_color)
                     print(f"[cache] Seeded color cache with {src_color}")

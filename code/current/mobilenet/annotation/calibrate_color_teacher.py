@@ -25,6 +25,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegressionCV
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR.parent))
@@ -73,16 +75,17 @@ def main():
     for name, d in (("train", tr), ("val", va)):
         print(f"[calib] {name}: {len(d):,} rows, splits {d['split'].value_counts().to_dict()}")
 
-    clf = LogisticRegressionCV(Cs=[0.01, 0.03, 0.1, 0.3, 1, 3, 10], cv=5, max_iter=2000, scoring="accuracy",
-                               class_weight=None if args.class_weight == "none" else "balanced")
+    lr = LogisticRegressionCV(Cs=[0.01, 0.03, 0.1, 0.3, 1, 3, 10], cv=5, max_iter=2000, scoring="accuracy",
+                              class_weight=None if args.class_weight == "none" else "balanced")
+    clf = make_pipeline(StandardScaler(), lr)   # log-probs reach -13.8; unscaled, lbfgs does not converge
     clf.fit(features(tr), tr["gt_color"].to_numpy())
-    print(f"[calib] chosen C = {float(np.atleast_1d(clf.C_)[0])}")
+    print(f"[calib] chosen C = {float(np.atleast_1d(lr.C_)[0])}")
 
     gt = va["gt_color"].to_numpy()
     before = va["color"].map(QWEN_TO_COMPCARS_GROUPED).to_numpy()
     after = clf.predict(features(va))
     res = {"train_dir": args.train_dir, "val_dir": args.val_dir, "class_weight": args.class_weight,
-           "C": float(np.atleast_1d(clf.C_)[0]),
+           "C": float(np.atleast_1d(lr.C_)[0]),
            "val_before": report(gt, before), "val_after": report(gt, after),
            "train_after": report(tr["gt_color"].to_numpy(), clf.predict(features(tr)))}
     (out_dir / "calibration_metrics.json").write_text(json.dumps(res, indent=2))

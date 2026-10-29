@@ -9,6 +9,7 @@ Run everything from `vmmr/code/current/mobilenet/`. The runners in `bash_scripts
 | Diagnostics + mixed benchmark | `bash bash_scripts/run_diagnostics.sh [options]` | `diagnostics` |
 | Annotate images (make/model + Qwen3-VL color) + build `viewer.html` | `bash bash_scripts/run_annotate.sh [flags]` | `annotate` |
 | Score the Qwen color teacher against CompCars human labels (one config or a sweep) | `RUN_NAME=<tag> bash bash_scripts/run_eval_color_teacher.sh [flags]` / `SWEEP=1 bash ...` | `eval_color_teacher` |
+| Overnight color queue: teacher evals, then relabel all images with bf16 + letters (keeps 13-color probabilities) | `bash bash_scripts/run_overnight_color.sh` | `overnight_color` |
 | Distill color into MobileNetV2 (`features[16]` tap) -> ONNX | `bash bash_scripts/run_train_color_distillation.sh [flags]` | `color_distill` |
 | Run DVC commands (`status`, `add`, `push`, `pull`) | `./bash_scripts/dvc.sh <subcommand>` | *(foreground)* |
 
@@ -109,6 +110,7 @@ Needs `pip install -U "transformers>=4.57" accelerate bitsandbytes` for Qwen; `u
 | Option | Meaning |
 |---|---|
 | `--split {test,all,train,val}` | Which split(s) to annotate (default: `test`; use `all` for full dataset) |
+| `--fresh-color` | Do not copy `color_cache.csv` from `--cache-from` (use when the Qwen settings changed); make/model results are still reused |
 | `--cache-from DIR` | Previous run to reuse annotations, embeddings, and colors from (default: `run1` if available) |
 | `--domain both\|pm\|ext` | Which dataset(s) (default `both`) |
 | `--max-samples N` | Random subsample per domain (default: all split images) |
@@ -243,4 +245,17 @@ See the full guide in [`dvc_gdrive_guide.md`](../run_docs/dvc_gdrive_guide.md).
 - **Automatic DVC Registration**: When any runner finishes and calls `auto_git_sync.sh`, it automatically checks for new `.onnx` models and new `annotation_runs/run*` directories and runs `dvc add` on them before committing `.dvc` tracking files to Git.
 - **Safety Guardrail**: `auto_git_sync.sh` contains an automated pre-commit hook that verifies staged files and blocks the commit if any raw binary files $> 50\text{ MB}$ or `*.onnx` files are staged directly into Git.
 
+---
 
+## `run_overnight_color.sh` (overnight color-teacher queue)
+
+One tmux session (`overnight_color`), about 12 h on a 4090:
+1. About 15 min of `run_eval_color_teacher.sh` runs: `s2_letters_test` (bf16 + letters on the **test** split) and on val `s6_letters_flip` and `s6_letters_672`. A failed eval does not stop the queue.
+2. About 11 h of `run_annotate.sh --split all --no-4bit --qwen-scoring letters --fresh-color` into `${ANNOT_OUT_DIR}/${RELABEL_NAME}` (default `run3_letters`). Make/model predictions and embeddings come from `CACHE_FROM` (default `${ANNOT_OUT_DIR}/run2`); colors are recomputed. `color_cache.csv` also stores `option_mass` and `p_<color>` for all 13 colors, so `calibrate_color_teacher.py`'s calibrator and confidence filtering can be applied afterwards. If it stops, rerun the same command and it resumes from the cache.
+
+Results are pushed once at the end. `RELABEL_NAME` must start with `run` (`annotation_runs/run*/` is gitignored). `SKIP_EVAL=1` runs only the relabel. Extra flags go to `annotate.py`.
+
+```bash
+bash bash_scripts/run_overnight_color.sh
+tmux attach -t overnight_color
+```
