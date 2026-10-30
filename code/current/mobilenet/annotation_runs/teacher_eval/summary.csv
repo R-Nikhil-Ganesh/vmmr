@@ -9,3 +9,6 @@ s3_center15,val,336,False,variants,short,0.15,none,Qwen3-VL-8B-Instruct,32.3,285
 s4_defined,val,336,False,variants,defined,0.0,none,Qwen3-VL-8B-Instruct,20.74,2859,72.44,76.01,78.91,94.87,57.57,82.13,24.19,55.84,12.0,84.62,14.46,7.81,81.67
 s5_flip,val,336,False,variants,short,0.0,flip,Qwen3-VL-8B-Instruct,16.64,2859,72.16,80.38,78.91,93.09,78.88,84.06,29.03,51.95,12.0,84.62,12.05,6.25,85.98
 best_train,train,336,False,letters,short,0.0,none,Qwen3-VL-8B-Instruct,29.12,13753,72.5,81.49,78.08,94.11,80.75,89.79,45.43,53.19,17.09,82.35,10.19,5.88,85.56
+s2_letters_test,test,336,False,letters,short,0.0,none,Qwen3-VL-8B-Instruct,28.41,2867,72.24,81.34,79.67,93.22,81.16,85.92,40.62,50.0,38.1,100.0,13.33,10.53,84.61
+s6_letters_flip,val,336,False,letters,short,0.0,flip,Qwen3-VL-8B-Instruct,14.98,2859,72.05,81.78,78.91,93.98,82.67,89.37,32.26,51.95,12.0,76.92,10.84,7.81,85.98
+s6_letters_672,val,672,False,letters,short,0.0,none,Qwen3-VL-8B-Instruct,15.54,2859,72.23,82.65,78.91,93.58,83.07,89.86,30.65,49.35,20.0,76.92,9.64,7.81,89.42
