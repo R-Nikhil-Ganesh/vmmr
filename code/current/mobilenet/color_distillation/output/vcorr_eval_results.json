@@ -1,0 +1,2327 @@
+{
+  "Deep MLP-512x2 (Best)": {
+    "fps": 536.2,
+    "direct_overall": {
+      "n_samples": 8348,
+      "top1_acc": 60.96,
+      "top3_acc": 86.36,
+      "macro_f1": 54.67,
+      "macro_precision": 66.54,
+      "macro_recall": 56.47,
+      "per_class": {
+        "beige": {
+          "n": 601,
+          "precision": 49.32,
+          "recall": 11.98,
+          "f1": 19.28
+        },
+        "black": {
+          "n": 579,
+          "precision": 65.36,
+          "recall": 60.28,
+          "f1": 62.71
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 90.91,
+          "recall": 66.98,
+          "f1": 77.13
+        },
+        "brown": {
+          "n": 807,
+          "precision": 81.13,
+          "recall": 26.64,
+          "f1": 40.11
+        },
+        "gold": {
+          "n": 300,
+          "precision": 79.17,
+          "recall": 6.33,
+          "f1": 11.73
+        },
+        "gray": {
+          "n": 611,
+          "precision": 27.32,
+          "recall": 36.17,
+          "f1": 31.13
+        },
+        "green": {
+          "n": 804,
+          "precision": 97.69,
+          "recall": 57.96,
+          "f1": 72.76
+        },
+        "orange": {
+          "n": 762,
+          "precision": 86.08,
+          "recall": 75.46,
+          "f1": 80.42
+        },
+        "red": {
+          "n": 909,
+          "precision": 79.22,
+          "recall": 96.04,
+          "f1": 86.82
+        },
+        "silver": {
+          "n": 516,
+          "precision": 19.18,
+          "recall": 46.51,
+          "f1": 27.16
+        },
+        "white": {
+          "n": 575,
+          "precision": 43.04,
+          "recall": 97.91,
+          "f1": 59.8
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 80.04,
+          "recall": 95.39,
+          "f1": 87.04
+        }
+      }
+    },
+    "direct_splits": {
+      "test": {
+        "n_samples": 1252,
+        "top1_acc": 62.54,
+        "top3_acc": 86.66,
+        "macro_f1": 56.6,
+        "macro_precision": 66.72,
+        "macro_recall": 58.3,
+        "per_class": {
+          "beige": {
+            "n": 90,
+            "precision": 48.0,
+            "recall": 13.33,
+            "f1": 20.87
+          },
+          "black": {
+            "n": 87,
+            "precision": 60.98,
+            "recall": 57.47,
+            "f1": 59.17
+          },
+          "blue": {
+            "n": 159,
+            "precision": 93.1,
+            "recall": 67.92,
+            "f1": 78.55
+          },
+          "brown": {
+            "n": 121,
+            "precision": 79.49,
+            "recall": 25.62,
+            "f1": 38.75
+          },
+          "gold": {
+            "n": 45,
+            "precision": 71.43,
+            "recall": 11.11,
+            "f1": 19.23
+          },
+          "gray": {
+            "n": 92,
+            "precision": 33.33,
+            "recall": 39.13,
+            "f1": 36.0
+          },
+          "green": {
+            "n": 121,
+            "precision": 96.0,
+            "recall": 59.5,
+            "f1": 73.47
+          },
+          "orange": {
+            "n": 114,
+            "precision": 86.49,
+            "recall": 84.21,
+            "f1": 85.33
+          },
+          "red": {
+            "n": 136,
+            "precision": 81.37,
+            "recall": 96.32,
+            "f1": 88.22
+          },
+          "silver": {
+            "n": 77,
+            "precision": 20.1,
+            "recall": 50.65,
+            "f1": 28.78
+          },
+          "white": {
+            "n": 86,
+            "precision": 43.0,
+            "recall": 100.0,
+            "f1": 60.14
+          },
+          "yellow": {
+            "n": 124,
+            "precision": 87.31,
+            "recall": 94.35,
+            "f1": 90.7
+          }
+        }
+      },
+      "val": {
+        "n_samples": 1248,
+        "top1_acc": 59.05,
+        "top3_acc": 86.38,
+        "macro_f1": 51.86,
+        "macro_precision": 65.18,
+        "macro_recall": 54.29,
+        "per_class": {
+          "beige": {
+            "n": 90,
+            "precision": 30.0,
+            "recall": 3.33,
+            "f1": 6.0
+          },
+          "black": {
+            "n": 86,
+            "precision": 66.2,
+            "recall": 54.65,
+            "f1": 59.87
+          },
+          "blue": {
+            "n": 159,
+            "precision": 93.39,
+            "recall": 71.07,
+            "f1": 80.71
+          },
+          "brown": {
+            "n": 121,
+            "precision": 71.43,
+            "recall": 20.66,
+            "f1": 32.05
+          },
+          "gold": {
+            "n": 45,
+            "precision": 100.0,
+            "recall": 6.67,
+            "f1": 12.5
+          },
+          "gray": {
+            "n": 91,
+            "precision": 23.53,
+            "recall": 30.77,
+            "f1": 26.67
+          },
+          "green": {
+            "n": 120,
+            "precision": 98.46,
+            "recall": 53.33,
+            "f1": 69.19
+          },
+          "orange": {
+            "n": 114,
+            "precision": 85.58,
+            "recall": 78.07,
+            "f1": 81.65
+          },
+          "red": {
+            "n": 136,
+            "precision": 77.51,
+            "recall": 96.32,
+            "f1": 85.9
+          },
+          "silver": {
+            "n": 77,
+            "precision": 17.95,
+            "recall": 45.45,
+            "f1": 25.74
+          },
+          "white": {
+            "n": 86,
+            "precision": 40.38,
+            "recall": 97.67,
+            "f1": 57.14
+          },
+          "yellow": {
+            "n": 123,
+            "precision": 77.7,
+            "recall": 93.5,
+            "f1": 84.87
+          }
+        }
+      },
+      "train": {
+        "n_samples": 5848,
+        "top1_acc": 61.03,
+        "top3_acc": 86.29,
+        "macro_f1": 54.82,
+        "macro_precision": 66.78,
+        "macro_recall": 56.54,
+        "per_class": {
+          "beige": {
+            "n": 421,
+            "precision": 51.35,
+            "recall": 13.54,
+            "f1": 21.43
+          },
+          "black": {
+            "n": 406,
+            "precision": 66.14,
+            "recall": 62.07,
+            "f1": 64.04
+          },
+          "blue": {
+            "n": 742,
+            "precision": 89.89,
+            "recall": 65.9,
+            "f1": 76.05
+          },
+          "brown": {
+            "n": 565,
+            "precision": 83.25,
+            "recall": 28.14,
+            "f1": 42.06
+          },
+          "gold": {
+            "n": 210,
+            "precision": 78.57,
+            "recall": 5.24,
+            "f1": 9.82
+          },
+          "gray": {
+            "n": 428,
+            "precision": 26.98,
+            "recall": 36.68,
+            "f1": 31.09
+          },
+          "green": {
+            "n": 563,
+            "precision": 97.92,
+            "recall": 58.61,
+            "f1": 73.33
+          },
+          "orange": {
+            "n": 534,
+            "precision": 86.09,
+            "recall": 73.03,
+            "f1": 79.03
+          },
+          "red": {
+            "n": 637,
+            "precision": 79.15,
+            "recall": 95.92,
+            "f1": 86.73
+          },
+          "silver": {
+            "n": 362,
+            "precision": 19.26,
+            "recall": 45.86,
+            "f1": 27.12
+          },
+          "white": {
+            "n": 403,
+            "precision": 43.67,
+            "recall": 97.52,
+            "f1": 60.32
+          },
+          "yellow": {
+            "n": 577,
+            "precision": 79.14,
+            "recall": 96.01,
+            "f1": 86.77
+          }
+        }
+      }
+    },
+    "full_overall": {
+      "n_samples": 10373,
+      "top1_acc": 53.14,
+      "top3_acc": 82.07,
+      "macro_f1": 49.91,
+      "macro_precision": 64.3,
+      "macro_recall": 54.01,
+      "per_class": {
+        "beige": {
+          "n": 1172,
+          "precision": 65.93,
+          "recall": 12.71,
+          "f1": 21.32
+        },
+        "black": {
+          "n": 579,
+          "precision": 55.57,
+          "recall": 60.28,
+          "f1": 57.83
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 72.9,
+          "recall": 66.98,
+          "f1": 69.81
+        },
+        "brown": {
+          "n": 807,
+          "precision": 75.7,
+          "recall": 26.64,
+          "f1": 39.41
+        },
+        "gold": {
+          "n": 300,
+          "precision": 79.17,
+          "recall": 6.33,
+          "f1": 11.73
+        },
+        "gray": {
+          "n": 611,
+          "precision": 22.95,
+          "recall": 36.17,
+          "f1": 28.08
+        },
+        "green": {
+          "n": 804,
+          "precision": 95.69,
+          "recall": 57.96,
+          "f1": 72.19
+        },
+        "orange": {
+          "n": 762,
+          "precision": 85.31,
+          "recall": 75.46,
+          "f1": 80.08
+        },
+        "other": {
+          "n": 1454,
+          "precision": 99.71,
+          "recall": 23.8,
+          "f1": 38.42
+        },
+        "red": {
+          "n": 909,
+          "precision": 53.07,
+          "recall": 96.04,
+          "f1": 68.36
+        },
+        "silver": {
+          "n": 516,
+          "precision": 15.82,
+          "recall": 46.51,
+          "f1": 23.61
+        },
+        "white": {
+          "n": 575,
+          "precision": 34.95,
+          "recall": 97.91,
+          "f1": 51.51
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 79.15,
+          "recall": 95.39,
+          "f1": 86.52
+        }
+      }
+    },
+    "full_splits": {
+      "test": {
+        "n_samples": 1556,
+        "top1_acc": 54.69,
+        "top3_acc": 81.56,
+        "macro_f1": 51.89,
+        "macro_precision": 64.59,
+        "macro_recall": 55.84,
+        "per_class": {
+          "beige": {
+            "n": 176,
+            "precision": 65.85,
+            "recall": 15.34,
+            "f1": 24.88
+          },
+          "black": {
+            "n": 87,
+            "precision": 51.55,
+            "recall": 57.47,
+            "f1": 54.35
+          },
+          "blue": {
+            "n": 159,
+            "precision": 77.14,
+            "recall": 67.92,
+            "f1": 72.24
+          },
+          "brown": {
+            "n": 121,
+            "precision": 73.81,
+            "recall": 25.62,
+            "f1": 38.04
+          },
+          "gold": {
+            "n": 45,
+            "precision": 71.43,
+            "recall": 11.11,
+            "f1": 19.23
+          },
+          "gray": {
+            "n": 92,
+            "precision": 27.27,
+            "recall": 39.13,
+            "f1": 32.14
+          },
+          "green": {
+            "n": 121,
+            "precision": 96.0,
+            "recall": 59.5,
+            "f1": 73.47
+          },
+          "orange": {
+            "n": 114,
+            "precision": 84.21,
+            "recall": 84.21,
+            "f1": 84.21
+          },
+          "other": {
+            "n": 218,
+            "precision": 100.0,
+            "recall": 24.31,
+            "f1": 39.11
+          },
+          "red": {
+            "n": 136,
+            "precision": 52.82,
+            "recall": 96.32,
+            "f1": 68.23
+          },
+          "silver": {
+            "n": 77,
+            "precision": 16.53,
+            "recall": 50.65,
+            "f1": 24.92
+          },
+          "white": {
+            "n": 86,
+            "precision": 36.44,
+            "recall": 100.0,
+            "f1": 53.42
+          },
+          "yellow": {
+            "n": 124,
+            "precision": 86.67,
+            "recall": 94.35,
+            "f1": 90.35
+          }
+        }
+      },
+      "val": {
+        "n_samples": 1550,
+        "top1_acc": 51.81,
+        "top3_acc": 82.65,
+        "macro_f1": 48.22,
+        "macro_precision": 64.89,
+        "macro_recall": 52.45,
+        "per_class": {
+          "beige": {
+            "n": 175,
+            "precision": 68.0,
+            "recall": 9.71,
+            "f1": 17.0
+          },
+          "black": {
+            "n": 86,
+            "precision": 58.02,
+            "recall": 54.65,
+            "f1": 56.29
+          },
+          "blue": {
+            "n": 159,
+            "precision": 75.33,
+            "recall": 71.07,
+            "f1": 73.14
+          },
+          "brown": {
+            "n": 121,
+            "precision": 65.79,
+            "recall": 20.66,
+            "f1": 31.45
+          },
+          "gold": {
+            "n": 45,
+            "precision": 100.0,
+            "recall": 6.67,
+            "f1": 12.5
+          },
+          "gray": {
+            "n": 91,
+            "precision": 20.0,
+            "recall": 30.77,
+            "f1": 24.24
+          },
+          "green": {
+            "n": 120,
+            "precision": 95.52,
+            "recall": 53.33,
+            "f1": 68.45
+          },
+          "orange": {
+            "n": 114,
+            "precision": 83.96,
+            "recall": 78.07,
+            "f1": 80.91
+          },
+          "other": {
+            "n": 217,
+            "precision": 100.0,
+            "recall": 23.96,
+            "f1": 38.66
+          },
+          "red": {
+            "n": 136,
+            "precision": 52.19,
+            "recall": 96.32,
+            "f1": 67.7
+          },
+          "silver": {
+            "n": 77,
+            "precision": 14.71,
+            "recall": 45.45,
+            "f1": 22.22
+          },
+          "white": {
+            "n": 86,
+            "precision": 33.87,
+            "recall": 97.67,
+            "f1": 50.3
+          },
+          "yellow": {
+            "n": 123,
+            "precision": 76.16,
+            "recall": 93.5,
+            "f1": 83.94
+          }
+        }
+      },
+      "train": {
+        "n_samples": 7267,
+        "top1_acc": 53.09,
+        "top3_acc": 82.06,
+        "macro_f1": 49.83,
+        "macro_precision": 64.3,
+        "macro_recall": 53.96,
+        "per_class": {
+          "beige": {
+            "n": 821,
+            "precision": 65.62,
+            "recall": 12.79,
+            "f1": 21.41
+          },
+          "black": {
+            "n": 406,
+            "precision": 56.0,
+            "recall": 62.07,
+            "f1": 58.88
+          },
+          "blue": {
+            "n": 742,
+            "precision": 71.49,
+            "recall": 65.9,
+            "f1": 68.58
+          },
+          "brown": {
+            "n": 565,
+            "precision": 77.94,
+            "recall": 28.14,
+            "f1": 41.35
+          },
+          "gold": {
+            "n": 210,
+            "precision": 78.57,
+            "recall": 5.24,
+            "f1": 9.82
+          },
+          "gray": {
+            "n": 428,
+            "precision": 22.72,
+            "recall": 36.68,
+            "f1": 28.06
+          },
+          "green": {
+            "n": 563,
+            "precision": 95.65,
+            "recall": 58.61,
+            "f1": 72.69
+          },
+          "orange": {
+            "n": 534,
+            "precision": 85.9,
+            "recall": 73.03,
+            "f1": 78.95
+          },
+          "other": {
+            "n": 1019,
+            "precision": 99.59,
+            "recall": 23.65,
+            "f1": 38.22
+          },
+          "red": {
+            "n": 637,
+            "precision": 53.32,
+            "recall": 95.92,
+            "f1": 68.54
+          },
+          "silver": {
+            "n": 362,
+            "precision": 15.92,
+            "recall": 45.86,
+            "f1": 23.63
+          },
+          "white": {
+            "n": 403,
+            "precision": 34.87,
+            "recall": 97.52,
+            "f1": 51.37
+          },
+          "yellow": {
+            "n": 577,
+            "precision": 78.36,
+            "recall": 96.01,
+            "f1": 86.29
+          }
+        }
+      }
+    },
+    "alt_overall": {
+      "n_samples": 10373,
+      "top1_acc": 52.4,
+      "top3_acc": 77.97,
+      "macro_f1": 48.9,
+      "macro_precision": 61.68,
+      "macro_recall": 53.44,
+      "per_class": {
+        "beige": {
+          "n": 601,
+          "precision": 31.86,
+          "recall": 11.98,
+          "f1": 17.41
+        },
+        "black": {
+          "n": 579,
+          "precision": 55.57,
+          "recall": 60.28,
+          "f1": 57.83
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 72.9,
+          "recall": 66.98,
+          "f1": 69.81
+        },
+        "brown": {
+          "n": 807,
+          "precision": 75.7,
+          "recall": 26.64,
+          "f1": 39.41
+        },
+        "gold": {
+          "n": 300,
+          "precision": 79.17,
+          "recall": 6.33,
+          "f1": 11.73
+        },
+        "gray": {
+          "n": 611,
+          "precision": 22.95,
+          "recall": 36.17,
+          "f1": 28.08
+        },
+        "green": {
+          "n": 804,
+          "precision": 95.69,
+          "recall": 57.96,
+          "f1": 72.19
+        },
+        "orange": {
+          "n": 762,
+          "precision": 85.31,
+          "recall": 75.46,
+          "f1": 80.08
+        },
+        "other": {
+          "n": 2025,
+          "precision": 99.71,
+          "recall": 17.09,
+          "f1": 29.17
+        },
+        "red": {
+          "n": 909,
+          "precision": 53.07,
+          "recall": 96.04,
+          "f1": 68.36
+        },
+        "silver": {
+          "n": 516,
+          "precision": 15.82,
+          "recall": 46.51,
+          "f1": 23.61
+        },
+        "white": {
+          "n": 575,
+          "precision": 34.95,
+          "recall": 97.91,
+          "f1": 51.51
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 79.15,
+          "recall": 95.39,
+          "f1": 86.52
+        }
+      }
+    }
+  },
+  "Unweighted MLP-128 (Ablation 1)": {
+    "fps": 578.7,
+    "direct_overall": {
+      "n_samples": 8348,
+      "top1_acc": 59.6,
+      "top3_acc": 84.66,
+      "macro_f1": 52.19,
+      "macro_precision": 63.82,
+      "macro_recall": 54.93,
+      "per_class": {
+        "beige": {
+          "n": 601,
+          "precision": 58.25,
+          "recall": 9.98,
+          "f1": 17.05
+        },
+        "black": {
+          "n": 579,
+          "precision": 63.36,
+          "recall": 58.55,
+          "f1": 60.86
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 93.84,
+          "recall": 64.72,
+          "f1": 76.61
+        },
+        "brown": {
+          "n": 807,
+          "precision": 88.62,
+          "recall": 18.34,
+          "f1": 30.39
+        },
+        "gold": {
+          "n": 300,
+          "precision": 40.0,
+          "recall": 1.33,
+          "f1": 2.58
+        },
+        "gray": {
+          "n": 611,
+          "precision": 25.34,
+          "recall": 46.15,
+          "f1": 32.71
+        },
+        "green": {
+          "n": 804,
+          "precision": 99.17,
+          "recall": 59.2,
+          "f1": 74.14
+        },
+        "orange": {
+          "n": 762,
+          "precision": 80.9,
+          "recall": 73.36,
+          "f1": 76.94
+        },
+        "red": {
+          "n": 909,
+          "precision": 77.81,
+          "recall": 97.58,
+          "f1": 86.58
+        },
+        "silver": {
+          "n": 516,
+          "precision": 20.27,
+          "recall": 37.98,
+          "f1": 26.43
+        },
+        "white": {
+          "n": 575,
+          "precision": 39.41,
+          "recall": 97.74,
+          "f1": 56.17
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 78.86,
+          "recall": 94.17,
+          "f1": 85.84
+        }
+      }
+    },
+    "direct_splits": {
+      "test": {
+        "n_samples": 1252,
+        "top1_acc": 61.58,
+        "top3_acc": 85.22,
+        "macro_f1": 53.96,
+        "macro_precision": 62.15,
+        "macro_recall": 56.81,
+        "per_class": {
+          "beige": {
+            "n": 90,
+            "precision": 70.0,
+            "recall": 15.56,
+            "f1": 25.45
+          },
+          "black": {
+            "n": 87,
+            "precision": 64.0,
+            "recall": 55.17,
+            "f1": 59.26
+          },
+          "blue": {
+            "n": 159,
+            "precision": 96.33,
+            "recall": 66.04,
+            "f1": 78.36
+          },
+          "brown": {
+            "n": 121,
+            "precision": 78.26,
+            "recall": 14.88,
+            "f1": 25.0
+          },
+          "gold": {
+            "n": 45,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "gray": {
+            "n": 92,
+            "precision": 30.97,
+            "recall": 52.17,
+            "f1": 38.87
+          },
+          "green": {
+            "n": 121,
+            "precision": 98.73,
+            "recall": 64.46,
+            "f1": 78.0
+          },
+          "orange": {
+            "n": 114,
+            "precision": 83.78,
+            "recall": 81.58,
+            "f1": 82.67
+          },
+          "red": {
+            "n": 136,
+            "precision": 79.64,
+            "recall": 97.79,
+            "f1": 87.79
+          },
+          "silver": {
+            "n": 77,
+            "precision": 20.0,
+            "recall": 38.96,
+            "f1": 26.43
+          },
+          "white": {
+            "n": 86,
+            "precision": 38.57,
+            "recall": 100.0,
+            "f1": 55.66
+          },
+          "yellow": {
+            "n": 124,
+            "precision": 85.51,
+            "recall": 95.16,
+            "f1": 90.08
+          }
+        }
+      },
+      "val": {
+        "n_samples": 1248,
+        "top1_acc": 58.57,
+        "top3_acc": 84.78,
+        "macro_f1": 50.64,
+        "macro_precision": 67.27,
+        "macro_recall": 53.59,
+        "per_class": {
+          "beige": {
+            "n": 90,
+            "precision": 44.44,
+            "recall": 4.44,
+            "f1": 8.08
+          },
+          "black": {
+            "n": 86,
+            "precision": 67.69,
+            "recall": 51.16,
+            "f1": 58.28
+          },
+          "blue": {
+            "n": 159,
+            "precision": 95.65,
+            "recall": 69.18,
+            "f1": 80.29
+          },
+          "brown": {
+            "n": 121,
+            "precision": 82.61,
+            "recall": 15.7,
+            "f1": 26.39
+          },
+          "gold": {
+            "n": 45,
+            "precision": 100.0,
+            "recall": 2.22,
+            "f1": 4.35
+          },
+          "gray": {
+            "n": 91,
+            "precision": 22.16,
+            "recall": 42.86,
+            "f1": 29.21
+          },
+          "green": {
+            "n": 120,
+            "precision": 98.44,
+            "recall": 52.5,
+            "f1": 68.48
+          },
+          "orange": {
+            "n": 114,
+            "precision": 85.44,
+            "recall": 77.19,
+            "f1": 81.11
+          },
+          "red": {
+            "n": 136,
+            "precision": 77.91,
+            "recall": 98.53,
+            "f1": 87.01
+          },
+          "silver": {
+            "n": 77,
+            "precision": 19.86,
+            "recall": 37.66,
+            "f1": 26.01
+          },
+          "white": {
+            "n": 86,
+            "precision": 38.07,
+            "recall": 96.51,
+            "f1": 54.61
+          },
+          "yellow": {
+            "n": 123,
+            "precision": 75.0,
+            "recall": 95.12,
+            "f1": 83.87
+          }
+        }
+      },
+      "train": {
+        "n_samples": 5848,
+        "top1_acc": 59.39,
+        "top3_acc": 84.51,
+        "macro_f1": 52.12,
+        "macro_precision": 63.87,
+        "macro_recall": 54.81,
+        "per_class": {
+          "beige": {
+            "n": 421,
+            "precision": 56.76,
+            "recall": 9.98,
+            "f1": 16.97
+          },
+          "black": {
+            "n": 406,
+            "precision": 62.53,
+            "recall": 60.84,
+            "f1": 61.67
+          },
+          "blue": {
+            "n": 742,
+            "precision": 92.9,
+            "recall": 63.48,
+            "f1": 75.42
+          },
+          "brown": {
+            "n": 565,
+            "precision": 91.74,
+            "recall": 19.65,
+            "f1": 32.36
+          },
+          "gold": {
+            "n": 210,
+            "precision": 42.86,
+            "recall": 1.43,
+            "f1": 2.76
+          },
+          "gray": {
+            "n": 428,
+            "precision": 24.94,
+            "recall": 45.56,
+            "f1": 32.23
+          },
+          "green": {
+            "n": 563,
+            "precision": 99.41,
+            "recall": 59.5,
+            "f1": 74.44
+          },
+          "orange": {
+            "n": 534,
+            "precision": 79.25,
+            "recall": 70.79,
+            "f1": 74.78
+          },
+          "red": {
+            "n": 637,
+            "precision": 77.4,
+            "recall": 97.33,
+            "f1": 86.23
+          },
+          "silver": {
+            "n": 362,
+            "precision": 20.42,
+            "recall": 37.85,
+            "f1": 26.52
+          },
+          "white": {
+            "n": 403,
+            "precision": 39.9,
+            "recall": 97.52,
+            "f1": 56.63
+          },
+          "yellow": {
+            "n": 577,
+            "precision": 78.41,
+            "recall": 93.76,
+            "f1": 85.4
+          }
+        }
+      }
+    },
+    "full_overall": {
+      "n_samples": 10373,
+      "top1_acc": 49.9,
+      "top3_acc": 78.59,
+      "macro_f1": 45.53,
+      "macro_precision": 60.64,
+      "macro_recall": 51.45,
+      "per_class": {
+        "beige": {
+          "n": 1172,
+          "precision": 70.39,
+          "recall": 9.13,
+          "f1": 16.16
+        },
+        "black": {
+          "n": 579,
+          "precision": 52.56,
+          "recall": 58.55,
+          "f1": 55.39
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 71.68,
+          "recall": 64.72,
+          "f1": 68.02
+        },
+        "brown": {
+          "n": 807,
+          "precision": 81.77,
+          "recall": 18.34,
+          "f1": 29.96
+        },
+        "gold": {
+          "n": 300,
+          "precision": 40.0,
+          "recall": 1.33,
+          "f1": 2.58
+        },
+        "gray": {
+          "n": 611,
+          "precision": 21.36,
+          "recall": 46.15,
+          "f1": 29.21
+        },
+        "green": {
+          "n": 804,
+          "precision": 95.77,
+          "recall": 59.2,
+          "f1": 73.17
+        },
+        "orange": {
+          "n": 762,
+          "precision": 80.09,
+          "recall": 73.36,
+          "f1": 76.58
+        },
+        "other": {
+          "n": 1454,
+          "precision": 99.35,
+          "recall": 10.59,
+          "f1": 19.14
+        },
+        "red": {
+          "n": 909,
+          "precision": 49.14,
+          "recall": 97.58,
+          "f1": 65.36
+        },
+        "silver": {
+          "n": 516,
+          "precision": 16.29,
+          "recall": 37.98,
+          "f1": 22.8
+        },
+        "white": {
+          "n": 575,
+          "precision": 32.06,
+          "recall": 97.74,
+          "f1": 48.28
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 77.83,
+          "recall": 94.17,
+          "f1": 85.23
+        }
+      }
+    },
+    "full_splits": {
+      "test": {
+        "n_samples": 1556,
+        "top1_acc": 51.41,
+        "top3_acc": 78.47,
+        "macro_f1": 46.7,
+        "macro_precision": 58.41,
+        "macro_recall": 52.92,
+        "per_class": {
+          "beige": {
+            "n": 176,
+            "precision": 72.0,
+            "recall": 10.23,
+            "f1": 17.91
+          },
+          "black": {
+            "n": 87,
+            "precision": 52.75,
+            "recall": 55.17,
+            "f1": 53.93
+          },
+          "blue": {
+            "n": 159,
+            "precision": 79.55,
+            "recall": 66.04,
+            "f1": 72.16
+          },
+          "brown": {
+            "n": 121,
+            "precision": 72.0,
+            "recall": 14.88,
+            "f1": 24.66
+          },
+          "gold": {
+            "n": 45,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "gray": {
+            "n": 92,
+            "precision": 25.0,
+            "recall": 52.17,
+            "f1": 33.8
+          },
+          "green": {
+            "n": 121,
+            "precision": 96.3,
+            "recall": 64.46,
+            "f1": 77.23
+          },
+          "orange": {
+            "n": 114,
+            "precision": 81.58,
+            "recall": 81.58,
+            "f1": 81.58
+          },
+          "other": {
+            "n": 218,
+            "precision": 100.0,
+            "recall": 11.47,
+            "f1": 20.58
+          },
+          "red": {
+            "n": 136,
+            "precision": 48.9,
+            "recall": 97.79,
+            "f1": 65.2
+          },
+          "silver": {
+            "n": 77,
+            "precision": 15.96,
+            "recall": 38.96,
+            "f1": 22.64
+          },
+          "white": {
+            "n": 86,
+            "precision": 32.21,
+            "recall": 100.0,
+            "f1": 48.73
+          },
+          "yellow": {
+            "n": 124,
+            "precision": 83.1,
+            "recall": 95.16,
+            "f1": 88.72
+          }
+        }
+      },
+      "val": {
+        "n_samples": 1550,
+        "top1_acc": 49.23,
+        "top3_acc": 79.1,
+        "macro_f1": 44.69,
+        "macro_precision": 65.65,
+        "macro_recall": 50.54,
+        "per_class": {
+          "beige": {
+            "n": 175,
+            "precision": 76.19,
+            "recall": 9.14,
+            "f1": 16.33
+          },
+          "black": {
+            "n": 86,
+            "precision": 55.7,
+            "recall": 51.16,
+            "f1": 53.33
+          },
+          "blue": {
+            "n": 159,
+            "precision": 71.9,
+            "recall": 69.18,
+            "f1": 70.51
+          },
+          "brown": {
+            "n": 121,
+            "precision": 79.17,
+            "recall": 15.7,
+            "f1": 26.21
+          },
+          "gold": {
+            "n": 45,
+            "precision": 100.0,
+            "recall": 2.22,
+            "f1": 4.35
+          },
+          "gray": {
+            "n": 91,
+            "precision": 19.4,
+            "recall": 42.86,
+            "f1": 26.71
+          },
+          "green": {
+            "n": 120,
+            "precision": 96.92,
+            "recall": 52.5,
+            "f1": 68.11
+          },
+          "orange": {
+            "n": 114,
+            "precision": 84.62,
+            "recall": 77.19,
+            "f1": 80.73
+          },
+          "other": {
+            "n": 217,
+            "precision": 100.0,
+            "recall": 9.22,
+            "f1": 16.88
+          },
+          "red": {
+            "n": 136,
+            "precision": 48.2,
+            "recall": 98.53,
+            "f1": 64.73
+          },
+          "silver": {
+            "n": 77,
+            "precision": 16.02,
+            "recall": 37.66,
+            "f1": 22.48
+          },
+          "white": {
+            "n": 86,
+            "precision": 31.32,
+            "recall": 96.51,
+            "f1": 47.29
+          },
+          "yellow": {
+            "n": 123,
+            "precision": 74.05,
+            "recall": 95.12,
+            "f1": 83.27
+          }
+        }
+      },
+      "train": {
+        "n_samples": 7267,
+        "top1_acc": 49.72,
+        "top3_acc": 78.51,
+        "macro_f1": 45.45,
+        "macro_precision": 60.6,
+        "macro_recall": 51.33,
+        "per_class": {
+          "beige": {
+            "n": 821,
+            "precision": 68.87,
+            "recall": 8.89,
+            "f1": 15.75
+          },
+          "black": {
+            "n": 406,
+            "precision": 52.0,
+            "recall": 60.84,
+            "f1": 56.07
+          },
+          "blue": {
+            "n": 742,
+            "precision": 70.09,
+            "recall": 63.48,
+            "f1": 66.62
+          },
+          "brown": {
+            "n": 565,
+            "precision": 84.09,
+            "recall": 19.65,
+            "f1": 31.85
+          },
+          "gold": {
+            "n": 210,
+            "precision": 42.86,
+            "recall": 1.43,
+            "f1": 2.76
+          },
+          "gray": {
+            "n": 428,
+            "precision": 21.04,
+            "recall": 45.56,
+            "f1": 28.78
+          },
+          "green": {
+            "n": 563,
+            "precision": 95.44,
+            "recall": 59.5,
+            "f1": 73.3
+          },
+          "orange": {
+            "n": 534,
+            "precision": 78.75,
+            "recall": 70.79,
+            "f1": 74.56
+          },
+          "other": {
+            "n": 1019,
+            "precision": 99.09,
+            "recall": 10.7,
+            "f1": 19.31
+          },
+          "red": {
+            "n": 637,
+            "precision": 49.4,
+            "recall": 97.33,
+            "f1": 65.54
+          },
+          "silver": {
+            "n": 362,
+            "precision": 16.43,
+            "recall": 37.85,
+            "f1": 22.91
+          },
+          "white": {
+            "n": 403,
+            "precision": 32.19,
+            "recall": 97.52,
+            "f1": 48.4
+          },
+          "yellow": {
+            "n": 577,
+            "precision": 77.62,
+            "recall": 93.76,
+            "f1": 84.93
+          }
+        }
+      }
+    },
+    "alt_overall": {
+      "n_samples": 10373,
+      "top1_acc": 49.45,
+      "top3_acc": 74.94,
+      "macro_f1": 45.13,
+      "macro_precision": 58.26,
+      "macro_recall": 51.29,
+      "per_class": {
+        "beige": {
+          "n": 601,
+          "precision": 39.47,
+          "recall": 9.98,
+          "f1": 15.94
+        },
+        "black": {
+          "n": 579,
+          "precision": 52.56,
+          "recall": 58.55,
+          "f1": 55.39
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 71.68,
+          "recall": 64.72,
+          "f1": 68.02
+        },
+        "brown": {
+          "n": 807,
+          "precision": 81.77,
+          "recall": 18.34,
+          "f1": 29.96
+        },
+        "gold": {
+          "n": 300,
+          "precision": 40.0,
+          "recall": 1.33,
+          "f1": 2.58
+        },
+        "gray": {
+          "n": 611,
+          "precision": 21.36,
+          "recall": 46.15,
+          "f1": 29.21
+        },
+        "green": {
+          "n": 804,
+          "precision": 95.77,
+          "recall": 59.2,
+          "f1": 73.17
+        },
+        "orange": {
+          "n": 762,
+          "precision": 80.09,
+          "recall": 73.36,
+          "f1": 76.58
+        },
+        "other": {
+          "n": 2025,
+          "precision": 99.35,
+          "recall": 7.6,
+          "f1": 14.13
+        },
+        "red": {
+          "n": 909,
+          "precision": 49.14,
+          "recall": 97.58,
+          "f1": 65.36
+        },
+        "silver": {
+          "n": 516,
+          "precision": 16.29,
+          "recall": 37.98,
+          "f1": 22.8
+        },
+        "white": {
+          "n": 575,
+          "precision": 32.06,
+          "recall": 97.74,
+          "f1": 48.28
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 77.83,
+          "recall": 94.17,
+          "f1": 85.23
+        }
+      }
+    }
+  },
+  "Baseline MLP-128 (Class Weighted)": {
+    "fps": 595.2,
+    "direct_overall": {
+      "n_samples": 8348,
+      "top1_acc": 66.69,
+      "top3_acc": 89.34,
+      "macro_f1": 60.53,
+      "macro_precision": 67.74,
+      "macro_recall": 61.66,
+      "per_class": {
+        "beige": {
+          "n": 601,
+          "precision": 56.15,
+          "recall": 47.09,
+          "f1": 51.22
+        },
+        "black": {
+          "n": 579,
+          "precision": 75.14,
+          "recall": 45.94,
+          "f1": 57.02
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 94.74,
+          "recall": 71.42,
+          "f1": 81.44
+        },
+        "brown": {
+          "n": 807,
+          "precision": 74.32,
+          "recall": 44.11,
+          "f1": 55.37
+        },
+        "gold": {
+          "n": 300,
+          "precision": 71.43,
+          "recall": 5.0,
+          "f1": 9.35
+        },
+        "gray": {
+          "n": 611,
+          "precision": 31.28,
+          "recall": 40.75,
+          "f1": 35.39
+        },
+        "green": {
+          "n": 804,
+          "precision": 91.07,
+          "recall": 72.26,
+          "f1": 80.58
+        },
+        "orange": {
+          "n": 762,
+          "precision": 75.62,
+          "recall": 87.93,
+          "f1": 81.31
+        },
+        "red": {
+          "n": 909,
+          "precision": 89.22,
+          "recall": 91.09,
+          "f1": 90.15
+        },
+        "silver": {
+          "n": 516,
+          "precision": 27.37,
+          "recall": 43.6,
+          "f1": 33.63
+        },
+        "white": {
+          "n": 575,
+          "precision": 50.7,
+          "recall": 94.26,
+          "f1": 65.94
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 75.86,
+          "recall": 96.48,
+          "f1": 84.94
+        }
+      }
+    },
+    "direct_splits": {
+      "test": {
+        "n_samples": 1252,
+        "top1_acc": 68.37,
+        "top3_acc": 89.3,
+        "macro_f1": 62.17,
+        "macro_precision": 68.69,
+        "macro_recall": 63.57,
+        "per_class": {
+          "beige": {
+            "n": 90,
+            "precision": 56.1,
+            "recall": 51.11,
+            "f1": 53.49
+          },
+          "black": {
+            "n": 87,
+            "precision": 77.19,
+            "recall": 50.57,
+            "f1": 61.11
+          },
+          "blue": {
+            "n": 159,
+            "precision": 94.02,
+            "recall": 69.18,
+            "f1": 79.71
+          },
+          "brown": {
+            "n": 121,
+            "precision": 77.92,
+            "recall": 49.59,
+            "f1": 60.61
+          },
+          "gold": {
+            "n": 45,
+            "precision": 66.67,
+            "recall": 4.44,
+            "f1": 8.33
+          },
+          "gray": {
+            "n": 92,
+            "precision": 40.86,
+            "recall": 41.3,
+            "f1": 41.08
+          },
+          "green": {
+            "n": 121,
+            "precision": 88.0,
+            "recall": 72.73,
+            "f1": 79.64
+          },
+          "orange": {
+            "n": 114,
+            "precision": 75.0,
+            "recall": 92.11,
+            "f1": 82.68
+          },
+          "red": {
+            "n": 136,
+            "precision": 89.63,
+            "recall": 88.97,
+            "f1": 89.3
+          },
+          "silver": {
+            "n": 77,
+            "precision": 27.69,
+            "recall": 46.75,
+            "f1": 34.78
+          },
+          "white": {
+            "n": 86,
+            "precision": 50.91,
+            "recall": 97.67,
+            "f1": 66.93
+          },
+          "yellow": {
+            "n": 124,
+            "precision": 80.26,
+            "recall": 98.39,
+            "f1": 88.41
+          }
+        }
+      },
+      "val": {
+        "n_samples": 1248,
+        "top1_acc": 66.43,
+        "top3_acc": 88.78,
+        "macro_f1": 60.14,
+        "macro_precision": 70.43,
+        "macro_recall": 61.07,
+        "per_class": {
+          "beige": {
+            "n": 90,
+            "precision": 60.0,
+            "recall": 46.67,
+            "f1": 52.5
+          },
+          "black": {
+            "n": 86,
+            "precision": 79.07,
+            "recall": 39.53,
+            "f1": 52.71
+          },
+          "blue": {
+            "n": 159,
+            "precision": 95.28,
+            "recall": 76.1,
+            "f1": 84.62
+          },
+          "brown": {
+            "n": 121,
+            "precision": 72.46,
+            "recall": 41.32,
+            "f1": 52.63
+          },
+          "gold": {
+            "n": 45,
+            "precision": 100.0,
+            "recall": 6.67,
+            "f1": 12.5
+          },
+          "gray": {
+            "n": 91,
+            "precision": 25.86,
+            "recall": 32.97,
+            "f1": 28.99
+          },
+          "green": {
+            "n": 120,
+            "precision": 91.95,
+            "recall": 66.67,
+            "f1": 77.29
+          },
+          "orange": {
+            "n": 114,
+            "precision": 79.85,
+            "recall": 93.86,
+            "f1": 86.29
+          },
+          "red": {
+            "n": 136,
+            "precision": 92.81,
+            "recall": 94.85,
+            "f1": 93.82
+          },
+          "silver": {
+            "n": 77,
+            "precision": 26.47,
+            "recall": 46.75,
+            "f1": 33.8
+          },
+          "white": {
+            "n": 86,
+            "precision": 49.68,
+            "recall": 90.7,
+            "f1": 64.2
+          },
+          "yellow": {
+            "n": 123,
+            "precision": 71.69,
+            "recall": 96.75,
+            "f1": 82.35
+          }
+        }
+      },
+      "train": {
+        "n_samples": 5848,
+        "top1_acc": 66.38,
+        "top3_acc": 89.47,
+        "macro_f1": 60.25,
+        "macro_precision": 67.05,
+        "macro_recall": 61.38,
+        "per_class": {
+          "beige": {
+            "n": 421,
+            "precision": 55.4,
+            "recall": 46.32,
+            "f1": 50.45
+          },
+          "black": {
+            "n": 406,
+            "precision": 74.02,
+            "recall": 46.31,
+            "f1": 56.97
+          },
+          "blue": {
+            "n": 742,
+            "precision": 94.77,
+            "recall": 70.89,
+            "f1": 81.11
+          },
+          "brown": {
+            "n": 565,
+            "precision": 73.87,
+            "recall": 43.54,
+            "f1": 54.79
+          },
+          "gold": {
+            "n": 210,
+            "precision": 66.67,
+            "recall": 4.76,
+            "f1": 8.89
+          },
+          "gray": {
+            "n": 428,
+            "precision": 30.83,
+            "recall": 42.29,
+            "f1": 35.67
+          },
+          "green": {
+            "n": 563,
+            "precision": 91.57,
+            "recall": 73.36,
+            "f1": 81.46
+          },
+          "orange": {
+            "n": 534,
+            "precision": 74.84,
+            "recall": 85.77,
+            "f1": 79.93
+          },
+          "red": {
+            "n": 637,
+            "precision": 88.38,
+            "recall": 90.74,
+            "f1": 89.54
+          },
+          "silver": {
+            "n": 362,
+            "precision": 27.52,
+            "recall": 42.27,
+            "f1": 33.33
+          },
+          "white": {
+            "n": 403,
+            "precision": 50.87,
+            "recall": 94.29,
+            "f1": 66.09
+          },
+          "yellow": {
+            "n": 577,
+            "precision": 75.89,
+            "recall": 96.01,
+            "f1": 84.77
+          }
+        }
+      }
+    },
+    "full_overall": {
+      "n_samples": 10373,
+      "top1_acc": 61.2,
+      "top3_acc": 86.93,
+      "macro_f1": 56.67,
+      "macro_precision": 64.31,
+      "macro_recall": 59.65,
+      "per_class": {
+        "beige": {
+          "n": 1172,
+          "precision": 70.51,
+          "recall": 48.55,
+          "f1": 57.5
+        },
+        "black": {
+          "n": 579,
+          "precision": 66.5,
+          "recall": 45.94,
+          "f1": 54.34
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 78.94,
+          "recall": 71.42,
+          "f1": 74.99
+        },
+        "brown": {
+          "n": 807,
+          "precision": 61.27,
+          "recall": 44.11,
+          "f1": 51.3
+        },
+        "gold": {
+          "n": 300,
+          "precision": 71.43,
+          "recall": 5.0,
+          "f1": 9.35
+        },
+        "gray": {
+          "n": 611,
+          "precision": 27.85,
+          "recall": 40.75,
+          "f1": 33.09
+        },
+        "green": {
+          "n": 804,
+          "precision": 84.33,
+          "recall": 72.26,
+          "f1": 77.83
+        },
+        "orange": {
+          "n": 762,
+          "precision": 73.22,
+          "recall": 87.93,
+          "f1": 79.9
+        },
+        "other": {
+          "n": 1454,
+          "precision": 99.2,
+          "recall": 34.04,
+          "f1": 50.69
+        },
+        "red": {
+          "n": 909,
+          "precision": 60.04,
+          "recall": 91.09,
+          "f1": 72.38
+        },
+        "silver": {
+          "n": 516,
+          "precision": 23.61,
+          "recall": 43.6,
+          "f1": 30.63
+        },
+        "white": {
+          "n": 575,
+          "precision": 45.13,
+          "recall": 94.26,
+          "f1": 61.04
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 73.95,
+          "recall": 96.48,
+          "f1": 83.73
+        }
+      }
+    },
+    "full_splits": {
+      "test": {
+        "n_samples": 1556,
+        "top1_acc": 61.89,
+        "top3_acc": 86.18,
+        "macro_f1": 57.37,
+        "macro_precision": 64.46,
+        "macro_recall": 60.9,
+        "per_class": {
+          "beige": {
+            "n": 176,
+            "precision": 70.31,
+            "recall": 51.14,
+            "f1": 59.21
+          },
+          "black": {
+            "n": 87,
+            "precision": 68.75,
+            "recall": 50.57,
+            "f1": 58.28
+          },
+          "blue": {
+            "n": 159,
+            "precision": 77.46,
+            "recall": 69.18,
+            "f1": 73.09
+          },
+          "brown": {
+            "n": 121,
+            "precision": 63.16,
+            "recall": 49.59,
+            "f1": 55.56
+          },
+          "gold": {
+            "n": 45,
+            "precision": 66.67,
+            "recall": 4.44,
+            "f1": 8.33
+          },
+          "gray": {
+            "n": 92,
+            "precision": 34.55,
+            "recall": 41.3,
+            "f1": 37.62
+          },
+          "green": {
+            "n": 121,
+            "precision": 80.0,
+            "recall": 72.73,
+            "f1": 76.19
+          },
+          "orange": {
+            "n": 114,
+            "precision": 72.41,
+            "recall": 92.11,
+            "f1": 81.08
+          },
+          "other": {
+            "n": 218,
+            "precision": 98.44,
+            "recall": 28.9,
+            "f1": 44.68
+          },
+          "red": {
+            "n": 136,
+            "precision": 58.74,
+            "recall": 88.97,
+            "f1": 70.76
+          },
+          "silver": {
+            "n": 77,
+            "precision": 24.16,
+            "recall": 46.75,
+            "f1": 31.86
+          },
+          "white": {
+            "n": 86,
+            "precision": 46.15,
+            "recall": 97.67,
+            "f1": 62.69
+          },
+          "yellow": {
+            "n": 124,
+            "precision": 77.22,
+            "recall": 98.39,
+            "f1": 86.52
+          }
+        }
+      },
+      "val": {
+        "n_samples": 1550,
+        "top1_acc": 61.35,
+        "top3_acc": 86.77,
+        "macro_f1": 56.56,
+        "macro_precision": 66.72,
+        "macro_recall": 59.32,
+        "per_class": {
+          "beige": {
+            "n": 175,
+            "precision": 72.65,
+            "recall": 48.57,
+            "f1": 58.22
+          },
+          "black": {
+            "n": 86,
+            "precision": 68.0,
+            "recall": 39.53,
+            "f1": 50.0
+          },
+          "blue": {
+            "n": 159,
+            "precision": 79.61,
+            "recall": 76.1,
+            "f1": 77.81
+          },
+          "brown": {
+            "n": 121,
+            "precision": 62.5,
+            "recall": 41.32,
+            "f1": 49.75
+          },
+          "gold": {
+            "n": 45,
+            "precision": 100.0,
+            "recall": 6.67,
+            "f1": 12.5
+          },
+          "gray": {
+            "n": 91,
+            "precision": 23.81,
+            "recall": 32.97,
+            "f1": 27.65
+          },
+          "green": {
+            "n": 120,
+            "precision": 86.96,
+            "recall": 66.67,
+            "f1": 75.47
+          },
+          "orange": {
+            "n": 114,
+            "precision": 75.35,
+            "recall": 93.86,
+            "f1": 83.59
+          },
+          "other": {
+            "n": 217,
+            "precision": 98.75,
+            "recall": 36.41,
+            "f1": 53.2
+          },
+          "red": {
+            "n": 136,
+            "precision": 62.62,
+            "recall": 94.85,
+            "f1": 75.44
+          },
+          "silver": {
+            "n": 77,
+            "precision": 22.93,
+            "recall": 46.75,
+            "f1": 30.77
+          },
+          "white": {
+            "n": 86,
+            "precision": 45.35,
+            "recall": 90.7,
+            "f1": 60.47
+          },
+          "yellow": {
+            "n": 123,
+            "precision": 68.79,
+            "recall": 96.75,
+            "f1": 80.41
+          }
+        }
+      },
+      "train": {
+        "n_samples": 7267,
+        "top1_acc": 61.02,
+        "top3_acc": 87.12,
+        "macro_f1": 56.53,
+        "macro_precision": 63.82,
+        "macro_recall": 59.45,
+        "per_class": {
+          "beige": {
+            "n": 821,
+            "precision": 70.11,
+            "recall": 47.99,
+            "f1": 56.98
+          },
+          "black": {
+            "n": 406,
+            "precision": 65.73,
+            "recall": 46.31,
+            "f1": 54.34
+          },
+          "blue": {
+            "n": 742,
+            "precision": 79.1,
+            "recall": 70.89,
+            "f1": 74.77
+          },
+          "brown": {
+            "n": 565,
+            "precision": 60.59,
+            "recall": 43.54,
+            "f1": 50.67
+          },
+          "gold": {
+            "n": 210,
+            "precision": 66.67,
+            "recall": 4.76,
+            "f1": 8.89
+          },
+          "gray": {
+            "n": 428,
+            "precision": 27.51,
+            "recall": 42.29,
+            "f1": 33.33
+          },
+          "green": {
+            "n": 563,
+            "precision": 84.8,
+            "recall": 73.36,
+            "f1": 78.67
+          },
+          "orange": {
+            "n": 534,
+            "precision": 72.93,
+            "recall": 85.77,
+            "f1": 78.83
+          },
+          "other": {
+            "n": 1019,
+            "precision": 99.44,
+            "recall": 34.64,
+            "f1": 51.38
+          },
+          "red": {
+            "n": 637,
+            "precision": 59.77,
+            "recall": 90.74,
+            "f1": 72.07
+          },
+          "silver": {
+            "n": 362,
+            "precision": 23.65,
+            "recall": 42.27,
+            "f1": 30.33
+          },
+          "white": {
+            "n": 403,
+            "precision": 44.86,
+            "recall": 94.29,
+            "f1": 60.8
+          },
+          "yellow": {
+            "n": 577,
+            "precision": 74.46,
+            "recall": 96.01,
+            "f1": 83.88
+          }
+        }
+      }
+    },
+    "alt_overall": {
+      "n_samples": 10373,
+      "top1_acc": 58.44,
+      "top3_acc": 82.06,
+      "macro_f1": 54.46,
+      "macro_precision": 61.58,
+      "macro_recall": 58.8,
+      "per_class": {
+        "beige": {
+          "n": 601,
+          "precision": 35.07,
+          "recall": 47.09,
+          "f1": 40.2
+        },
+        "black": {
+          "n": 579,
+          "precision": 66.5,
+          "recall": 45.94,
+          "f1": 54.34
+        },
+        "blue": {
+          "n": 1060,
+          "precision": 78.94,
+          "recall": 71.42,
+          "f1": 74.99
+        },
+        "brown": {
+          "n": 807,
+          "precision": 61.27,
+          "recall": 44.11,
+          "f1": 51.3
+        },
+        "gold": {
+          "n": 300,
+          "precision": 71.43,
+          "recall": 5.0,
+          "f1": 9.35
+        },
+        "gray": {
+          "n": 611,
+          "precision": 27.85,
+          "recall": 40.75,
+          "f1": 33.09
+        },
+        "green": {
+          "n": 804,
+          "precision": 84.33,
+          "recall": 72.26,
+          "f1": 77.83
+        },
+        "orange": {
+          "n": 762,
+          "precision": 73.22,
+          "recall": 87.93,
+          "f1": 79.9
+        },
+        "other": {
+          "n": 2025,
+          "precision": 99.2,
+          "recall": 24.44,
+          "f1": 39.22
+        },
+        "red": {
+          "n": 909,
+          "precision": 60.04,
+          "recall": 91.09,
+          "f1": 72.38
+        },
+        "silver": {
+          "n": 516,
+          "precision": 23.61,
+          "recall": 43.6,
+          "f1": 30.63
+        },
+        "white": {
+          "n": 575,
+          "precision": 45.13,
+          "recall": 94.26,
+          "f1": 61.04
+        },
+        "yellow": {
+          "n": 824,
+          "precision": 73.95,
+          "recall": 96.48,
+          "f1": 83.73
+        }
+      }
+    }
+  }
+}
