@@ -8,7 +8,7 @@ This directory contains the mobile-first PyTorch training pipeline, diagnostic e
 
 ```text
 vmmr/code/current/mobilenet/
-├── run4/                                 # Primary Pipeline (Model C: PlatesMania + External merged)
+├── run5/                                 # Primary Pipeline (Model C: PlatesMania + External merged)
 │   ├── train/                            # Training subsystem
 │   │   ├── train_mobilenet_v2_merged.py      # Joint PyTorch training pipeline (AMP, CosineAnnealing, ONNX export)
 │   │   └── train_mobilenet_v2_merged.ipynb   # Interactive training notebook
@@ -17,7 +17,7 @@ vmmr/code/current/mobilenet/
 │   │   └── output_analysis_merged.ipynb      # Interactive dual-domain diagnostic & Grad-CAM notebook
 │   ├── splits_1235models/                # External dataset train/val/test CSVs & label_map.json
 │   ├── prepare_external_1235models.py    # External split builder (51 makes + >=50 sample pruning)
-│   └── output_merged_run4/               # Run 4 Model C artifacts (.onnx), per-domain diagnostics, benchmark, plots
+│   └── output_merged_<run>/              # Model C artifacts (.onnx), per-domain diagnostics, benchmark, plots
 │
 ├── annotation/                           # Multi-stage make/model + Qwen3-VL-8B color annotation & HTML viewer
 │   ├── annotate.py                           # Stage 1-4 coordinator (ONNX, UMAP, Qwen3-VL-8B, viewer)
@@ -72,11 +72,11 @@ bash bash_scripts/run_train_color_distillation.sh  # distill color head into mob
 
 ---
 
-## 2. Merged Dataset Pipeline (`run4/`, Model C)
+## 2. Merged Dataset Pipeline (`run5/`, Model C; Run 4 archived in `backup_run4/`)
 
 Trains a single unified **MobileNetV2** classifier jointly across both domains:
 - **PlatesMania Domain**: 1,093,501 manifest rows (`1,093,408` readable images across `1,235` classes and `35` makes; `109,331 / 109,340` readable in `test`) from `PM_MANIFEST_CSV` and `PM_IMG_DIR`, with on-the-fly top 15% banner cropping (`crop_top_pct=0.15`, `crop_bottom_pct=0.0`).
-- **External Domain (`run4/splits_1235models/`)**: Pre-letterboxed 512×512 images from `external_resized_512` (BoxCars116k, Stanford Cars, CompCars CCTV) with on-the-fly bottom 5% watermark cropping (`crop_bottom_pct=0.05`; `bbox_* = -1` on all rows since vehicles were pre-cropped during 512×512 dataset construction):
+- **External Domain (`run5/splits_1235models/`)**: Pre-letterboxed 512×512 images from `external_resized_512` (BoxCars116k, Stanford Cars, CompCars CCTV) with on-the-fly bottom 5% watermark cropping (`crop_bottom_pct=0.05`; `bbox_* = -1` on all rows since vehicles were pre-cropped during 512×512 dataset construction):
   - **Run 4 Baseline (`output_merged_run4`, 35-Make / 1,235-Class Taxonomy)**: **33,329** images across **286** active classes (`train.csv`: 23,589, `val.csv`: 4,870, `test.csv`: 4,870), sharing the exact 1,235-class space (`0..1234`) with Models A and B.
   - **Expanded 51-Make Splits (Current `splits_1235models/`, 49-Make / 1,416-Class Taxonomy)**: **67,695** images across **471** active External classes (`train.csv`: 47,805, `val.csv`: 9,945, `test.csv`: 9,945) — retaining 290 overlapping PlatesMania classes (`0..1234`) plus 181 External-only classes with $\ge 50$ samples (`1235..1415`), while pruning 159 small classes ($< 50$ samples).
 - **Domain-Balanced Sampling**: Uses `WeightedRandomSampler` (`--ext-fraction 0.2`) so External images constitute 20% of each epoch while keeping epoch length equal to the PlatesMania training split.
@@ -91,7 +91,7 @@ Evaluates **Model C** (`output_merged_run4`, 1,235 classes) on:
 2. **Coarse Make Level**: Top-1 Accuracy & Macro/Weighted F1 across 35 automotive makes via probability marginalization:
    $$P(\text{Make}_k) = \sum_{m \in \text{Make}_k} P(\text{Model}_m)$$
 
-Outputs under `run4/output_merged_run4/`:
+Outputs under `run5/output_merged_<run>/` (Run 4: `backup_run4/output_merged_run4/`):
 - `diagnostics_platesmania/` — Full 109,331-image readable PlatesMania test split reports, confusion matrices, t-SNE/PCA, calibration.
 - `diagnostics_external/` — Full 4,870-image Run 4 External test split reports, confusion matrices, t-SNE/PCA, calibration.
 - `benchmark/` — Balanced 5,000-image PlatesMania + 4,870-image External (`9,870` combined) summary (`mixed_benchmark_summary.csv`, `shared_class_summary.csv`, `class_coverage.csv`, `cross_domain_comparison.png`).

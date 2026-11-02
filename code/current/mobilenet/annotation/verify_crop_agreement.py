@@ -58,7 +58,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--annotations", default=str(MOBILENET_DIR / "annotation_runs/run2/annotations.csv"))
     p.add_argument("--multitask-onnx", default=str(MOBILENET_DIR / "color_distillation/output/mobilenet_v2_multitask.onnx"))
-    p.add_argument("--boxcars-bboxes", default=str(MOBILENET_DIR / "run4/boxcars116k_bboxes_512.json"))
+    p.add_argument("--boxcars-bboxes", default=str(MOBILENET_DIR / "run5/boxcars116k_bboxes_512.json"))
     p.add_argument("--num-samples", type=int, default=300)
     p.add_argument("--run-qwen", action="store_true", help="Also run Qwen3-VL-8B-Instruct on the 300 pairs (requires GPU)")
     p.add_argument("--seed", type=int, default=42)

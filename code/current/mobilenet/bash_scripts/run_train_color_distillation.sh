@@ -15,7 +15,8 @@ RUN_NAME="${RUN_NAME:-run2}"
 MODEL_RUN="${MODEL_RUN:-run4}"
 
 ANNOTATIONS="${ANNOT_OUT_DIR}/${RUN_NAME}/annotations.csv"
-BASE_MODEL="${MOBILENET_DIR}/run4/output_merged_${MODEL_RUN}/models/mobilenet_v2_best.onnx"
+if [ "${MODEL_RUN}" = "run4" ]; then MODEL_PARENT="${MOBILENET_DIR}/backup_run4"; else MODEL_PARENT="${MOBILENET_DIR}/run5"; fi
+BASE_MODEL="${MODEL_PARENT}/output_merged_${MODEL_RUN}/models/mobilenet_v2_best.onnx"
 OUT_DIR="${MOBILENET_DIR}/color_distillation/output"
 
 echo "=================================================================="

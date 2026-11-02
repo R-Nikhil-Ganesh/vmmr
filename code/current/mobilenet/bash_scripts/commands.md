@@ -6,6 +6,7 @@ Run everything from `vmmr/code/current/mobilenet/`. The runners in `bash_scripts
 |---|---|---|
 | Train Model C (merged), then per-domain diagnostics + benchmark | `bash bash_scripts/run_all_pipeline.sh [trainer flags]` | `mobilenet_pipeline` |
 | Train Model C (PlatesMania + External merged) | `bash bash_scripts/run_train_merged.sh [flags]` | `train_merged` |
+| Run 5 make/model queue (R5-0..R5-3, each + open-set eval + diagnostics) | `bash bash_scripts/run_run5_ablations.sh [--only R5-0,R5-1] [--skip-diag]` | `run5_ablations` |
 | Diagnostics + mixed benchmark | `bash bash_scripts/run_diagnostics.sh [options]` | `diagnostics` |
 | Annotate images (make/model + Qwen3-VL color) + build `viewer.html` | `bash bash_scripts/run_annotate.sh [flags]` | `annotate` |
 | Score the Qwen color teacher against CompCars human labels (one config or a sweep) | `RUN_NAME=<tag> bash bash_scripts/run_eval_color_teacher.sh [flags]` / `SWEEP=1 bash ...` | `eval_color_teacher` |
@@ -29,9 +30,9 @@ A second launch with a session name that is already running is refused (it print
 
 | Variable | Effect |
 |---|---|
-| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `run4/output_merged_<name>` (training, diagnostics, and `benchmark/`), `annotation_runs/<name>` (annotation), session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=merged_51make` for training, `RUN_NAME=run2` for annotation). |
+| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `run5/output_merged_<name>` (training, diagnostics, and `benchmark/`), `annotation_runs/<name>` (annotation), session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=merged_51make` for training, `RUN_NAME=run2` for annotation). |
 | `SWEEP=1` | `run_eval_color_teacher.sh` runs the one-factor teacher sweep (`s0_original` ... `s5_flip`) instead of a single `RUN_NAME` configuration. |
-| `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `run4/output_merged_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`). |
+| `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `run5/output_merged_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`, which lives in `backup_run4/`). |
 | `CACHE_FROM=<dir>` | Used by `run_annotate.sh` to reuse predictions, embeddings, and Qwen color labels from an earlier annotation folder (defaults to `${ANNOT_OUT_DIR}/run1` if present). |
 | `NO_TMUX=1` | Run in the foreground instead of tmux (debugging, cron, CI). |
 | `AUTO_GIT_PUSH=0` | Do not commit and push results when finished (default `1`: commits `code/current/mobilenet/` and pushes). |
@@ -49,7 +50,7 @@ Model C trains jointly on **both** datasets across the unified Make/Model taxono
 
 External has `47,805` train images (`23,589` in the Run 4 35-make split) against `~875k` for PlatesMania, so `WeightedRandomSampler` draws a fixed share of External images per epoch (`--ext-fraction 0.2` by default). Checkpoints are selected on the **mean of the two domain validation losses**, and final test metrics are reported per domain in `reports/test_metrics.json`.
 
-Output: `run4/output_merged_run4/` (or `output_merged_<RUN_NAME>`), with `models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`), `models/label_map.json`, `reports/`, `plots/training_curves.png`, and `training.log`.
+Output: `run5/output_merged_run5/` (or `output_merged_<RUN_NAME>`), with `models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`), `models/label_map.json`, `reports/`, `plots/training_curves.png`, and `training.log`.
 
 | Flag | Default | What it does |
 |---|---|---|
@@ -74,9 +75,9 @@ RUN_NAME=merged_51make bash bash_scripts/run_train_merged.sh --ext-fraction 0.2 
 ## `run_diagnostics.sh`
 
 Evaluates Model C on:
-1. Full PlatesMania test split (`run4/output_.../diagnostics_platesmania/`)
-2. Full External test split (`run4/output_.../diagnostics_external/`)
-3. 5,000-image per-domain and 10,000-image Mixed benchmark (`run4/output_.../benchmark/`)
+1. Full PlatesMania test split (`run5/output_.../diagnostics_platesmania/`)
+2. Full External test split (`run5/output_.../diagnostics_external/`)
+3. 5,000-image per-domain and 10,000-image Mixed benchmark (`run5/output_.../benchmark/`)
 
 | Option | What it does |
 |---|---|
@@ -208,10 +209,10 @@ Output Directories:
 
 ## Building the External Splits
 
-Only needed when the External splits change (they are committed in `run4/splits_1235models/`):
+Only needed when the External splits change (they are committed in `run5/splits_1235models/`):
 
 ```bash
-python run4/prepare_external_1235models.py
+python run5/prepare_external_1235models.py
 ```
 
 ---

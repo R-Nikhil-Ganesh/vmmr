@@ -212,8 +212,15 @@ class TrainObjective:
     """
 
     def __init__(self, class_to_idx: Dict[str, int], label_smoothing: float = 0.0, make_loss_weight: float = 0.0,
-                 device: Optional[torch.device] = None):
+                 device: Optional[torch.device] = None, kd_ls_matrix: Optional[np.ndarray] = None, kd_ls_alpha: float = 0.1):
         self.ce = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX, label_smoothing=label_smoothing)
+        self.kd_S, self.kd_alpha = None, kd_ls_alpha
+        if kd_ls_matrix is not None:
+            S = torch.as_tensor(kd_ls_matrix, dtype=torch.float32, device=device)
+            if S.shape != (len(class_to_idx), len(class_to_idx)):
+                raise ValueError(f"--kd-ls-matrix is {tuple(S.shape)} but the taxonomy has {len(class_to_idx)} classes")
+            self.kd_S = S
+            print(f"[Loss] KD label smoothing enabled (alpha {kd_ls_alpha}); replaces uniform label smoothing")
         self.make_loss_weight = make_loss_weight
         self.class_to_make = None
         if make_loss_weight > 0:
@@ -232,7 +239,14 @@ class TrainObjective:
                 print(f"[Loss] auxiliary make loss enabled: {len(makes)} makes, weight {make_loss_weight}")
 
     def __call__(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-        loss = self.ce(logits, labels)
+        if self.kd_S is not None:
+            valid = labels != IGNORE_INDEX
+            y = labels.clamp_min(0)
+            target = (1 - self.kd_alpha) * F.one_hot(y, logits.shape[1]).float() + self.kd_alpha * self.kd_S[y]
+            loss = -(target * F.log_softmax(logits.float(), dim=-1)).sum(1)
+            loss = (loss * valid).sum() / valid.sum().clamp_min(1)
+        else:
+            loss = self.ce(logits, labels)
         if self.make_loss_weight > 0:
             p_make = torch.softmax(logits.float(), dim=-1) @ self.make_proj
             make_labels = torch.where(labels == IGNORE_INDEX, torch.full_like(labels, IGNORE_INDEX),
@@ -357,6 +371,112 @@ class ExternalMergedDataset(Dataset):
             return torch.zeros((3, self.img_size, self.img_size), dtype=torch.uint8), IGNORE_INDEX
 
 
+# ==============================================================================
+# Model with overridable pooling and an optional make branch (Run 5)
+# ==============================================================================
+class VMMRNet(nn.Module):
+    """torchvision MobileNetV2 body with overridable pooling and an optional make-gated classifier.
+
+    With pool='gap' and make_gating='none' the state_dict keys (features.*, classifier.1.*) and the exported ONNX graph are
+    identical to the plain torchvision model. Extra parameters exist only when a flag asks for them:
+      pool='gem'        -> gem_p (learnable exponent, init 3)
+      make_gating!=none -> make_fc (Linear 1280->num_makes), beta (gate strength, init 0), make_proj buffer
+    Pooling keeps the embedding 1280-D: 'gap_gmp' = avg + max, 'gem' = generalized mean.
+    """
+
+    def __init__(self, backbone: nn.Module, pool: str = "gap", make_gating: str = "none",
+                 make_proj: Optional[torch.Tensor] = None):
+        super().__init__()
+        self.features, self.classifier = backbone.features, backbone.classifier
+        self.pool, self.make_gating = pool, make_gating
+        n_cls, dim = self.classifier[1].weight.shape
+        if pool == "gem":
+            self.gem_p = nn.Parameter(torch.tensor(3.0))
+        if make_gating != "none":
+            if make_proj is None:
+                raise ValueError("--make-gating needs class names of the form 'Make/Model'")
+            self.make_fc = nn.Linear(dim, make_proj.shape[1])
+            self.beta = nn.Parameter(torch.zeros(1 if make_gating == "scalar" else n_cls))
+            self.register_buffer("make_proj", make_proj.float().clone())
+
+    def _pool(self, f: torch.Tensor) -> torch.Tensor:
+        if self.pool == "gem":
+            p = self.gem_p.clamp(1.0, 8.0)
+            g = F.adaptive_avg_pool2d(f.float().clamp_min(1e-6).pow(p), (1, 1)).pow(1.0 / p)
+            return torch.flatten(g, 1).to(f.dtype)
+        avg = torch.flatten(F.adaptive_avg_pool2d(f, (1, 1)), 1)
+        if self.pool == "gap_gmp":
+            return avg + torch.flatten(F.adaptive_max_pool2d(f, (1, 1)), 1)
+        return avg
+
+    def _heads(self, e: torch.Tensor):
+        logits = self.classifier(e)
+        make_logits = None
+        if self.make_gating != "none":
+            make_logits = self.make_fc(e)
+            log_pm = F.log_softmax(make_logits.float(), dim=-1) @ self.make_proj.t()
+            logits = logits + (self.beta * log_pm).to(logits.dtype)
+        return logits, make_logits
+
+    def forward_train(self, x: torch.Tensor):
+        """(logits, make_logits-or-None); make_logits feeds the dedicated make recognizer loss."""
+        return self._heads(self._pool(self.features(x)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.forward_train(x)[0]
+
+    def forward_export(self, x: torch.Tensor):
+        features = self.features(x)
+        e = self._pool(features)
+        logits, _ = self._heads(e)
+        class_maps = F.conv2d(features, self.classifier[1].weight[:, :, None, None])
+        return logits, e, class_maps
+
+
+def create_vmmr_model(num_classes: int, dropout: float = 0.25, unfreeze_layers: int = 5, pool: str = "gap",
+                      make_gating: str = "none", class_to_idx: Optional[Dict[str, int]] = None) -> VMMRNet:
+    backbone = create_model(num_classes, dropout, unfreeze_layers)
+    make_proj = build_make_proj(class_to_idx) if (make_gating != "none" and class_to_idx) else None
+    model = VMMRNet(backbone, pool, make_gating, make_proj)
+    for name in ("gem_p", "make_fc", "beta"):                      # new heads always train
+        mod = getattr(model, name, None)
+        if mod is not None:
+            for prm in (mod.parameters() if isinstance(mod, nn.Module) else [mod]):
+                prm.requires_grad = True
+    return model
+
+
+def model_cfg_of(model: VMMRNet, img_size: int, dropout: float, unfreeze_layers: int) -> dict:
+    return {"num_classes": model.classifier[1].out_features, "dropout": dropout, "unfreeze_layers": unfreeze_layers,
+            "img_size": img_size, "pool": model.pool, "make_gating": model.make_gating,
+            "num_makes": (model.make_proj.shape[1] if model.make_gating != "none" else 0)}
+
+
+def load_vmmr_from_pt(path, device="cpu") -> VMMRNet:
+    """Rebuilds a VMMRNet from a `--save-pt` checkpoint (state_dict + model_cfg). Does not need class names."""
+    ck = torch.load(str(path), map_location="cpu", weights_only=False)
+    cfg = ck["model_cfg"]
+    backbone = create_model(cfg["num_classes"], cfg.get("dropout", 0.25), cfg.get("unfreeze_layers", 5))
+    proj = torch.zeros(cfg["num_classes"], cfg["num_makes"]) if cfg.get("make_gating", "none") != "none" else None
+    model = VMMRNet(backbone, cfg.get("pool", "gap"), cfg.get("make_gating", "none"), proj)
+    model.load_state_dict(ck["state_dict"])
+    return model.to(device).eval()
+
+
+def build_param_groups(model: VMMRNet, backbone_lr: float, head_lr: float, layer_lr_decay: float = 1.0):
+    """AdamW param groups. layer_lr_decay=1 -> one backbone group (the original behaviour); otherwise block i of
+    features gets backbone_lr * decay**(n_blocks-1-i), so shallow blocks move less."""
+    head = [p for n, p in model.named_parameters() if not n.startswith("features.") and p.requires_grad]
+    if layer_lr_decay == 1.0:
+        groups = [{"params": [p for p in model.features.parameters() if p.requires_grad], "lr": backbone_lr}]
+    else:
+        n = len(model.features)
+        groups = [{"params": [p for p in blk.parameters() if p.requires_grad],
+                   "lr": backbone_lr * layer_lr_decay ** (n - 1 - i)} for i, blk in enumerate(model.features)]
+        groups = [g for g in groups if g["params"]]
+    return groups + [{"params": head, "lr": head_lr}]
+
+
 def build_val_transform():
     return v2.Compose([
         v2.ToDtype(torch.float32, scale=True),
@@ -385,10 +505,11 @@ def create_model(num_classes: int, dropout: float = 0.25, unfreeze_layers: int =
     return model
 
 
-def set_train_mode(model: nn.Module, unfreeze_layers: int):
-    """model.train(), but keep BatchNorm running stats of the frozen backbone blocks fixed."""
+def set_train_mode(model: nn.Module, unfreeze_layers: int, freeze_bn_blocks: int = 0):
+    """model.train(), but keep BatchNorm running stats of the frozen backbone blocks fixed.
+    `freeze_bn_blocks` additionally freezes the BN statistics of features[:N] even when their weights train."""
     model.train()
-    n_frozen_blocks = max(0, len(model.features) - unfreeze_layers)
+    n_frozen_blocks = max(max(0, len(model.features) - unfreeze_layers), freeze_bn_blocks)
     for block in model.features[:n_frozen_blocks]:
         for m in block.modules():
             if isinstance(m, nn.BatchNorm2d):
@@ -416,6 +537,54 @@ def evaluate(model: nn.Module, loader: DataLoader, tf, criterion: nn.Module, dev
     return loss_sum / total, correct / total
 
 
+def build_make_proj(class_to_idx: Dict[str, int], device: Optional[torch.device] = None):
+    """(num_classes, num_makes) one-hot class->make matrix, or None if class names are not all 'Make/Model'."""
+    names = [None] * len(class_to_idx)
+    for k, i in class_to_idx.items():
+        names[i] = k
+    if not all(n and "/" in n for n in names):
+        return None
+    makes = sorted({n.split("/", 1)[0] for n in names})
+    m_idx = {m: i for i, m in enumerate(makes)}
+    proj = torch.zeros(len(names), len(makes), device=device)
+    proj[torch.arange(len(names)), torch.tensor([m_idx[n.split("/", 1)[0]] for n in names])] = 1.0
+    return proj
+
+
+def evaluate_with_make(model: nn.Module, loader: DataLoader, tf, criterion: nn.Module, device: torch.device,
+                       make_proj: Optional[torch.Tensor]):
+    """Like `evaluate`, plus make accuracy by marginalization (P(make) = softmax(logits) @ make_proj).
+    Returns (loss, model_acc, make_acc); make_acc is None without a make projection."""
+    model.eval()
+    loss_sum, correct, make_correct, total = 0.0, 0, 0, 0
+    proj = make_proj.to(device) if make_proj is not None else None
+    with torch.inference_mode():
+        for imgs, labels in loader:
+            imgs, labels = imgs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+            valid = labels != IGNORE_INDEX
+            n_valid = int(valid.sum().item())
+            if n_valid == 0:
+                continue
+            with torch.amp.autocast(device_type=device.type, enabled=(device.type == "cuda")):
+                outputs = model(tf(imgs))
+                loss = criterion(outputs, labels)
+            loss_sum += loss.item() * n_valid
+            correct += ((outputs.argmax(1) == labels) & valid).sum().item()
+            if proj is not None:
+                p_make = torch.softmax(outputs.float(), dim=-1) @ proj
+                true_make = proj[labels.clamp_min(0)].argmax(1)
+                make_correct += ((p_make.argmax(1) == true_make) & valid).sum().item()
+            total += n_valid
+    return loss_sum / total, correct / total, (make_correct / total if proj is not None else None)
+
+
+def save_pt_checkpoint(model: nn.Module, path: Path, model_cfg: dict) -> None:
+    """state_dict + a small config dict next to the best ONNX (only with --save-pt)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({"state_dict": model.state_dict(), "model_cfg": model_cfg}, str(path))
+    print(f"[PT] Saved checkpoint to {path}")
+
+
 class OnnxExportWrapper(nn.Module):
     """Exposes logits plus the pooled embeddings and per-class activation maps, so t-SNE and CAM work from ONNX."""
     def __init__(self, model: nn.Module):
@@ -423,6 +592,8 @@ class OnnxExportWrapper(nn.Module):
         self.model = model
 
     def forward(self, x):
+        if hasattr(self.model, "forward_export"):
+            return self.model.forward_export(x)
         features = self.model.features(x)                                              # (B, 1280, H, W)
         pooled = torch.flatten(nn.functional.adaptive_avg_pool2d(features, (1, 1)), 1)  # (B, 1280)
         logits = self.model.classifier(pooled)                                         # (B, num_classes)

@@ -4,8 +4,8 @@ Learn a correction from a color teacher's 13-color probabilities to the CompCars
 
 Qwen's errors against humans are systematic (white -> silver, brown -> black/gray, champagne -> gray), so a
 multinomial logistic regression on log-probabilities, fit on human-labeled train rows, can undo part of them.
-The output is in the CompCars 10-color taxonomy (gray inside silver, beige/gold inside champagne), because that
-is what the human labels distinguish.
+The output is in the 11-color taxonomy of color_taxonomy.py (gray inside silver, beige/gold inside champagne,
+pink_purple), because that is what the human labels distinguish. `other` has no human rows, so it is never predicted.
 
 Inputs are eval_color_teacher.py output folders produced with the SAME head options on two splits:
   python annotation/eval_color_teacher.py --tag cfg_train --split train ...
@@ -34,7 +34,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(SCRIPT_DIR.parent / "color_distillation"))
 
 from color_heads import COLORS  # noqa: E402
-from evaluate_compcars_color_gt import COMPCARS_ID2COLOR, QWEN_TO_COMPCARS_GROUPED  # noqa: E402
+from color_taxonomy import COLORS11, COMPCARS_TO_11, QWEN_TO_11  # noqa: E402
 
 PROB_COLS = [f"p_{c}" for c in COLORS]
 
@@ -47,14 +47,15 @@ def features(df: pd.DataFrame) -> np.ndarray:
 
 def load(d: Path) -> pd.DataFrame:
     df = pd.read_csv(d / "predictions.csv")
-    df = df[(df["gt_source"] == "compcars") & df[PROB_COLS].notna().all(1)]
+    df = df[(df["gt_source"] == "compcars") & df[PROB_COLS].notna().all(1)].copy()
     if df.empty:
         raise SystemExit(f"{d}: no CompCars rows with probabilities")
+    df["gt_color"] = df["gt_color"].map(lambda c: COMPCARS_TO_11.get(c, c))   # older runs saved CompCars names
     return df.reset_index(drop=True)
 
 
 def report(gt: np.ndarray, pred: np.ndarray) -> dict:
-    labels = [c for c in COMPCARS_ID2COLOR.values() if (gt == c).any()]
+    labels = [c for c in COLORS11 if (gt == c).any()]
     return {"n": int(len(gt)), "grouped_acc_pct": round(float((gt == pred).mean() * 100), 2),
             "grouped_recall_pct": {c: round(float((pred[gt == c] == c).mean() * 100), 2) for c in labels},
             "macro_recall_pct": round(float(np.mean([(pred[gt == c] == c).mean() for c in labels]) * 100), 2)}
@@ -82,7 +83,7 @@ def main():
     print(f"[calib] chosen C = {float(np.atleast_1d(lr.C_)[0])}")
 
     gt = va["gt_color"].to_numpy()
-    before = va["color"].map(QWEN_TO_COMPCARS_GROUPED).to_numpy()
+    before = va["color"].map(QWEN_TO_11).to_numpy()
     after = clf.predict(features(va))
     res = {"train_dir": args.train_dir, "val_dir": args.val_dir, "class_weight": args.class_weight,
            "C": float(np.atleast_1d(lr.C_)[0]),

@@ -2,7 +2,7 @@
 
 **Module**: `code/current/mobilenet/color_distillation/`  
 **Teacher Model**: Vision-Language pseudo-labels from Qwen3-VL-8B (`annotation_runs/run5/annotations.csv`, 1,126,737 images)  
-**Student Model**: MobileNetV2 Model C (`merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx`)  
+**Student Model**: MobileNetV2 Model C (`backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx`)  
 **Deployment Target (Reference)**: Unified Dual-Head ONNX Model (`output_mlp512x2/mobilenet_v2_multitask.onnx`, Deep MLP-512×2)  
 **Historical Baseline**: `output/mobilenet_v2_multitask.onnx` (128-unit weighted MLP)  
 **Date**: October 2026  
@@ -185,7 +185,7 @@ Input: input_image (B, 3, 512, 512)
 ```
 
 ### Graph Integrity & Numerical Verification (`verify_multitask_onnx.py`):
-* The original graph nodes for `predictions`, `embeddings`, and `class_maps` are **100% unaltered**. Verified across 256 test images against `run4/output_merged_run4/models/mobilenet_v2_best.onnx`: **`max |diff| = 0.000e+00`** across all three outputs (`256/256 = 100.00%` top-1 agreement).
+* The original graph nodes for `predictions`, `embeddings`, and `class_maps` are **100% unaltered**. Verified across 256 test images against `backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx`: **`max |diff| = 0.000e+00`** across all three outputs (`256/256 = 100.00%` top-1 agreement).
 * The fused ONNX color branch matches the unfused PyTorch `color_head_best.pt` (`BatchNorm1d`) across 1,024 cached validation vectors with **`max |diff| = 5.722e-06`** (`float32` rounding) and **`1024/1024 = 100.00%`** top-1 argmax agreement.
 * The color branch reads from `/features/features.16/Add_output_0` in parallel without affecting the downstream computation of `features.17` and `features.18`.
 * All 4 outputs run in a single, fused engine pass with zero duplicate FLOPs.

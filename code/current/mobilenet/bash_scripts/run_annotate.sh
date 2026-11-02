@@ -10,11 +10,12 @@ run_in_tmux annotate "${SCRIPT_DIR}/run_annotate.sh" "$@"
 
 [ -x "${PYTHON_BIN}" ] || { echo "[ERROR] Python not found or not executable: ${PYTHON_BIN}" >&2; exit 1; }
 
-# MODEL_RUN=<name> sets which model checkpoint to evaluate (defaults to run4)
+# MODEL_RUN=<name> sets which model checkpoint to evaluate (defaults to run4, stored in backup_run4/; other names are read from run5/)
 # RUN_NAME=<name> sets the annotation output folder name (defaults to run2)
 MODEL_RUN="${MODEL_RUN:-run4}"
 RUN_NAME="${RUN_NAME:-run2}"
-MERGED_RUN_DIR="${MOBILENET_DIR}/run4/output_merged_${MODEL_RUN}"
+if [ "${MODEL_RUN}" = "run4" ]; then MODEL_PARENT="${MOBILENET_DIR}/backup_run4"; else MODEL_PARENT="${MOBILENET_DIR}/run5"; fi
+MERGED_RUN_DIR="${MODEL_PARENT}/output_merged_${MODEL_RUN}"
 OUT_DIR="${ANNOT_OUT_DIR}/${RUN_NAME}"
 
 # Cache directory to reuse (defaults to run1 if available)

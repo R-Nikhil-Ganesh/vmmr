@@ -25,11 +25,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# RUN_NAME=<name> diagnoses run4/output_merged_<name> (defaults to output_merged_run4)
-MERGED_RUN_DIR="${MOBILENET_DIR}/run4/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run4}"
+# RUN_NAME=<name> diagnoses run5/output_merged_<name> (defaults to output_merged_run5)
+MERGED_RUN_DIR="${MOBILENET_DIR}/run5/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run5}"
 M_MODEL="${MERGED_RUN_DIR}/models/mobilenet_v2_best.onnx"
 M_MAP="${MERGED_RUN_DIR}/models/label_map.json"
-EXT_SPLITS_DIR="${MOBILENET_DIR}/run4/splits_1235models"
+EXT_SPLITS_DIR="${MOBILENET_DIR}/run5/splits_1235models"
 
 echo "=================================================================="
 echo "  MobileNetV2 diagnostics (Model C Merged)   $(date '+%Y-%m-%d %H:%M:%S')"
@@ -39,7 +39,7 @@ echo "=================================================================="
 
 if [ "${RUN_PM}" -eq 1 ]; then
     echo; echo "=== Model C (merged) on the PlatesMania test split ==="
-    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/run4/analysis/output_analysis_merged.py" \
+    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/run5/analysis/output_analysis_merged.py" \
         --domain platesmania \
         --test-csv "${PM_MANIFEST_CSV}" --base-img-dir "${PM_IMG_DIR}" \
         --model-path "${M_MODEL}" --label-map "${M_MAP}" \
@@ -49,7 +49,7 @@ fi
 
 if [ "${RUN_EXT}" -eq 1 ]; then
     echo; echo "=== Model C (merged) on the External test split ==="
-    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/run4/analysis/output_analysis_merged.py" \
+    "${PYTHON_BIN}" -u "${MOBILENET_DIR}/run5/analysis/output_analysis_merged.py" \
         --domain external \
         --test-csv "${EXT_SPLITS_DIR}/test.csv" \
         --model-path "${M_MODEL}" --label-map "${M_MAP}" \

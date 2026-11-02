@@ -5,10 +5,13 @@ Score a color teacher (a color_heads.py head, e.g. Qwen3-VL with given options) 
 Ground truth: CompCars surveillance human colors (external_metadata_51make.csv, color_label >= 0), joined to an
 annotation run's annotations.csv for split and crop info (same join as E-09, evaluate_compcars_color_gt.py).
 Optionally also the filled-in rows of the 13-color human review sheet (color_human_review_600.csv).
+--dataset vcorr scores the vCorR web-photo color dataset instead (15 folders, one per color; set --vcorr-dir or
+$VCORR_DIR): a second human-labeled domain, closer to PlatesMania street photos than CompCars CCTV is.
 
-CompCars has 10 colors (gray inside silver, beige/gold inside champagne), so we report:
+Everything is scored in the 11-color taxonomy of color_taxonomy.py (gray inside silver, orange inside yellow,
+beige/gold inside champagne, pink_purple), so we report:
   strict  = 13-color prediction must equal the human label (gray on a silver car is wrong)
-  grouped = prediction mapped to the CompCars taxonomy first (QWEN_TO_COMPCARS_GROUPED)
+  grouped = prediction mapped into the 11 first (QWEN_TO_11)
 
 Outputs in --out-dir: predictions.csv (one row per image, full probability vector), probs.npy, metrics.json,
 run_config.json. A one-line summary is appended to <out-dir>/../summary.csv so configurations line up.
@@ -19,6 +22,7 @@ Example (research PC, 4090):
 
 import argparse
 import json
+import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -26,6 +30,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 MOBILENET_DIR = SCRIPT_DIR.parent
@@ -36,8 +41,8 @@ sys.path.insert(0, str(MOBILENET_DIR / "color_distillation"))
 import paths  # noqa: E402
 from color_heads import COLORS, PROMPTS, build_head  # noqa: E402
 from common import load_crop, parse_bbox, to_rel_image_path  # noqa: E402
-from evaluate_compcars_color_gt import (COMPCARS_ID2COLOR, QWEN_TO_COMPCARS_GROUPED,  # noqa: E402
-                                        QWEN_TO_COMPCARS_STRICT)
+from color_taxonomy import COLORS11, COMPCARS_TO_11, QWEN_TO_11, VCORR_TO_11  # noqa: E402
+from evaluate_compcars_color_gt import COMPCARS_ID2COLOR, QWEN_TO_COMPCARS_STRICT  # noqa: E402
 from train_common import save_run_config  # noqa: E402
 
 ANNOT_DIR = Path(paths.ANNOT_OUT_DIR or MOBILENET_DIR / "annotation_runs")
@@ -49,8 +54,12 @@ def parse_args():
     p.add_argument("--annotations", default=str(ANNOT_DIR / "run2" / "annotations.csv"),
                    help="annotation run with all splits (for split, bbox and the old Qwen color)")
     p.add_argument("--ext-meta", default=str(Path(paths.EXT_DATASETS_DIR) / "external_metadata_51make.csv"))
+    p.add_argument("--dataset", default="compcars", choices=["compcars", "vcorr"],
+                   help="which human-labeled set to score (default compcars)")
+    p.add_argument("--vcorr-dir", default=os.environ.get("VCORR_DIR"),
+                   help="vCorR root holding train/ val/ test/ color folders (default $VCORR_DIR)")
     p.add_argument("--split", default="val", choices=["train", "val", "test", "all"],
-                   help="CompCars human-GT rows to score. Tune on val; touch test once at the end")
+                   help="human-GT rows to score. Tune on val; touch test once at the end")
     p.add_argument("--review-csv", default=None,
                    help="also score filled-in rows (human_color != '') of the 13-color review sheet")
     p.add_argument("--max-samples", type=int, default=None, help="random subsample (quick dry runs)")
@@ -77,7 +86,7 @@ def load_compcars_gt(args) -> pd.DataFrame:
     meta = pd.read_csv(args.ext_meta)
     meta = meta[meta["color_label"] >= 0].copy()
     meta["rel_path"] = [to_rel_image_path(p, "external") for p in meta["image_path"].astype(str)]
-    meta["gt_color"] = meta["color_label"].astype(int).map(COMPCARS_ID2COLOR)
+    meta["gt_color"] = meta["color_label"].astype(int).map(COMPCARS_ID2COLOR).map(COMPCARS_TO_11)
     df = ann.merge(meta[["rel_path", "gt_color"]], on="rel_path", how="inner").drop_duplicates("rel_path")
     df = df.rename(columns={"color": "old_color", "color_conf": "old_color_conf"})
     df["gt_source"] = "compcars"
@@ -86,30 +95,52 @@ def load_compcars_gt(args) -> pd.DataFrame:
     return df
 
 
+def load_vcorr_gt(args) -> pd.DataFrame:
+    if not args.vcorr_dir:
+        raise SystemExit("--dataset vcorr needs --vcorr-dir or $VCORR_DIR")
+    root = Path(args.vcorr_dir)
+    rows = []
+    for split in ("train", "val", "test"):
+        if args.split not in ("all", split):
+            continue
+        for d in sorted((root / split).iterdir()):
+            if d.is_dir() and d.name in VCORR_TO_11:
+                rows += [{"path": str(f), "split": split, "gt_raw": d.name, "gt_color": VCORR_TO_11[d.name]}
+                         for f in sorted(d.iterdir()) if f.suffix.lower() in (".jpg", ".jpeg", ".png")]
+    if not rows:
+        raise SystemExit(f"no vCorR images under {root}/{{train,val,test}}/<color>/")
+    df = pd.DataFrame(rows)
+    df["domain"], df["gt_source"] = "vcorr", "vcorr"
+    df["old_color"], df["old_color_conf"] = np.nan, np.nan   # no earlier teacher run on vCorR
+    return df
+
+
 def load_review(path) -> pd.DataFrame:
     df = pd.read_csv(path, dtype={"human_color": str}).fillna({"human_color": ""})
     df = df[df["human_color"].str.strip() != ""].copy()
-    df["gt_color"] = df["human_color"].str.strip().str.lower()
-    bad = sorted(set(df["gt_color"]) - set(COLORS))
+    human = df["human_color"].str.strip().str.lower()   # the sheet uses the 13 Qwen colors
+    bad = sorted(set(human) - set(COLORS))
     if bad:
         raise ValueError(f"{path}: human_color values outside COLORS: {bad}")
+    df["gt_color"] = human.map(QWEN_TO_11)
     df = df.rename(columns={"color": "old_color", "color_conf": "old_color_conf"})
     df["gt_source"] = "review"
     return df
 
 
 def metrics(gt: pd.Series, pred: pd.Series, source: str) -> dict:
-    """Accuracy of 13-color predictions. CompCars rows: strict and grouped; review rows: 13-color exact."""
+    """Accuracy of 13-color predictions in the 11 colors. CompCars rows: strict and grouped; review rows: grouped."""
+    grouped_pred = pred.map(QWEN_TO_11)
     if source == "review":
-        ok = pred.values == gt.values
+        ok = grouped_pred.values == gt.values
         return {"n": int(len(gt)), "acc_pct": round(float(ok.mean() * 100), 2),
                 "recall_pct": {c: round(float(ok[gt.values == c].mean() * 100), 2)
-                               for c in COLORS if (gt.values == c).any()}}
-    strict = pred.map(QWEN_TO_COMPCARS_STRICT).values == gt.values
-    grouped_pred = pred.map(QWEN_TO_COMPCARS_GROUPED)
+                               for c in COLORS11 if (gt.values == c).any()}}
+    # strict: the 13-color name must equal the human color (gray on a silver car is wrong)
+    strict = pred.map(QWEN_TO_COMPCARS_STRICT).map(lambda c: COMPCARS_TO_11.get(c, c)).values == gt.values
     grouped = grouped_pred.values == gt.values
-    labels = [c for c in COMPCARS_ID2COLOR.values() if (gt.values == c).any()]
-    conf = pd.crosstab(pd.Categorical(gt, labels), pd.Categorical(grouped_pred, list(COMPCARS_ID2COLOR.values())),
+    labels = [c for c in COLORS11 if (gt.values == c).any()]
+    conf = pd.crosstab(pd.Categorical(gt, labels), pd.Categorical(grouped_pred, COLORS11),
                        rownames=["human"], colnames=["pred_grouped"], dropna=False)
     return {
         "n": int(len(gt)),
@@ -122,13 +153,30 @@ def metrics(gt: pd.Series, pred: pd.Series, source: str) -> dict:
     }
 
 
+def metrics_vcorr(df: pd.DataFrame) -> dict:
+    """Accuracy on vCorR in the 11 colors: the 13-color prediction is mapped with QWEN_TO_11, the folder with
+    VCORR_TO_11. recall_pct is per original folder (so grey, tan, orange are visible), recall_11_pct per class."""
+    gt, pred = df["gt_color"].values, df["color"].map(QWEN_TO_11).values
+    ok = gt == pred
+    conf = pd.crosstab(pd.Categorical(gt, COLORS11), pd.Categorical(pred, COLORS11), rownames=["human"],
+                       colnames=["pred"], dropna=False)
+    return {"n": int(len(df)),
+            "acc_pct": round(float(ok.mean() * 100), 2),
+            "recall_pct": {c: round(float(ok[df["gt_raw"].values == c].mean() * 100), 2)
+                           for c in sorted(df["gt_raw"].unique())},
+            "recall_11_pct": {c: round(float(ok[gt == c].mean() * 100), 2) for c in COLORS11 if (gt == c).any()},
+            "precision_11_pct": {c: round(float((gt[pred == c] == c).mean() * 100), 2)
+                                 for c in COLORS11 if (pred == c).any()},
+            "confusion_11": {str(k): {str(c): int(v) for c, v in row.items()} for k, row in conf.iterrows()}}
+
+
 def main():
     args = parse_args()
     out_dir = Path(args.out_dir or ANNOT_DIR / "teacher_eval" / args.tag)
     out_dir.mkdir(parents=True, exist_ok=True)
     save_run_config(out_dir, args, "annotation/eval_color_teacher.py")
 
-    parts = [load_compcars_gt(args)]
+    parts = [load_vcorr_gt(args) if args.dataset == "vcorr" else load_compcars_gt(args)]
     if args.review_csv:
         parts.append(load_review(args.review_csv))
     df = pd.concat(parts, ignore_index=True)
@@ -136,6 +184,9 @@ def main():
         df = df.sample(n=args.max_samples, random_state=args.seed)
     df = df.reset_index(drop=True)
     print(f"[eval] {len(df):,} rows: {df['gt_source'].value_counts().to_dict()} (split={args.split})")
+    for c in ("bbox_x1", "bbox_y1", "bbox_x2", "bbox_y2"):
+        if c not in df.columns:
+            df[c] = -1
 
     head = build_head(args.color_head, model_id=args.qwen_model, max_side=args.max_side,
                       load_in_4bit=not args.no_4bit, scoring=args.scoring, prompt_style=args.prompt_style,
@@ -143,6 +194,8 @@ def main():
 
     def load(r):
         try:
+            if r["gt_source"] == "vcorr":   # already a vehicle crop
+                return Image.open(r["path"]).convert("RGB")
             # full resolution; the head applies center_crop then max_side, so crops don't lose pixels
             return load_crop(r["path"], r["domain"], parse_bbox(r), max_side=None)
         except Exception as e:
@@ -171,7 +224,8 @@ def main():
     df["option_mass"] = mass
     for k, c in enumerate(COLORS):
         df[f"p_{c}"] = probs[:, k]
-    keep = ["path", "domain", "split", "gt_source", "gt_color", "old_color", "old_color_conf",
+    keep = ["path", "domain", "split", "gt_source", "gt_color"] + (["gt_raw"] if "gt_raw" in df else []) + [
+            "old_color", "old_color_conf",
             "color", "color_conf", "option_mass"] + [f"p_{c}" for c in COLORS]
     df[keep].to_csv(out_dir / "predictions.csv", index=False)
     np.save(out_dir / "probs.npy", probs)
@@ -181,6 +235,9 @@ def main():
            "mean_option_mass": round(float(np.nanmean(mass)), 4)}
     for src in df["gt_source"].unique():
         sub = df[(df["gt_source"] == src) & valid]
+        if src == "vcorr":
+            res[src] = metrics_vcorr(sub)
+            continue
         res[src] = metrics(sub["gt_color"], sub["color"], src)
         old = sub[sub["old_color"].notna()]
         res[src + "_old_teacher_same_rows"] = {k: v for k, v in metrics(old["gt_color"], old["old_color"], src).items()
@@ -197,14 +254,23 @@ def main():
                     **{f"rec_{c}": r for c, r in res["compcars"]["grouped_recall_pct"].items()})
     if "review" in res:
         line.update(review_n=res["review"]["n"], review_acc=res["review"]["acc_pct"])
+    if "vcorr" in res:
+        line.update(vcorr_n=res["vcorr"]["n"], vcorr_acc=res["vcorr"]["acc_pct"])
     summary = out_dir.parent / "summary.csv"
-    pd.DataFrame([line]).to_csv(summary, mode="a", header=not summary.exists(), index=False)
+    row = pd.DataFrame([line])
+    if summary.exists():   # per-color columns differ between taxonomies, so merge on the union of columns
+        row = pd.concat([pd.read_csv(summary), row], ignore_index=True)
+    row.to_csv(summary, index=False)
 
     if "compcars" in res:
         c = res["compcars"]
         print(f"[eval] CompCars {args.split}: strict {c['strict_acc_pct']}%  grouped {c['grouped_acc_pct']}%  "
               f"(old teacher, same rows: grouped {res['compcars_old_teacher_same_rows']['grouped_acc_pct']}%)")
         print("[eval] grouped recall: " + "  ".join(f"{k} {v}" for k, v in c["grouped_recall_pct"].items()))
+    if "vcorr" in res:
+        v = res["vcorr"]
+        print(f"[eval] vCorR {args.split}: {v['acc_pct']}% in the 11 colors ({v['n']} images)")
+        print("[eval] recall per folder: " + "  ".join(f"{k} {r}" for k, r in v["recall_pct"].items()))
     if "review" in res:
         print(f"[eval] review sheet: {res['review']['acc_pct']}% on {res['review']['n']} rows")
     print(f"[eval] {res['img_per_s']} img/s, mean option mass {res['mean_option_mass']}. Wrote {out_dir}")

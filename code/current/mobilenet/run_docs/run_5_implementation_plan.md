@@ -15,7 +15,7 @@ Improve **Model C** (merged PlatesMania + External, the production multitask bas
 
 | Fact | Source | Effect on the plan |
 |---|---|---|
-| Run 4 = `unfreeze_layers=5` (only `features[14:19]` trainable), strong aug, LS 0.1, make-loss 0.3, EMA 0.999 | `output_merged_run4/run_config.json` | This is the Run 5 baseline recipe |
+| Run 4 = `unfreeze_layers=5` (only `features[14:19]` trainable), strong aug, LS 0.1, make-loss 0.3, EMA 0.999 | `backup_run4/output_merged_run4/run_config.json` | This is the Run 5 baseline recipe |
 | ~25 min/epoch (~875k samples/epoch, ~576 img/s); val loss still falling at epoch 15 (0.3021 → 0.3010) | `training.log`, `training_history.csv` | Long runs are fine. More epochs may also help on their own |
 | **`splits_1235models/` regenerated Oct 26 → 1,416 classes**; 22,651 / 47,805 External train rows have label ≥ 1235 | `label_map.json`, CSVs | Running the trainer now would switch to 1,416 classes on its own. We need a `--taxonomy base` flag and a **re-baseline** run |
 | Run 4 ONNX has BN folded (53 Conv, no BN nodes), and `features[16]` is exposed as `/features/features.16/Add_output_0` | ONNX graph inspection | A PyTorch copy of Run 4 can be rebuilt from the ONNX |
@@ -91,7 +91,7 @@ Phase 3 changes the classifier and is trained together with the Phase 1 recipe. 
 
 ### Component 0 — Infrastructure (`code/current/mobilenet/`)
 
-#### [MODIFY] `merged_dataset/train/train_mobilenet_v2_merged.py`
+#### [MODIFY] `run5/train/train_mobilenet_v2_merged.py`
 - `--taxonomy {auto,base}` (default `auto` = current behaviour). `base` keeps the PlatesMania 1,235-class map and drops External rows with `label >= 1235` from train/val/test. The count of dropped rows is logged.
 - `--save-pt`: saves `models/mobilenet_v2_best.pt` (state_dict of the EMA/eval model plus a `model_cfg` dict) at each new best checkpoint.
 - The training step moves into a `train_step()` helper so the consistency, distillation, SAM and PMAL branches stay readable. With no new flags, the old step runs unchanged.
@@ -272,8 +272,8 @@ A technique is kept only if it beats its predecessor on the **mean of the PM + E
 
 ```bash
 /home/researchadmin/Econ-n/repo-clone/pt-env/bin/python code/current/mobilenet/scratch_test/test_run5_smoke.py
-/home/researchadmin/Econ-n/repo-clone/pt-env/bin/python code/current/mobilenet/onnx_to_torch.py --onnx merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx --check
-/home/researchadmin/Econ-n/repo-clone/pt-env/bin/python code/current/mobilenet/evaluate_open_set.py --onnx merged_dataset/output_merged_run4/models/mobilenet_v2_best.onnx
+/home/researchadmin/Econ-n/repo-clone/pt-env/bin/python code/current/mobilenet/onnx_to_torch.py --onnx backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx --check
+/home/researchadmin/Econ-n/repo-clone/pt-env/bin/python code/current/mobilenet/evaluate_open_set.py --onnx backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx
 ```
 Then a 200-step dry run of the trainer per flag combination (`--epochs 1` with a step cap) before starting the long queue.
 
