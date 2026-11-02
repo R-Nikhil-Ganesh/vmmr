@@ -36,6 +36,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import onnxruntime as ort
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 COLORS = [
     "white", "black", "silver", "gray", "red", "blue", "green",
     "yellow", "orange", "brown", "beige", "gold", "other"
@@ -214,21 +216,23 @@ def compute_metrics(df, pred_col, gt_col):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate Color Head on vCorR")
-    parser.add_argument("--vcorr-dir", default="/home/researchadmin/Econ-n/repo-clone/colour_dataset")
+    parser.add_argument("--vcorr-dir", default=os.environ.get("VCORR_DIR"), help="vCorR root (default $VCORR_DIR)")
     parser.add_argument("--output-json", default=None)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--num-workers", type=int, default=8)
     args = parser.parse_args()
 
+    if not args.vcorr_dir:
+        parser.error("set --vcorr-dir or $VCORR_DIR")
     vcorr_dir = Path(args.vcorr_dir)
     print(f"[vCorR] Scanning dataset in {vcorr_dir}...")
     records = scan_dataset(vcorr_dir)
     print(f"[vCorR] Found {len(records):,} images across all splits.")
 
     models_to_test = [
-        ("Deep MLP-512x2 (Best)", "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/output_mlp512x2/mobilenet_v2_multitask.onnx"),
-        ("Unweighted MLP-128 (Ablation 1)", "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/output_unweighted_mlp128/mobilenet_v2_multitask.onnx"),
-        ("Baseline MLP-128 (Class Weighted)", "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/output/mobilenet_v2_multitask.onnx"),
+        ("Deep MLP-512x2 (Best)", str(SCRIPT_DIR / "output_mlp512x2/mobilenet_v2_multitask.onnx")),
+        ("Unweighted MLP-128 (Ablation 1)", str(SCRIPT_DIR / "output_unweighted_mlp128/mobilenet_v2_multitask.onnx")),
+        ("Baseline MLP-128 (Class Weighted)", str(SCRIPT_DIR / "output/mobilenet_v2_multitask.onnx")),
     ]
 
     all_results = {}
@@ -294,7 +298,7 @@ def main():
         }
 
     # Save JSON if requested
-    out_json = args.output_json or "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/output/vcorr_eval_results.json"
+    out_json = args.output_json or str(SCRIPT_DIR / "output/vcorr_eval_results.json")
     Path(out_json).parent.mkdir(parents=True, exist_ok=True)
     with open(out_json, "w") as f:
         json.dump(all_results, f, indent=2)

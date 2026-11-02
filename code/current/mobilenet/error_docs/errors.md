@@ -1,8 +1,8 @@
 # errors.md: Known Issues, Pipeline Defects & Final Resolutions
 
 **Date of Final Resolution**: October 27, 2026  
-**Implementation Plan**: [`code/current/mobilenet/run_docs/errors_master_implementation_plan.md`](run_docs/errors_master_implementation_plan.md)  
-**Checkpoint**: [`code/current/mobilenet/checkpoint.md`](checkpoint.md)
+**Implementation Plan**: [`code/current/mobilenet/error_docs/errors_master_implementation_plan.md`](error_docs/errors_master_implementation_plan.md)  
+**Checkpoint**: [`code/current/mobilenet/error_docs/checkpoint.md`](checkpoint.md)
 
 ---
 
@@ -40,11 +40,11 @@
 
 #### E-01 (P0) External Bounding Boxes [RESOLVED]
 - **Verification on Disk**: PlatesMania (`1,105,650` images) and 4 External sources (`stanford_cars` `6,495`, `compcars_web` `13,290`, `compcars_cctv` `33,324`, `resized_cupra` `1,590`) were verified to be `100%` already tightly cropped and letterboxed to `512×512` with white padding bars on disk.
-- **Root Cause & Fix**: `boxcars116k` (`18,520` images) was the only source whose `inst["2DBB"]` coordinates in `BoxCars116k/dataset.pkl` were ignored (`"bbox": None`). All `18,520` bounding boxes were extracted from camera principal points, mapped to 512×512 coordinates, and saved in [`run4/boxcars116k_bboxes_512.json`](run4/boxcars116k_bboxes_512.json) and populated in `splits_1235models/{train,val,test,all_splits}.csv`.
+- **Root Cause & Fix**: `boxcars116k` (`18,520` images) was the only source whose `inst["2DBB"]` coordinates in `BoxCars116k/dataset.pkl` were ignored (`"bbox": None`). All `18,520` bounding boxes were extracted from camera principal points, mapped to 512×512 coordinates, and saved in [`run5/boxcars116k_bboxes_512.json`](run5/boxcars116k_bboxes_512.json) and populated in `splits_1235models/{train,val,test,all_splits}.csv`.
 
 #### E-02 (P0) Crop Sensitivity Experiment [RESOLVED]
 - **Study Execution**: Created and ran [`annotation/verify_crop_agreement.py`](annotation/verify_crop_agreement.py) across 300 stratified samples (150 PlatesMania, 150 `BoxCars116k` with recovered `2DBB` boxes).
-- **Findings**: Overall agreement was **`71.33%`** (PlatesMania pre-cropped images had `76.00%` agreement; `BoxCars116k` images had `66.67%` agreement, showing that removing the 30px surrounding asphalt border alters predicted color in `33.33%` of cases). Documented in [`run_docs/crop_agreement_study.md`](run_docs/crop_agreement_study.md).
+- **Findings**: Overall agreement was **`71.33%`** (PlatesMania pre-cropped images had `76.00%` agreement; `BoxCars116k` images had `66.67%` agreement, showing that removing the 30px surrounding asphalt border alters predicted color in `33.33%` of cases). Documented in [`error_docs/crop_agreement_study.md`](error_docs/crop_agreement_study.md).
 
 #### E-03 (P0) UMAP Coordinates Sparsity [RESOLVED]
 - **Documentation**: Clarified in [`run_docs/annotation_run_1_and_2.md`](run_docs/annotation_run_1_and_2.md) and [`annotation/README.md`](annotation/README.md) that `x`/`y` are intentionally populated only for `--coords-max 30000` landmark rows for interactive visualization in `viewer.html`.
@@ -68,7 +68,7 @@
 
 #### E-09 (P0) Ground-Truth Color Validation [RESOLVED]
 - **CompCars Audit**: Executed [`color_distillation/evaluate_compcars_color_gt.py`](color_distillation/evaluate_compcars_color_gt.py) matching 19,479 CompCars CCTV images. Qwen teacher achieved `78.44%` aligned accuracy. Distilled Deep MLP-512×2 achieved **`77.43%`** on the 2,867 human-labeled test images (recovering 98.7% of teacher quality).
-- **Review Sample**: Generated stratified 600-image review sample in [`annotation_runs/color_human_review_600.csv`](annotation_runs/color_human_review_600.csv) and wrote report to [`run_docs/color_ground_truth_validation.md`](run_docs/color_ground_truth_validation.md).
+- **Review Sample**: Generated stratified 600-image review sample in [`annotation_runs/color_human_review_600.csv`](annotation_runs/color_human_review_600.csv) and wrote report to [`error_docs/color_ground_truth_validation.md`](error_docs/color_ground_truth_validation.md).
 
 #### E-10 (P1) Production Domain Shift [DEFERRED / DOCUMENTED]
 - **Status**: Documented evaluation protocol for production night/IR frames when surveillance feeds become available.

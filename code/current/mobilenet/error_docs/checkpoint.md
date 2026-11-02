@@ -1,8 +1,8 @@
 # Implementation Checkpoint (`errors.md` Resolution)
 
 **Timestamp**: 2026-10-26 12:43 IST
-**Master Plan**: [`code/current/mobilenet/run_docs/errors_master_implementation_plan.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/errors_master_implementation_plan.md)
-**Error Tracker**: [`code/current/mobilenet/errors.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/errors.md)
+**Master Plan**: [`code/current/mobilenet/error_docs/errors_master_implementation_plan.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/error_docs/errors_master_implementation_plan.md)
+**Error Tracker**: [`code/current/mobilenet/error_docs/errors.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/error_docs/errors.md)
 
 ---
 
@@ -18,7 +18,7 @@
     - `code/current/mobilenet/run4/splits_1235models/{train,val,test,all_splits}.csv` (`15,641` rows now have `bbox_x1 >= 0`)
   - Updated [`code/current/mobilenet/run4/prepare_external_1235models.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run4/prepare_external_1235models.py) and `/home/researchadmin/Econ/scripts/rebuild_external_resized_512.py`.
 - **`E-02` (300-Sample Crop Sensitivity Study)**:
-  - Executed [`code/current/mobilenet/annotation/verify_crop_agreement.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation/verify_crop_agreement.py) and generated [`code/current/mobilenet/run_docs/crop_agreement_study.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/crop_agreement_study.md):
+  - Executed [`code/current/mobilenet/annotation/verify_crop_agreement.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/annotation/verify_crop_agreement.py) and generated [`code/current/mobilenet/error_docs/crop_agreement_study.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/error_docs/crop_agreement_study.md):
     - **Overall Agreement**: **`71.33%`** (`300` images)
     - **PlatesMania (`150` images, pre-cropped on disk)**: **`76.00%`** agreement
     - **External `BoxCars116k` (`150` images, legacy uncropped 30px road border vs. tight `2DBB` vehicle bbox crop)**: **`66.67%`** agreement (`33.33%` of `BoxCars116k` images change predicted color when the surrounding asphalt border is removed).
@@ -104,10 +104,10 @@
 - **Migrated new multi-task ONNX models to DVC**: `output_mlp512x2/mobilenet_v2_multitask.onnx.dvc` and `output_unweighted_mlp128/mobilenet_v2_multitask.onnx.dvc`.
 - **Migrated `annotation_runs/run1/` to DVC**: untracked Git-tracked `annotations.csv` (34 MB) and `viewer.html` (16 MB) and tracked entire directory via `annotation_runs/run1.dvc`.
 - Zero `.onnx` files remain tracked by Git (`git ls-files "*.onnx"` returns 0). Commits stay strictly $< 100\text{ MB}$.
-- Updated [`code/current/mobilenet/errors.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/errors.md) to mark all items `E-01` through `E-21` as `[RESOLVED]` with exact empirical metrics and file references (with `E-10` documented for production night/IR deployment).
+- Updated [`code/current/mobilenet/error_docs/errors.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/error_docs/errors.md) to mark all items `E-01` through `E-21` as `[RESOLVED]` with exact empirical metrics and file references (with `E-10` documented for production night/IR deployment).
 
 ---
 
 ## 2. All Phases Complete
 
-All five phases of [`code/current/mobilenet/run_docs/errors_master_implementation_plan.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/errors_master_implementation_plan.md) are now fully executed, verified, and documented.
+All five phases of [`code/current/mobilenet/error_docs/errors_master_implementation_plan.md`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/error_docs/errors_master_implementation_plan.md) are now fully executed, verified, and documented.

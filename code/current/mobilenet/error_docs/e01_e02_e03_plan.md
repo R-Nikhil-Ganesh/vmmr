@@ -111,7 +111,7 @@ flowchart LR
    - Per-domain agreement (PlatesMania vs External).
    - High-confidence ($\ge 0.70$) vs low-confidence agreement.
    - Confusion pairs (e.g. Full-frame `gray` $\to$ Vehicle `blue`).
-   - Summary report saved to `code/current/mobilenet/run_docs/crop_agreement_study.md`.
+   - Summary report saved to `code/current/mobilenet/error_docs/crop_agreement_study.md`.
 
 ---
 
@@ -144,7 +144,7 @@ flowchart LR
 1. **Run E-02 Crop Agreement Script**:
    ```bash
    cd vmmr/code/current/mobilenet
-   python annotation/verify_crop_agreement.py --num-samples 300 --output-report run_docs/crop_agreement_study.md
+   python annotation/verify_crop_agreement.py --num-samples 300 --output-report error_docs/crop_agreement_study.md
    ```
 2. **Inspect Disagreement Threshold**:
    - If agreement $\ge 90\%$, confirm that full-frame annotation is acceptable and documented.

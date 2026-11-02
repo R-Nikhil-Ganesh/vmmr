@@ -205,13 +205,13 @@ def scan_vcorr(vcorr_dir: Path) -> Tuple[List[dict], List[dict], List[dict]]:
 
 
 def scan_compcars_test() -> List[dict]:
-    test_csv = Path(MOBILENET_DIR) / "run4/splits_1235models/test.csv"
+    test_csv = Path(MOBILENET_DIR) / "run5/splits_1235models/test.csv"
     meta_csv = Path(paths.EXT_DATASETS_DIR) / "external_metadata_51make.csv"
     
     df_test = pd.read_csv(test_csv)
     df_meta = pd.read_csv(meta_csv)
     
-    prefix = "/home/researchadmin/Econ/external_resized_512/"
+    prefix = str(Path(paths.EXT_DATASETS_DIR)).rstrip("/") + "/"
     df_meta["rel_path"] = df_meta["image_path"].str.replace(prefix, "", regex=False)
     df_meta_gt = df_meta[df_meta["color_label"] >= 0].copy()
     
@@ -358,9 +358,9 @@ def evaluate_on_compcars(head: nn.Module, mean: np.ndarray, std: np.ndarray, X_c
 
 def main():
     parser = argparse.ArgumentParser(description="Train Color MLP on vCorR & Evaluate on CompCars")
-    parser.add_argument("--vcorr-dir", default="/home/researchadmin/Econ-n/repo-clone/colour_dataset")
-    parser.add_argument("--base-model", default="/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run4/output_merged_run4/models/mobilenet_v2_best.onnx")
-    parser.add_argument("--out-dir", default="/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/output_vcorr_mlp")
+    parser.add_argument("--vcorr-dir", default=os.environ.get("VCORR_DIR"), help="vCorR root (default $VCORR_DIR)")
+    parser.add_argument("--base-model", default=str(MOBILENET_DIR / "backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx"))
+    parser.add_argument("--out-dir", default=str(SCRIPT_DIR / "output_vcorr_mlp"))
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -376,6 +376,8 @@ def main():
     print("==================================================================")
 
     # 1. Scan vCorR
+    if not args.vcorr_dir:
+        parser.error("set --vcorr-dir or $VCORR_DIR")
     train_recs, val_recs, test_recs = scan_vcorr(Path(args.vcorr_dir))
     print(f"[vCorR] Images: Train={len(train_recs):,}, Val={len(val_recs):,}, Test={len(test_recs):,}")
 

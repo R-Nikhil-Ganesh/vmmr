@@ -1,7 +1,7 @@
 # MobileNetV2 Color Distillation: Architecture, Empirical Layer Selection, and Multi-Task ONNX Export
 
 **Module**: `code/current/mobilenet/color_distillation/`  
-**Teacher Model**: Vision-Language pseudo-labels from Qwen3-VL-8B (`annotation_runs/run5/annotations.csv`, 1,126,737 images)  
+**Teacher Model**: Vision-Language pseudo-labels from Qwen3-VL-8B (`annotation_runs/run2/annotations.csv`, 1,126,737 images)  
 **Student Model**: MobileNetV2 Model C (`backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx`)  
 **Deployment Target (Reference)**: Unified Dual-Head ONNX Model (`output_mlp512x2/mobilenet_v2_multitask.onnx`, Deep MLP-512×2)  
 **Historical Baseline**: `output/mobilenet_v2_multitask.onnx` (128-unit weighted MLP)  

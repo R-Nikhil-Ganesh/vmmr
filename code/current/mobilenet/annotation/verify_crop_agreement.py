@@ -8,7 +8,7 @@ Evaluates on 300 random rows (150 BoxCars116k with newly recovered 2DBB bounding
      - Legacy domain crop (bbox_* = -1: top 15% removed for PM, bottom 5% removed for Ext)
      - Tight vehicle crop (exact 2DBB for BoxCars116k; non-white letterbox content box for PM)
   2. Optional Qwen3-VL-8B-Instruct agreement (--run-qwen) when run on GPU.
-Saves a detailed report to run_docs/crop_agreement_study.md.
+Saves a detailed report to error_docs/crop_agreement_study.md.
 """
 
 import argparse
@@ -137,7 +137,7 @@ def main():
     pm_agree = float(res_df[res_df["domain"] == "platesmania"]["onnx_agree"].mean() * 100.0)
     bc_agree = float(res_df[res_df["domain"] == "external"]["onnx_agree"].mean() * 100.0)
 
-    out_md = MOBILENET_DIR / "run_docs/crop_agreement_study.md"
+    out_md = MOBILENET_DIR / "error_docs/crop_agreement_study.md"
     lines = [
         "# Vehicle Cropping & Color Agreement Study (`E-01` & `E-02`)",
         "",

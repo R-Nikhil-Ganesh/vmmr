@@ -40,21 +40,24 @@ if command -v "${DVC_CMD}" >/dev/null 2>&1 || [ -x "${DVC_CMD}" ]; then
         fi
     done < <(find code/current/mobilenet/ -type d \( -name "*scratch*" -o -name ".*" \) -prune -o -type f \( -name "*.onnx" -o \( -name "*.pt" -path "*/output_merged_*/models/*" \) \) -print 2>/dev/null || true)
 
-    # Auto-register any new annotation_runs/run* directories in DVC
+    # Register annotation_runs/run* directories and the color feature cache in DVC, new or already tracked.
+    # Re-adding tracked directories saves files written into them later (e.g. a backfilled run_config.json,
+    # new vcorr_*.npy features); otherwise the next `dvc pull` elsewhere refuses with "unsaved files".
+    DVC_DIRS=()
     while IFS= read -r run_dir; do
-        if [ -n "${run_dir}" ] && [ ! -f "${run_dir}.dvc" ]; then
-            if git check-ignore -q "${run_dir}.dvc" 2>/dev/null; then
-                continue
-            fi
-            echo "  [DVC Auto-Track] Tracking new annotation run directory in DVC: ${run_dir}"
-            "${DVC_CMD}" add "${run_dir}"
+        if [ -n "${run_dir}" ] && ! git check-ignore -q "${run_dir}.dvc" 2>/dev/null; then
+            DVC_DIRS+=("${run_dir}")
         fi
     done < <(find code/current/mobilenet/annotation_runs/ -mindepth 1 -maxdepth 1 -type d -name "run*" 2>/dev/null || true)
+    [ -d "code/current/mobilenet/color_distillation/cache" ] && DVC_DIRS+=("code/current/mobilenet/color_distillation/cache")
+    for d in "${DVC_DIRS[@]}"; do
+        [ -f "${d}.dvc" ] || echo "  [DVC Auto-Track] Tracking new directory in DVC: ${d}"
+        "${DVC_CMD}" add -q "${d}" || echo "  [WARN] dvc add failed for ${d}" >&2
+    done
 
-    # Ensure color distillation cache is up to date in DVC
-    if [ -d "code/current/mobilenet/color_distillation/cache" ]; then
-        "${DVC_CMD}" add code/current/mobilenet/color_distillation/cache >/dev/null 2>&1 || true
-    fi
+    # Upload new data before its .dvc pointers reach git, so other machines can pull it
+    echo "  [DVC Auto-Sync] Pushing new DVC data to the remote..."
+    "${DVC_CMD}" push -q || echo "  [WARN] dvc push failed; run 'bash_scripts/dvc.sh push' before others pull" >&2
 else
     echo "  [WARN] DVC binary not found. Skipping automated DVC check."
 fi

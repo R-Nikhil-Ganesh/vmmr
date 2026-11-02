@@ -8,7 +8,7 @@ E-09 Ground-Truth Color Validation: Qwen3-VL-8B & Distilled Color Heads vs. Comp
    (color_conf >= 0.70 vs < 0.70), and confusion matrix against human labels.
 3. Generates a stratified 600-row human review sample (annotation_runs/color_human_review_600.csv)
    covering all 13 Qwen colors and both domains (with 30% low-confidence rows).
-4. Writes a markdown report to run_docs/color_ground_truth_validation.md.
+4. Writes a markdown report to error_docs/color_ground_truth_validation.md.
 """
 
 import json
@@ -77,7 +77,7 @@ QWEN_TO_COMPCARS_STRICT = {
 def main():
     ann_path = MOBILENET_DIR / "annotation_runs/run2/annotations.csv"
     ext_meta_path = Path(paths.EXT_DATASETS_DIR) / "external_metadata_51make.csv"
-    out_report_md = MOBILENET_DIR / "run_docs/color_ground_truth_validation.md"
+    out_report_md = MOBILENET_DIR / "error_docs/color_ground_truth_validation.md"
     out_json = SCRIPT_DIR / "output/e09_compcars_gt_validation.json"
     out_review_csv = MOBILENET_DIR / "annotation_runs/color_human_review_600.csv"
 

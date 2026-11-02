@@ -14,7 +14,7 @@ For complete architectural details, empirical layer probing benchmarks, mathemat
 | ⭐ **Reference Production** | **Deep MLP-512×2** | Unweighted, LS 0.0 | `output_mlp512x2/` | **`75.53%`** (Macro F1 62.9%) | **`77.43%`** *(98.7% of teacher)* | **1.11 ms** (~900 FPS) |
 | Ablation 1 | MLP-128 | Unweighted, LS 0.0 | `output_unweighted_mlp128/` | `73.23%` (Macro F1 58.1%) | `74.89%` | 1.14 ms (~880 FPS) |
 | Historical Baseline | MLP-128 | Class-weighted, LS 0.05 | `output/` | `68.00%` (val) | `71.08%` | 1.13 ms (~880 FPS) |
-| *Teacher Reference* | *Qwen3-VL-8B* | *Zero-shot VLM* | *`annotation_runs/run5/`* | *—* | *`78.44%`* | *~27 ms (37 FPS)* |
+| *Teacher Reference* | *Qwen3-VL-8B* | *Zero-shot VLM* | *`annotation_runs/run2/`* | *—* | *`78.44%`* | *~27 ms (37 FPS)* |
 
 > **Production Model Note**: The reference multi-task ONNX graph is **`output_mlp512x2/mobilenet_v2_multitask.onnx`** (tracked via DVC), which achieves 75.53% test accuracy and 77.43% on independent human ground truth while adding only 39 microseconds (<0.04 ms) over the 128-unit head.
 

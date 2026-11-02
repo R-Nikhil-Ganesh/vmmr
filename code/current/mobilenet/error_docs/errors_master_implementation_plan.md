@@ -122,12 +122,12 @@ flowchart LR
   1. **Qwen3-VL-8B pseudo-labels** vs. CompCars human ground truth (overall, by `color_conf >= 0.70` vs `< 0.70`, and per-color confusion matrix), and
   2. **Distilled MobileNetV2 color heads** vs. CompCars human ground truth on the held-out `test` split.
 - Also generates a stratified 600-image human review CSV/HTML sample (`annotation_runs/color_human_review_600.csv`) across both PlatesMania and External (including `color_conf < 0.70` rows) for manual spot-checking.
-- Writes a comprehensive report to `run_docs/color_ground_truth_validation.md`.
+- Writes a comprehensive report to `error_docs/color_ground_truth_validation.md`.
 
 #### [NEW] [`annotation/verify_crop_agreement.py`](../annotation/annotate.py) (`E-02`)
 - Samples 300 stratified rows (200 PlatesMania, 100 External) from `annotation_runs/run2/annotations.csv`.
 - Runs a pretrained YOLO detector (`yolov8n.pt` / `yolo11n.pt`) to obtain tight vehicle bounding boxes (+8% margin) and compares Qwen3-VL-8B color predictions on full-frame domain crops vs. tight vehicle crops.
-- Saves agreement metrics and confusion pairs to `run_docs/crop_agreement_study.md`.
+- Saves agreement metrics and confusion pairs to `error_docs/crop_agreement_study.md`.
 
 ---
 
