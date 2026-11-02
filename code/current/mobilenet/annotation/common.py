@@ -61,24 +61,24 @@ def resolve_image_path(raw_path: str, domain: str = "", base_dir: Optional[str] 
         for marker in ("resized_512", "images"):
             if marker in raw_str:
                 rel = raw_str.split(marker, 1)[1].lstrip("/")
-                cand = base / rel
-                if cand.is_file():
-                    return str(cand)
-                if rel.startswith("images/"):
-                    cand_no_img = base / rel[7:]
-                    if cand_no_img.is_file():
-                        return str(cand_no_img)
+                for c in (base / rel, (base / rel[7:]) if rel.startswith("images/") else None):
+                    if c is not None:
+                        if c.is_file():
+                            return str(c)
+                        dot_c = c.parent.parent / (c.parent.name + ".") / c.name
+                        if dot_c.is_file():
+                            return str(dot_c)
                 strip = not (base / "images").is_dir() and base.is_dir()
                 return str(base / (rel[7:] if (strip and rel.startswith("images/")) else rel))
         strip = not (base / "images").is_dir() and base.is_dir()
         clean_rel = raw_str[7:] if (strip and raw_str.startswith("images/")) else raw_str
-        cand = base / clean_rel.lstrip("/")
-        if cand.is_file():
-            return str(cand)
-        cand_img = base / "images" / clean_rel.lstrip("/")
-        if cand_img.is_file():
-            return str(cand_img)
-        return str(cand)
+        for c in (base / clean_rel.lstrip("/"), base / "images" / clean_rel.lstrip("/")):
+            if c.is_file():
+                return str(c)
+            dot_c = c.parent.parent / (c.parent.name + ".") / c.name
+            if dot_c.is_file():
+                return str(dot_c)
+        return str(base / clean_rel.lstrip("/"))
 
     base = Path(base_dir or getattr(paths, "EXT_DATASETS_DIR", "") or ".")
     for marker in ("external_resized_512", "external_datasets"):

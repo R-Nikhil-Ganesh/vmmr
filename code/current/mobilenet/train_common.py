@@ -288,11 +288,19 @@ class PlatesManiaDataset(Dataset):
         col = "image_path" if "image_path" in df.columns else "image_rel_path"
         base_str = str(base_img_dir)
         strip_images = bool(base_str) and not os.path.isdir(os.path.join(base_str, "images"))
-        self.paths = [
-            os.path.join(base_str, p[7:] if (strip_images and p.startswith("images/")) else p)
-            if not os.path.isabs(p) else p
-            for p in df[col].values
-        ]
+        paths = []
+        for p in df[col].values:
+            full_p = os.path.join(base_str, p[7:] if (strip_images and p.startswith("images/")) else p) if not os.path.isabs(p) else p
+            if not os.path.exists(full_p):
+                # Handle trailing dot folder discrepancy on disk (e.g. 'Alfa Romeo/S.Z' -> 'Alfa Romeo/S.Z.')
+                parent, fname = os.path.split(full_p)
+                dot_p = os.path.join(parent + ".", fname)
+                if os.path.exists(dot_p):
+                    full_p = dot_p
+                elif parent.endswith(".") and os.path.exists(os.path.join(parent[:-1], fname)):
+                    full_p = os.path.join(parent[:-1], fname)
+            paths.append(full_p)
+        self.paths = paths
         self.labels = df["label"].values.astype(np.int64)
         self.img_size = img_size
         self.crop_top_pct = crop_top_pct
