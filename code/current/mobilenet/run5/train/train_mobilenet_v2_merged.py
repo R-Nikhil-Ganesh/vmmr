@@ -207,7 +207,24 @@ def main():
     optimizer = torch.optim.AdamW(param_groups, weight_decay=1e-4, fused=(device.type == "cuda"))
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
     criterion = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)  # plain CE for validation/test
-    kd_matrix = np.load(args.kd_ls_matrix) if args.kd_ls_matrix else None
+    kd_matrix = None
+    if args.kd_ls_matrix:
+        kd_path = Path(args.kd_ls_matrix)
+        if not kd_path.exists():
+            candidates = [
+                ROOT_MOBILENET_DIR / args.kd_ls_matrix,
+                DATASET_DIR / args.kd_ls_matrix,
+                DATASET_DIR / kd_path.name,
+                Path(paths.REPO_ROOT) / args.kd_ls_matrix,
+            ]
+            for cand in candidates:
+                if cand.exists():
+                    kd_path = cand
+                    break
+        if not kd_path.exists():
+            raise FileNotFoundError(f"[Error] KD matrix not found at '{args.kd_ls_matrix}' (checked: {kd_path.resolve()})")
+        print(f"[KD Matrix] Loaded {kd_path}")
+        kd_matrix = np.load(kd_path)
     train_objective = TrainObjective(class_to_idx, args.label_smoothing, args.make_loss_weight, device,
                                      kd_ls_matrix=kd_matrix, kd_ls_alpha=args.kd_ls_alpha)
     class_to_make = model.make_proj.argmax(1) if args.make_gating != "none" else None
