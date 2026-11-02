@@ -1,0 +1,5 @@
+outs:
+- md5: dd1fcbb8797ed17da868cbdd826d68b1
+  size: 4163778560
+  hash: md5
+  path: external_resized_512.tar

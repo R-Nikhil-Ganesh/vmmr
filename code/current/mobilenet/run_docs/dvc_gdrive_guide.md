@@ -43,48 +43,46 @@ Run the following command, replacing `<FOLDER_ID>` with your actual folder ID:
 ./code/current/mobilenet/bash_scripts/dvc.sh remote modify gdrive-storage url "gdrive://<FOLDER_ID>"
 ```
 
-### Step 2.3: Service Account Authentication (Current & Recommended)
-The repository is configured to authenticate headlessly using a Google Cloud Service Account (`research-pc@vmmr-dvc.iam.gserviceaccount.com`). This completely eliminates browser OAuth logins, redirect loops, and port 8090 forwarding.
+### Step 2.3: User OAuth Authentication (Personal Google Drive)
+Because personal Google Drive ("My Drive") strictly forbids Service Accounts from creating files due to quota policies, DVC is configured to use standard **User OAuth 2.0**. This ensures all uploaded datasets, models, and caches belong directly to your personal Google Drive storage quota.
 
 * **Repository Configuration**:
   `.dvc/config` has:
   ```ini
   ['remote "gdrive-storage"']
       url = gdrive://1jmsSPZKa0o1LpOW8mgZFg1kghPBolerc
-      gdrive_use_service_account = true
   ```
-* **Local Credentials (Git-Ignored)**:
-  `.dvc/config.local` points to the private JSON key:
-  ```ini
-  ['remote "gdrive-storage"']
-      gdrive_service_account_json_file_path = /home/researchadmin/Econ-n/repo-clone/vmmr/.dvc/vmmr-dvc-bb9468f21bc7.json
-  ```
-  *(Note: All `*.json` files inside `.dvc/` are git-ignored to prevent credential leakage).*
 
-* **Sharing Requirement**:
-  The Google Drive folder (`1jmsSPZKa0o1LpOW8mgZFg1kghPBolerc`) is shared with `research-pc@vmmr-dvc.iam.gserviceaccount.com` as **Editor**.
+* **First-Time / Session Authentication**:
+  When you execute `dvc push` or `dvc status -r gdrive-storage`, DVC initiates the OAuth 2.0 flow:
+  1. DVC prints an authorization link in your terminal:
+     ```text
+     Open your browser to visit:
+     https://accounts.google.com/o/oauth2/auth?...
+     ```
+  2. Copy that link, open it in your browser, and sign in with your Google account.
+  3. Click **Continue / Allow**.
+  4. Google will redirect your browser to `http://localhost:8090/?state=...&code=...`.
 
-* **Daily Usage**:
-  Push and pull operate completely headlessly:
-  ```bash
-  ./code/current/mobilenet/bash_scripts/dvc.sh status -r gdrive-storage
-  ./code/current/mobilenet/bash_scripts/dvc.sh push
-  ./code/current/mobilenet/bash_scripts/dvc.sh pull
-  ```
+* **5-Second Workaround if the Browser Redirect Spins / Hangs**:
+  Because local webservers listen on IPv4 (`127.0.0.1`), modern browsers on macOS/Windows often send the redirect to IPv6 (`[::1]`), causing the page to spin.
+  To complete authorization instantly:
+  1. **Copy the entire redirect URL** from your browser address bar (it starts with `http://localhost:8090/?state=...`).
+  2. In your terminal on the server, run:
+     ```bash
+     curl "PASTE_REDIRECT_URL_HERE"
+     ```
+  3. PyDrive2 immediately receives the authorization code, caches the token in `~/.cache/pydrive2fs/`, and finishes the push without asking again.
 
 ---
 
-### Step 2.4: Legacy Interactive User OAuth (Alternative / Fallback)
-If you ever need to use personal user OAuth instead of a Service Account:
-1. Unset the service account flag:
+### Step 2.4: Google Workspace Shared Drives (Service Account Alternative)
+If you ever migrate the DVC remote to a Google Workspace **Shared Drive (Team Drive)**:
+1. Add the Service Account (`research-pc@vmmr-dvc.iam.gserviceaccount.com`) as **Content manager** on the Shared Drive.
+2. Enable service account mode in DVC:
    ```bash
-   ./code/current/mobilenet/bash_scripts/dvc.sh remote modify --unset gdrive-storage gdrive_use_service_account
-   ```
-2. Run via [`code/current/mobilenet/bash_scripts/dvc_ephemeral.sh`](../bash_scripts/dvc_ephemeral.sh):
-   ```bash
-   export DVC_GDRIVE_CLIENT_ID="your_client_id.apps.googleusercontent.com"
-   export DVC_GDRIVE_CLIENT_SECRET="your_client_secret"
-   ./code/current/mobilenet/bash_scripts/dvc_ephemeral.sh push
+   ./code/current/mobilenet/bash_scripts/dvc.sh remote modify gdrive-storage gdrive_use_service_account true
+   ./code/current/mobilenet/bash_scripts/dvc.sh remote modify --local gdrive-storage gdrive_service_account_json_file_path /home/researchadmin/Econ-n/repo-clone/vmmr/.dvc/vmmr-dvc-bb9468f21bc7.json
    ```
 
 
