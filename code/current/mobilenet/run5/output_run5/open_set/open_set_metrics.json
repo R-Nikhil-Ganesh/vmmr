@@ -1,0 +1,28 @@
+{
+  "onnx": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/models/mobilenet_v2_best.onnx",
+  "n_known": 1000,
+  "n_unknown": 500,
+  "closed_set_acc": 0.926,
+  "scores": {
+    "MSP": {
+      "AUROC": 0.939832,
+      "FPR@95TPR": 0.268,
+      "OSCR": 0.8866080000000001
+    },
+    "MLS": {
+      "AUROC": 0.6783159999999999,
+      "FPR@95TPR": 0.75,
+      "OSCR": 0.6364619999999999
+    },
+    "Energy": {
+      "AUROC": 0.635572,
+      "FPR@95TPR": 0.77,
+      "OSCR": 0.595432
+    },
+    "Cosine": {
+      "AUROC": 0.49260200000000004,
+      "FPR@95TPR": 1.0,
+      "OSCR": 0.461992
+    }
+  }
+}

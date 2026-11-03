@@ -1,0 +1,5 @@
+outs:
+- md5: 2e502606e077d8cc58136713a04f4069
+  size: 21878704
+  hash: md5
+  path: mobilenet_v2_best.onnx

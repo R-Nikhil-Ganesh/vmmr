@@ -1,0 +1,16 @@
+{
+  "test_accuracy": 0.9219407353210171,
+  "test_top5_accuracy": 0.9864733857691604,
+  "macro_f1": 0.8564813125407132,
+  "weighted_f1": 0.9194457309305365,
+  "macro_precision": 0.8887946218634402,
+  "macro_recall": 0.8454981527388956,
+  "cross_entropy_loss": 0.3576165437698364,
+  "num_evaluated_samples": 109340,
+  "num_classes": 1235,
+  "model_level": true,
+  "num_makes": 35,
+  "make_accuracy": 0.9859063471739528,
+  "make_accuracy_marginalized": 0.9861990122553503,
+  "make_macro_f1": 0.9771962347012167
+}
