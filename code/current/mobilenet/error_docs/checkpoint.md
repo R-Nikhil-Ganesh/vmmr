@@ -34,7 +34,7 @@
   - Regenerated `code/current/mobilenet/run4/splits_1235models/{train,val,test,all_splits}.csv` with portable relative paths (`images/<Make>/<file>.jpg`).
 - **`E-17` (`run_config.json` Provenance)**:
   - Added `save_run_config()` in [`code/current/mobilenet/train_common.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/train_common.py) and wired it into `train_mobilenet_v2_merged.py`, `annotate.py`, and `train_color_head.py`.
-  - Backfilled `run_config.json` into `run4/output_merged_run4/`, `annotation_runs/run1/`, `annotation_runs/run2/`, and `color_distillation/output/`.
+  - Backfilled `run_config.json` into `run4/output_run4/`, `annotation_runs/run1/`, `annotation_runs/run2/`, and `color_distillation/output/`.
 - **`E-21` (`MobileNetV2Evaluator` Parameter Rename)**:
   - Renamed primary parameter `checkpoint_path` $\to$ `model_path` in [`code/current/mobilenet/output_analysis.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/output_analysis.py) while maintaining backward compatibility via `checkpoint_path` keyword alias.
 
@@ -99,7 +99,7 @@
   - Added global `*.onnx` rule to prevent new multi-megabyte model checkpoints from being inadvertently staged by `git add -A` / `auto_git_sync.sh`.
   - Preserved ignores for `*plotly.min.js`, `__pycache__`, and intermediate caches.
 - **Migrated all 11 legacy Git-tracked `.onnx` models to DVC** (`git rm --cached` + `dvc add`):
-  - MobileNetV2: `backup_run1/ext/`, `backup_run1/pm/`, `backup_run3/external_dataset/`, `backup_run3/platesmania_dataset/`, `run4/output_merged_run4/`.
+  - MobileNetV2: `backup_run1/ext/`, `backup_run1/pm/`, `backup_run3/external_dataset/`, `backup_run3/platesmania_dataset/`, `run4/output_run4/`.
   - EfficientNet-B0: `output_efficientnet_b0_merged/`, `output_efficientnet_b0/`, `sample_inference/`.
 - **Migrated new multi-task ONNX models to DVC**: `output_mlp512x2/mobilenet_v2_multitask.onnx.dvc` and `output_unweighted_mlp128/mobilenet_v2_multitask.onnx.dvc`.
 - **Migrated `annotation_runs/run1/` to DVC**: untracked Git-tracked `annotations.csv` (34 MB) and `viewer.html` (16 MB) and tracked entire directory via `annotation_runs/run1.dvc`.

@@ -89,7 +89,7 @@
 ### C. Process & Reproducibility
 
 #### E-17 (P0) Run Provenance & CLI Recording [RESOLVED]
-- Added `save_run_config()` to [`train_common.py`](train_common.py). Wired into training, annotation, and distillation runners. Backfilled `run_config.json` into `run4/output_merged_run4/`, `annotation_runs/run1/`, `annotation_runs/run2/`, and `color_distillation/output/`.
+- Added `save_run_config()` to [`train_common.py`](train_common.py). Wired into training, annotation, and distillation runners. Backfilled `run_config.json` into `run4/output_run4/`, `annotation_runs/run1/`, `annotation_runs/run2/`, and `color_distillation/output/`.
 
 #### E-18 (P0) Cross-Domain Benchmark (Model A, B, C) [RESOLVED]
 - Executed [`bash_scripts/run_phase4_cross_domain_eval.sh`](bash_scripts/run_phase4_cross_domain_eval.sh) evaluating Models A and B on the regenerated External test split (`splits_1235models/test.csv`, 5,205 base-class images) and PlatesMania test split:
@@ -105,7 +105,7 @@
 - Cleaned and categorized [`.gitignore`](.gitignore): deduplicated `/archive/`, ensured `*plotly.min.js`, `__pycache__`, and `*.pyc` stay ignored.
 - Added global `*.onnx` to `.gitignore` to prevent multi-megabyte model checkpoints from ever being staged by Git.
 - **Migrated all 11 legacy Git-tracked `.onnx` models to DVC** (`git rm --cached` + `dvc add`):
-  - MobileNetV2: `backup_run1/ext/models/*.onnx`, `backup_run1/pm/models/*.onnx`, `backup_run3/external_dataset/.../*.onnx`, `backup_run3/platesmania_dataset/.../*.onnx`, `run4/output_merged_run4/models/*.onnx`.
+  - MobileNetV2: `backup_run1/ext/models/*.onnx`, `backup_run1/pm/models/*.onnx`, `backup_run3/external_dataset/.../*.onnx`, `backup_run3/platesmania_dataset/.../*.onnx`, `run4/output_run4/models/*.onnx`.
   - EfficientNet-B0: `output_efficientnet_b0_merged/models/*.onnx`, `output_efficientnet_b0/models/*.onnx`, `sample_inference/models/*.onnx`.
 - **Migrated new multi-task ONNX models to DVC**: `output_mlp512x2/mobilenet_v2_multitask.onnx.dvc` and `output_unweighted_mlp128/mobilenet_v2_multitask.onnx.dvc`.
 - **Migrated `annotation_runs/run1/` to DVC**: untracked Git-tracked `annotations.csv` (34 MB) and `viewer.html` (16 MB) and tracked entire directory via [`annotation_runs/run1.dvc`](annotation_runs/run1.dvc).

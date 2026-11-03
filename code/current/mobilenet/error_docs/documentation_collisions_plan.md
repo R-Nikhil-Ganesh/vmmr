@@ -13,7 +13,7 @@ This plan maps out every single collision with exact file and line references an
 > **1. Separating the Three Dataset Eras Clearly Across All Docs**:
 > Right now, different docs mix numbers from three different generations of `splits_1235models/`:
 > - **Era 1 — Run 3 (`backup_run3`, Model B)**: `41,880` External images (`29,554` train / `6,163` val / `6,163` test), `268` train classes (`264` test) across `32` makes; `4,100` Stanford Cars rows had real bounding boxes (`9.8%`).
-> - **Era 2 — Run 4 & Annotation Runs 1–2 (`output_merged_run4`, Model C)**: `33,329` External images (`23,589` train / `4,870` val / `4,870` test), `286` classes across `35` makes; `0` bounding boxes (`bbox_* = -1` on `100%` of rows).
+> - **Era 2 — Run 4 & Annotation Runs 1–2 (`output_run4`, Model C)**: `33,329` External images (`23,589` train / `4,870` val / `4,870` test), `286` classes across `35` makes; `0` bounding boxes (`bbox_* = -1` on `100%` of rows).
 > - **Era 3 — Expanded 51-Make + `< 50` Pruned Splits (Current `splits_1235models/`)**: `67,695` External images (`47,805` train / `9,945` val / `9,945` test), `471` External classes (`290` in PM + `181` External-only $\ge 50$ samples) across `49` makes (`1,416` unified classes); `0` bounding boxes (`bbox_* = -1` on `100%` of rows).
 >
 > We will explicitly label which era each report and README section refers to so historical reports (`run_3.md`, `run_4.md`, `annotation_run_1_and_2.md`) stay historically accurate for the checkpoints they describe while current guides (`README.md`, `CLAUDE.md`, `commands.md`, `e01_e02_e03_plan.md`) document both the Run 4 baseline and the expanded 1,416-class splits.
@@ -23,7 +23,7 @@ This plan maps out every single collision with exact file and line references an
 > Rather than leaving unverified claims in the docs, we propose:
 > - **E-01 (BBoxes)**: Fix all docs/docstrings that falsely claim tight vehicle bounding boxes were used in Model C or Annotation Runs 1–2. Document that `external_resized_512` was pre-letterboxed to 512×512 during dataset creation (`bbox_* = -1` in the split CSVs), so Model C and Qwen used full 512×512 images with domain banner/watermark crops (`15%` top for PlatesMania, `5%` bottom for External).
 > - **E-03 (UMAP `NaN`s)**: Update `annotation_run_1_and_2.md` and `annotation/README.md` to state accurately that `stage_coords` computes 2D UMAP coordinates for a `--coords-max 30000` landmark sample (`14,870` rows in Run 4; `30,000` rows = `2.7%` in Run 5) and leaves the remaining `87.0%` / `97.3%` as `NaN` (or optionally project all rows via `reducer.transform` if desired).
-> - **E-06 (Bit-for-Bit ONNX Identity)**: Upgrade `color_distillation/verify_multitask_onnx.py` to actually run `np.max(np.abs(...))` comparisons against `output_merged_run4/models/mobilenet_v2_best.onnx` and `color_head_best.pt` on 256 images and record the exact numerical diff in `color_distillation_report.md`.
+> - **E-06 (Bit-for-Bit ONNX Identity)**: Upgrade `color_distillation/verify_multitask_onnx.py` to actually run `np.max(np.abs(...))` comparisons against `output_run4/models/mobilenet_v2_best.onnx` and `color_head_best.pt` on 256 images and record the exact numerical diff in `color_distillation_report.md`.
 
 ---
 
@@ -97,7 +97,7 @@ flowchart TD
 | Line(s) | Current Colliding / Stale Text | Ground Truth & Proposed Fix |
 | :--- | :--- | :--- |
 | **18, 52** | Notes that Run 4's External test set has `4,870` images vs `6,163` in Run 3, but omits the **crop difference** between Model B (Run 3) and Model C (Run 4). | Add explicit note (`E-01`): In Run 3, Stanford Cars (`4,100 / 41,880 = 9.8%` of External) had tight bounding boxes in the manifest, whereas in Run 4 all `33,329` images come from `external_resized_512` (pre-cropped/letterboxed to 512×512 during dataset build) with `bbox_* = -1` and a `5%` bottom crop. |
-| **61** | Describes `run4/splits_1235models/` as having `33,329` total (`23,589` train / `4,870` val / `4,870` test). | Keep the `33,329` numbers as the exact historical record for Run 4 (`output_merged_run4`), and add a footnote that `splits_1235models/` was subsequently expanded to `67,695` images (`1,416` classes across `49` makes) for post-Run-4 experiments. |
+| **61** | Describes `run4/splits_1235models/` as having `33,329` total (`23,589` train / `4,870` val / `4,870` test). | Keep the `33,329` numbers as the exact historical record for Run 4 (`output_run4`), and add a footnote that `splits_1235models/` was subsequently expanded to `67,695` images (`1,416` classes across `49` makes) for post-Run-4 experiments. |
 | **63** | *"Crops: PlatesMania uses the full image minus 15% top; External uses the vehicle bbox where present and a 5% bottom crop otherwise, as in A and B."* | Correct (`E-01`): While the dataset loader supports `bbox_* >= 0`, `all_splits.csv` in Run 4 has `bbox_* = -1` on **100% of rows**, so External always uses the `5%` bottom crop of the 512×512 image. |
 
 ---
@@ -154,7 +154,7 @@ flowchart TD
 | Line(s) | Current Colliding / Stale Text | Ground Truth & Proposed Fix |
 | :--- | :--- | :--- |
 | **21, 65** | Calls the `109,454` validation images the *"Full Validation Split (109,454 images)"* (`E-07`). | Clarify that `109,454` is the **`color_conf >= 0.70` validation subset (`95.8%` of the `114,252` val split)**, and note the known scoring limitations documented in `E-07`/`E-08` (filtered by Qwen confidence $\ge 0.70$, evaluated against Qwen pseudo-labels, inverse-frequency class weights inflating rare-color recall at the expense of precision). |
-| **26, 98–112** | Claims *"exact bit-for-bit numerical identity"* based on `verify_multitask_onnx.py`, which only checked tensor shapes and latency (`E-06`). | Run the upgraded `verify_multitask_onnx.py` against `output_merged_run4/models/mobilenet_v2_best.onnx` and `color_head_best.pt` on 256 images and include the exact `max_abs_diff` table in Section 5. |
+| **26, 98–112** | Claims *"exact bit-for-bit numerical identity"* based on `verify_multitask_onnx.py`, which only checked tensor shapes and latency (`E-06`). | Run the upgraded `verify_multitask_onnx.py` against `output_run4/models/mobilenet_v2_best.onnx` and `color_head_best.pt` on 256 images and include the exact `max_abs_diff` table in Section 5. |
 | **118–123** | Section 6 implies `mobilenet_v2_multitask.onnx` (`20.61 MB`) is tracked directly in Git because it is `< 100 MB`. | Note that `mobilenet_v2_multitask.onnx` is tracked via **DVC** (`mobilenet_v2_multitask.onnx.dvc`) alongside `cache.dvc` to keep the Git repository lightweight (`E-19`). |
 
 ---
@@ -189,7 +189,7 @@ flowchart TD
 3. **[`paths.py`](../paths.py)** & **[`bash_scripts/lib/paths.sh`](../bash_scripts/lib/paths.sh)**:
    - Add `DVC_BIN` and `DVC_SITE_CACHE_DIR` (using `/tmp/dvc-${USER:-shared}` so multiple users on the shared PC don't collide in `/tmp/dvc`) to `paths.sh` and `paths.py` (`KEYS`), satisfying `E-12`.
 4. **[`color_distillation/verify_multitask_onnx.py`](../color_distillation/verify_multitask_onnx.py)**:
-   - Add numerical equivalence verification (`E-06`) comparing `mobilenet_v2_multitask.onnx` against `output_merged_run4/models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`) and `color_head_best.pt` (`color_predictions`) across 256 images.
+   - Add numerical equivalence verification (`E-06`) comparing `mobilenet_v2_multitask.onnx` against `output_run4/models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`) and `color_head_best.pt` (`color_predictions`) across 256 images.
 5. **[`errors.md`](../errors.md)**:
    - Annotate resolved/updated items (`E-01` docs, `E-03` docs, `E-06` verification, `E-11`–`E-16` doc fixes, `E-21` `run_all_pipeline.sh` note) with their resolution status so `errors.md` serves as an accurate live checklist.
 

@@ -30,9 +30,9 @@ A second launch with a session name that is already running is refused (it print
 
 | Variable | Effect |
 |---|---|
-| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `run5/output_merged_<name>` (training, diagnostics, and `benchmark/`), `annotation_runs/<name>` (annotation), session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=merged_51make` for training, `RUN_NAME=run2` for annotation). |
+| `RUN_NAME=<name>` | Separate output folders and tmux session per experiment, so runs do not overwrite each other: `run5/output_<name>` (training, diagnostics, and `benchmark/`), `annotation_runs/<name>` (annotation), session `<session>_<name>`. Use distinct names for training vs. annotation runs (e.g. `RUN_NAME=run5_51make` for training, `RUN_NAME=run2` for annotation). |
 | `SWEEP=1` | `run_eval_color_teacher.sh` runs the one-factor teacher sweep (`s0_original` ... `s5_flip`) instead of a single `RUN_NAME` configuration. |
-| `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `run5/output_merged_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`, which lives in `backup_run4/`). |
+| `MODEL_RUN=<name>` | Used by `run_annotate.sh` and `run_train_color_distillation.sh` to select which `run5/output_<MODEL_RUN>/models/mobilenet_v2_best.onnx` checkpoint to load (defaults to `run4`, which lives in `backup_run4/`). |
 | `CACHE_FROM=<dir>` | Used by `run_annotate.sh` to reuse predictions, embeddings, and Qwen color labels from an earlier annotation folder (defaults to `${ANNOT_OUT_DIR}/run1` if present). |
 | `NO_TMUX=1` | Run in the foreground instead of tmux (debugging, cron, CI). |
 | `AUTO_GIT_PUSH=0` | Do not commit and push results when finished (default `1`: commits `code/current/mobilenet/` and pushes). |
@@ -50,7 +50,7 @@ Model C trains jointly on **both** datasets across the unified Make/Model taxono
 
 External has `47,805` train images (`23,589` in the Run 4 35-make split) against `~875k` for PlatesMania, so `WeightedRandomSampler` draws a fixed share of External images per epoch (`--ext-fraction 0.2` by default). Checkpoints are selected on the **mean of the two domain validation losses**, and final test metrics are reported per domain in `reports/test_metrics.json`.
 
-Output: `run5/output_merged_run5/` (or `output_merged_<RUN_NAME>`), with `models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`), `models/label_map.json`, `reports/`, `plots/training_curves.png`, and `training.log`.
+Output: `run5/output_run5/` (or `output_<RUN_NAME>`), with `models/mobilenet_v2_best.onnx` (`predictions`, `embeddings`, `class_maps`), `models/label_map.json`, `reports/`, `plots/training_curves.png`, and `training.log`.
 
 | Flag | Default | What it does |
 |---|---|---|

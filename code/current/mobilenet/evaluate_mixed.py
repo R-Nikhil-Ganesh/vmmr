@@ -63,13 +63,13 @@ MAKE_TO_IDX = {m: i for i, m in enumerate(TARGET_MAKES)}
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate MobileNetV2 Models on In-Domain, Out-of-Domain, and Mixed Benchmarks (Make + Model).")
     parser.add_argument("--pm-model-path", type=str,
-        default=str(CURRENT_DIR / "backup_run4" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"),
+        default=str(CURRENT_DIR / "backup_run4" / "output_run4" / "models" / "mobilenet_v2_best.onnx"),
         help="Path to PlatesMania / Merged model (.onnx)")
     parser.add_argument("--pm-label-map", type=str,
-        default=str(CURRENT_DIR / "backup_run4" / "output_merged_run4" / "models" / "label_map.json"),
+        default=str(CURRENT_DIR / "backup_run4" / "output_run4" / "models" / "label_map.json"),
         help="Path to PlatesMania / Merged label map")
     parser.add_argument("--ext-model-path", type=str,
-        default=str(CURRENT_DIR / "backup_run4" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"),
+        default=str(CURRENT_DIR / "backup_run4" / "output_run4" / "models" / "mobilenet_v2_best.onnx"),
         help="Path to External / Merged model (.onnx)")
     parser.add_argument("--ext-label-map", type=str,
         default=str(CURRENT_DIR / "run5" / "splits_1235models" / "label_map.json"),
@@ -87,7 +87,7 @@ def parse_args():
         default=str(CURRENT_DIR / "run5" / "splits_1235models" / "train.csv"),
         help="External train CSV (used only to find which classes each model could have seen)")
     parser.add_argument("--output-dir", type=str,
-        default=str(CURRENT_DIR / "backup_run4" / "output_merged_run4" / "benchmark"),
+        default=str(CURRENT_DIR / "backup_run4" / "output_run4" / "benchmark"),
         help="Destination directory for benchmark tables and plots")
     parser.add_argument("--img-size", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=64)

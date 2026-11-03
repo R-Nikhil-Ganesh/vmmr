@@ -29,7 +29,7 @@ echo "=================================================================="
 # 1. Automatic DVC Tracking for Large Artifacts (Future Run Protection)
 DVC_CMD="${DVC_BIN:-dvc}"
 if command -v "${DVC_CMD}" >/dev/null 2>&1 || [ -x "${DVC_CMD}" ]; then
-    # Auto-register any new .onnx models (and Run 5 classifier .pt checkpoints under output_merged_*/models/) in DVC (skip scratch/git-ignored directories)
+    # Auto-register any new .onnx models (and Run 5 classifier .pt checkpoints under output_*/models/) in DVC (skip scratch/git-ignored directories)
     while IFS= read -r onnx_path; do
         if [ -n "${onnx_path}" ] && [ ! -f "${onnx_path}.dvc" ]; then
             if git check-ignore -q "${onnx_path}.dvc" 2>/dev/null; then
@@ -38,7 +38,7 @@ if command -v "${DVC_CMD}" >/dev/null 2>&1 || [ -x "${DVC_CMD}" ]; then
             echo "  [DVC Auto-Track] Tracking new model in DVC: ${onnx_path}"
             "${DVC_CMD}" add "${onnx_path}"
         fi
-    done < <(find code/current/mobilenet/ -type d \( -name "*scratch*" -o -name ".*" \) -prune -o -type f \( -name "*.onnx" -o \( -name "*.pt" -path "*/output_merged_*/models/*" \) \) -print 2>/dev/null || true)
+    done < <(find code/current/mobilenet/ -type d \( -name "*scratch*" -o -name ".*" \) -prune -o -type f \( -name "*.onnx" -o \( -name "*.pt" -path "*/output_*/models/*" \) \) -print 2>/dev/null || true)
 
     # Register annotation_runs/run* directories and the color feature cache in DVC, new or already tracked.
     # Re-adding tracked directories saves files written into them later (e.g. a backfilled run_config.json,
@@ -66,7 +66,7 @@ fi
 git add -A code/current/mobilenet/ .gitignore
 
 # 3. Guardrail: Verify no raw binaries > 50 MB or .onnx files slipped into git staging
-STAGED_VIOLATIONS=$(git diff --cached --name-only | grep -E '\.(onnx|npy|h5|keras)$|output_merged_[^/]*/models/[^/]*\.pt$' || true)
+STAGED_VIOLATIONS=$(git diff --cached --name-only | grep -E '\.(onnx|npy|h5|keras)$|output_[^/]*/models/[^/]*\.pt$' || true)
 if [ -n "${STAGED_VIOLATIONS}" ]; then
     echo "  [ERROR] Safety guardrail triggered! The following binary files cannot be committed directly to Git:" >&2
     echo "${STAGED_VIOLATIONS}" | sed 's/^/    /' >&2

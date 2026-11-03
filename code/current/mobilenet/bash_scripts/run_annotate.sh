@@ -15,7 +15,7 @@ run_in_tmux annotate "${SCRIPT_DIR}/run_annotate.sh" "$@"
 MODEL_RUN="${MODEL_RUN:-run4}"
 RUN_NAME="${RUN_NAME:-run2}"
 if [ "${MODEL_RUN}" = "run4" ]; then MODEL_PARENT="${MOBILENET_DIR}/backup_run4"; else MODEL_PARENT="${MOBILENET_DIR}/run5"; fi
-MERGED_RUN_DIR="${MODEL_PARENT}/output_merged_${MODEL_RUN}"
+MERGED_RUN_DIR="${MODEL_PARENT}/output_${MODEL_RUN}"
 OUT_DIR="${ANNOT_OUT_DIR}/${RUN_NAME}"
 
 # Cache directory to reuse (defaults to run1 if available)

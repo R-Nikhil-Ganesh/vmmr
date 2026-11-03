@@ -20,7 +20,7 @@ if str(ROOT_MOBILENET_DIR) not in sys.path:
 import output_analysis as _oa
 import paths
 
-DEFAULT_RUN_DIR = DATASET_DIR / "output_merged_run5"
+DEFAULT_RUN_DIR = DATASET_DIR / "output_run5"
 
 
 def configure_domain(domain: str = "platesmania", run_dir: Path | str = DEFAULT_RUN_DIR):

@@ -37,7 +37,7 @@ wanted() { [ -z "${ONLY}" ] || [[ ",${ONLY}," == *",$1,"* ]]; }
 run_job() {                      # run_job <ID> <flags...>
     local id="$1"; shift
     local name="run5_${id,,}"; name="${name//-/}"
-    local out="${RUN5_DIR}/output_merged_${name}"
+    local out="${RUN5_DIR}/output_${name}"
     echo "################ ${id} -> ${out}"
     NO_TMUX=1 AUTO_GIT_PUSH=0 RUN_NAME="${name}" bash "${SCRIPT_DIR}/run_train_merged.sh" "$@"
     "${PYTHON_BIN}" "${MOBILENET_DIR}/evaluate_open_set.py" --onnx "${out}/models/mobilenet_v2_best.onnx" \
@@ -51,7 +51,7 @@ wanted R5-0 && run_job R5-0 "${BASE_FLAGS[@]}"
 wanted R5-1 && run_job R5-1 "${BASE_FLAGS[@]}" "${FULL_FLAGS[@]}"
 wanted R5-2 && run_job R5-2 "${BASE_FLAGS[@]}" "${FULL_FLAGS[@]}" "${HEAD_FLAGS[@]}"
 if wanted R5-3; then
-    TEACHER="${KD_TEACHER_PT:-${RUN5_DIR}/output_merged_run5_r51/models/mobilenet_v2_best.pt}"
+    TEACHER="${KD_TEACHER_PT:-${RUN5_DIR}/output_run5_r51/models/mobilenet_v2_best.pt}"
     KD_MATRIX="${RUN5_DIR}/kd_matrix_run5.npy"
     [ -f "${TEACHER}" ] || { echo "[ERROR] KD teacher checkpoint not found: ${TEACHER} (set KD_TEACHER_PT)" >&2; exit 1; }
     "${PYTHON_BIN}" "${MOBILENET_DIR}/build_kd_smoothing_matrix.py" --teacher-pt "${TEACHER}" --out "${KD_MATRIX}"

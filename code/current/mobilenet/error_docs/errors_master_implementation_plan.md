@@ -58,7 +58,7 @@ This plan maps the current status of all 21 items and defines a **5-phase execut
 > - For **`E-02`** (loading `Qwen3-VL-8B` + `yolov8n.pt` on 300 images, ~3 mins on GPU), should we run it directly during execution if the GPU is free, or provide the ready-to-run command for you to launch in `tmux`?
 >
 > **2. `E-19` DVC Migration Scope**:
-> Git currently tracks **12 `.onnx` files** (~165 MB total across `run4/output_merged_run4`, `backup_run1`, `backup_run3`, and `code/current/efficientnet`) plus `annotation_runs/run1/{annotations.csv,viewer.html}` (50 MB). Moving all of them to DVC (`git rm --cached` + `./bash_scripts/dvc.sh add`) will keep the Git working tree light while preserving every file on disk and in Google Drive. Confirm if you want all 12 `.onnx` files and `annotation_runs/run1` migrated to DVC, or only the `backup_run*` and `efficientnet` ones.
+> Git currently tracks **12 `.onnx` files** (~165 MB total across `run4/output_run4`, `backup_run1`, `backup_run3`, and `code/current/efficientnet`) plus `annotation_runs/run1/{annotations.csv,viewer.html}` (50 MB). Moving all of them to DVC (`git rm --cached` + `./bash_scripts/dvc.sh add`) will keep the Git working tree light while preserving every file on disk and in Google Drive. Confirm if you want all 12 `.onnx` files and `annotation_runs/run1` migrated to DVC, or only the `backup_run*` and `efficientnet` ones.
 
 ---
 
@@ -97,7 +97,7 @@ flowchart LR
   - [`annotation/annotate.py`](../annotation/annotate.py)
   - [`color_distillation/train_color_head.py`](../color_distillation/train_color_head.py)
 - Backfill reconstructed `run_config.json` files (clearly marked `"reconstructed": true`) into:
-  - `run4/output_merged_run4/run_config.json`
+  - `run4/output_run4/run_config.json`
   - `annotation_runs/run1/run_config.json`
   - `annotation_runs/run2/run_config.json`
   - `color_distillation/output/run_config.json`
@@ -174,6 +174,6 @@ flowchart LR
    - Untrack from Git (`git rm --cached`) and track via DVC (`./bash_scripts/dvc.sh add`):
      - `code/current/mobilenet/backup_run1` ONNX models
      - `code/current/mobilenet/backup_run3` ONNX models
-     - `code/current/mobilenet/run4/output_merged_run4/models/mobilenet_v2_best.onnx`
+     - `code/current/mobilenet/run4/output_run4/models/mobilenet_v2_best.onnx`
      - `code/current/mobilenet/annotation_runs/run1`
      - `code/current/efficientnet` ONNX models

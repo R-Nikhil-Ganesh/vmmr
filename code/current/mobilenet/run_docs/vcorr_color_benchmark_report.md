@@ -64,7 +64,7 @@ flowchart LR
 
 ## 3. Experiment 1: Evaluating Existing Production Heads on vCorR
 
-We evaluated three existing MobileNetV2 color heads (Model C backbone: `output_merged_run4/models/mobilenet_v2_best.onnx`) across all 10,373 vCorR images at **~550–595 FPS** using [`evaluate_vcorr_color.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/evaluate_vcorr_color.py).
+We evaluated three existing MobileNetV2 color heads (Model C backbone: `output_run4/models/mobilenet_v2_best.onnx`) across all 10,373 vCorR images at **~550–595 FPS** using [`evaluate_vcorr_color.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/color_distillation/evaluate_vcorr_color.py).
 
 ### Quantitative Results
 

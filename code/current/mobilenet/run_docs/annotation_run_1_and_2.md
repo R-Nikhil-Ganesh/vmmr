@@ -83,7 +83,7 @@ The pipeline is implemented in `code/current/mobilenet/annotation/annotate.py` a
 ```
 
 ### Stage 1: MobileNetV2 ONNX Feature Extraction
-* Evaluates images using `output_merged_run4/models/mobilenet_v2_best.onnx`.
+* Evaluates images using `output_run4/models/mobilenet_v2_best.onnx`.
 * Extracts the penultimate 1,280-dimensional feature embedding before the classification head.
 * Predicts the 1,235 model classes and sums probabilities over parent makes to obtain exact `pred_make` and `make_conf`.
 * Flags predictions below confidence thresholds (`--review-conf 0.70`, `--review-color-conf 0.50`) with `needs_review=True`.

@@ -9,7 +9,7 @@ Scores (higher = more "known"): MSP, MLS (max logit), Energy (logsumexp of logit
 Metrics: AUROC, FPR@95%TPR, OSCR, closed-set accuracy on the known set. Writes open_set_metrics.json and a score histogram.
 
 Usage:
-  python evaluate_open_set.py --onnx backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx \
+  python evaluate_open_set.py --onnx backup_run4/output_run4/models/mobilenet_v2_best.onnx \
       [--ext-splits-dir run5/splits_1235models] [--pm-csv-path ...] [--no-pm] [--max-per-set 2000]
 """
 

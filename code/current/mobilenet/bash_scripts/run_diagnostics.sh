@@ -25,8 +25,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# RUN_NAME=<name> diagnoses run5/output_merged_<name> (defaults to output_merged_run5)
-MERGED_RUN_DIR="${MOBILENET_DIR}/run5/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run5}"
+# RUN_NAME=<name> diagnoses run5/output_<name> (defaults to output_run5)
+MERGED_RUN_DIR="${MOBILENET_DIR}/run5/output_${RUN_NAME:-run5}"
 M_MODEL="${MERGED_RUN_DIR}/models/mobilenet_v2_best.onnx"
 M_MAP="${MERGED_RUN_DIR}/models/label_map.json"
 EXT_SPLITS_DIR="${MOBILENET_DIR}/run5/splits_1235models"

@@ -74,7 +74,7 @@ def parse_args():
     parser.add_argument("--pm-img-dir", default=paths.PM_IMG_DIR)
     parser.add_argument("--label-map-path", default=paths.PM_LABEL_MAP, help="Shared 1,235-class label map")
     parser.add_argument("--ext-splits-dir", default=str(DATASET_DIR / "splits_1235models"))
-    parser.add_argument("--output-dir", default=str(DATASET_DIR / "output_merged_run5"))
+    parser.add_argument("--output-dir", default=str(DATASET_DIR / "output_run5"))
     parser.add_argument("--ext-fraction", type=float, default=0.2,
                         help="Share of External images per epoch (0 = plain concatenation, i.e. ~3%% External)")
     parser.add_argument("--pm-crop-top-pct", type=float, default=0.15)

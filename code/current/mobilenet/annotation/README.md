@@ -62,8 +62,8 @@ bash bash_scripts/run_annotate.sh --max-samples 200 --skip-color
 
 ```bash
 python annotation/annotate.py \
-    --model-path backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx \
-    --label-map backup_run4/output_merged_run4/models/label_map.json \
+    --model-path backup_run4/output_run4/models/mobilenet_v2_best.onnx \
+    --label-map backup_run4/output_run4/models/label_map.json \
     --output-dir annotation_runs/run2 \
     --cache-from annotation_runs/run1 \
     --split all \

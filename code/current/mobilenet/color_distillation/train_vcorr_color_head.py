@@ -359,7 +359,7 @@ def evaluate_on_compcars(head: nn.Module, mean: np.ndarray, std: np.ndarray, X_c
 def main():
     parser = argparse.ArgumentParser(description="Train Color MLP on vCorR & Evaluate on CompCars")
     parser.add_argument("--vcorr-dir", default=os.environ.get("VCORR_DIR"), help="vCorR root (default $VCORR_DIR)")
-    parser.add_argument("--base-model", default=str(MOBILENET_DIR / "backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx"))
+    parser.add_argument("--base-model", default=str(MOBILENET_DIR / "backup_run4/output_run4/models/mobilenet_v2_best.onnx"))
     parser.add_argument("--out-dir", default=str(SCRIPT_DIR / "output_vcorr_mlp"))
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=256)

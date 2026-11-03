@@ -11,8 +11,8 @@ run_in_tmux train_merged "${SCRIPT_DIR}/run_train_merged.sh" "$@"
 DATASET_DIR="${MOBILENET_DIR}/run5"
 [ -x "${PYTHON_BIN}" ] || { echo "[ERROR] Python not found or not executable: ${PYTHON_BIN}" >&2; exit 1; }
 
-# RUN_NAME=<name> writes to output_merged_<name> (defaults to output_merged_run5).
-OUTPUT_DIR="${DATASET_DIR}/output_${RUN_NAME:+merged_}${RUN_NAME:-merged_run5}"
+# RUN_NAME=<name> writes to output_<name> (defaults to output_run5).
+OUTPUT_DIR="${DATASET_DIR}/output_${RUN_NAME:-run5}"
 mkdir -p "${OUTPUT_DIR}"
 LOG_FILE="${OUTPUT_DIR}/training.log"
 

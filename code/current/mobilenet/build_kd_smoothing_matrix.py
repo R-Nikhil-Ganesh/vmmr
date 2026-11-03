@@ -8,7 +8,7 @@ The diagonal is zeroed and rows are normalized to sum to 1, so a training target
 Classes with no train samples (or an all-zero row) fall back to a uniform spread over the other classes of the same make.
 
 Teacher: --teacher-pt (a --save-pt checkpoint) or --teacher-onnx (rebuilt via onnx_to_torch.py).
-  python build_kd_smoothing_matrix.py --teacher-onnx backup_run4/output_merged_run4/models/mobilenet_v2_best.onnx --out S_run4.npy
+  python build_kd_smoothing_matrix.py --teacher-onnx backup_run4/output_run4/models/mobilenet_v2_best.onnx --out S_run4.npy
 """
 
 import sys
