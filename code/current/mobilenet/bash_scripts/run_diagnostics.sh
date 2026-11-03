@@ -52,6 +52,7 @@ if [ "${RUN_EXT}" -eq 1 ]; then
     "${PYTHON_BIN}" -u "${MOBILENET_DIR}/run5/analysis/output_analysis_merged.py" \
         --domain external \
         --test-csv "${EXT_SPLITS_DIR}/test.csv" \
+        --base-img-dir "${EXT_DATASETS_DIR}" \
         --model-path "${M_MODEL}" --label-map "${M_MAP}" \
         --output-dir "${MERGED_RUN_DIR}/diagnostics_external" \
         --batch-size 64 --num-workers 10 "${MAX_SAMPLES[@]}"

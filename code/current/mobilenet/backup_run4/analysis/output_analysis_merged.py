@@ -47,7 +47,7 @@ def configure_domain(domain: str = "platesmania", run_dir: Path | str = DEFAULT_
             output_dir=run_dir / "diagnostics_external",
             test_csv_path=DATASET_DIR / "splits_1235models" / "test.csv",
             label_map_path=label_map_path,
-            base_img_dir=None,
+            base_img_dir=Path(paths.EXT_DATASETS_DIR),
             img_size=512,
             crop_top_pct=0.0,
             crop_bottom_pct=0.05,

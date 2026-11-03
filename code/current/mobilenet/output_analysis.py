@@ -86,8 +86,11 @@ class AnalysisContext:
 
     def configure(self, **kwargs):
         for k, v in kwargs.items():
-            if hasattr(self, k) and v is not None:
-                setattr(self, k, Path(v) if isinstance(v, (str, Path)) and "dir" in k or "path" in k else v)
+            if hasattr(self, k):
+                if v is None:
+                    setattr(self, k, None)
+                else:
+                    setattr(self, k, Path(v) if isinstance(v, (str, Path)) and ("dir" in k or "path" in k) else v)
         
         if self.output_dir:
             self.output_dir = Path(self.output_dir)
@@ -211,35 +214,59 @@ class MobileNetV2Evaluator(nn.Module):
 # ==============================================================================
 # 3. Image Preprocessing & High-Throughput Batch Evaluation
 # ==============================================================================
+def _find_existing(p: str) -> Optional[str]:
+    if os.path.exists(p):
+        return p
+    parent, fname = os.path.split(p)
+    dot_p = os.path.join(parent + ".", fname)
+    if os.path.exists(dot_p):
+        return dot_p
+    if parent.endswith(".") and os.path.exists(os.path.join(parent[:-1], fname)):
+        return os.path.join(parent[:-1], fname)
+    return None
+
+
 def _resolve_analysis_path(raw_path: str) -> str:
     raw_str = str(raw_path).strip()
-    if os.path.isabs(raw_str) and os.path.exists(raw_str):
-        return raw_str
+    if os.path.isabs(raw_str):
+        found = _find_existing(raw_str)
+        if found:
+            return found
     if context.base_img_dir is not None:
         base_str = str(context.base_img_dir)
         cand = os.path.join(base_str, raw_str.lstrip("/"))
-        if os.path.exists(cand):
-            return cand
+        found = _find_existing(cand)
+        if found:
+            return found
         if raw_str.startswith("images/"):
             cand_no_img = os.path.join(base_str, raw_str[7:])
-            if os.path.exists(cand_no_img):
-                return cand_no_img
+            found = _find_existing(cand_no_img)
+            if found:
+                return found
     try:
         import paths as _paths
         for root in (getattr(_paths, "EXT_DATASETS_DIR", ""), getattr(_paths, "PM_IMG_DIR", "")):
             if not root:
                 continue
             cand = os.path.join(str(root), raw_str.lstrip("/"))
-            if os.path.exists(cand):
-                return cand
+            found = _find_existing(cand)
+            if found:
+                return found
             if raw_str.startswith("images/"):
                 cand_no_img = os.path.join(str(root), raw_str[7:])
-                if os.path.exists(cand_no_img):
-                    return cand_no_img
+                found = _find_existing(cand_no_img)
+                if found:
+                    return found
         if "/external_resized_512/" in raw_str and getattr(_paths, "EXT_DATASETS_DIR", ""):
-            return os.path.join(str(_paths.EXT_DATASETS_DIR), raw_str.split("/external_resized_512/", 1)[1].lstrip("/"))
+            cand = os.path.join(str(_paths.EXT_DATASETS_DIR), raw_str.split("/external_resized_512/", 1)[1].lstrip("/"))
+            found = _find_existing(cand)
+            if found:
+                return found
         if "/resized_512/" in raw_str and getattr(_paths, "PM_IMG_DIR", ""):
-            return os.path.join(str(_paths.PM_IMG_DIR), raw_str.split("/resized_512/", 1)[1].lstrip("/"))
+            cand = os.path.join(str(_paths.PM_IMG_DIR), raw_str.split("/resized_512/", 1)[1].lstrip("/"))
+            found = _find_existing(cand)
+            if found:
+                return found
     except Exception:
         pass
     return raw_str

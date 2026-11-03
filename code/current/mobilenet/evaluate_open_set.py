@@ -151,7 +151,11 @@ def main():
 
     # class-mean embeddings (normalized) from a per-class train sample
     tr = ex_train[ex_train["label"] < args.base_classes]
-    tr = tr.groupby("label", group_keys=False).apply(lambda g: g.sample(min(len(g), args.train_per_class), random_state=args.seed))
+    sample_indices = tr.groupby("label").apply(
+        lambda g: g.index.to_series().sample(min(len(g), args.train_per_class), random_state=args.seed),
+        include_groups=False
+    ).values
+    tr = tr.loc[sample_indices]
     tr = subsample(tr.reset_index(drop=True), args.max_per_set * 2 if args.max_per_set else 0, args.seed)
     _, tE, tY = run_onnx(sess, ext_ds(tr), args)
     num_classes = kL.shape[1]
