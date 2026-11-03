@@ -228,47 +228,60 @@ def _find_existing(p: str) -> Optional[str]:
 
 def _resolve_analysis_path(raw_path: str) -> str:
     raw_str = str(raw_path).strip()
-    if os.path.isabs(raw_str):
-        found = _find_existing(raw_str)
-        if found:
-            return found
+    if not raw_str:
+        return raw_str
+
+    candidates = [raw_str]
+
+    if "/images/" in raw_str:
+        candidates.append(raw_str.replace("/images/", "/", 1))
+
     if context.base_img_dir is not None:
         base_str = str(context.base_img_dir)
-        cand = os.path.join(base_str, raw_str.lstrip("/"))
-        found = _find_existing(cand)
-        if found:
-            return found
+        candidates.append(os.path.join(base_str, raw_str.lstrip("/")))
         if raw_str.startswith("images/"):
-            cand_no_img = os.path.join(base_str, raw_str[7:])
-            found = _find_existing(cand_no_img)
-            if found:
-                return found
+            candidates.append(os.path.join(base_str, raw_str[7:]))
+        if "/images/" in raw_str:
+            candidates.append(os.path.join(base_str, raw_str.replace("/images/", "/", 1).lstrip("/")))
+        candidates.append(os.path.join(base_str, "images", raw_str.lstrip("/")))
+
     try:
         import paths as _paths
         for root in (getattr(_paths, "EXT_DATASETS_DIR", ""), getattr(_paths, "PM_IMG_DIR", "")):
             if not root:
                 continue
-            cand = os.path.join(str(root), raw_str.lstrip("/"))
-            found = _find_existing(cand)
-            if found:
-                return found
+            r = str(root)
+            candidates.append(os.path.join(r, raw_str.lstrip("/")))
             if raw_str.startswith("images/"):
-                cand_no_img = os.path.join(str(root), raw_str[7:])
-                found = _find_existing(cand_no_img)
-                if found:
-                    return found
+                candidates.append(os.path.join(r, raw_str[7:]))
+            if "/images/" in raw_str:
+                candidates.append(os.path.join(r, raw_str.replace("/images/", "/", 1).lstrip("/")))
+            candidates.append(os.path.join(r, "images", raw_str.lstrip("/")))
+
         if "/external_resized_512/" in raw_str and getattr(_paths, "EXT_DATASETS_DIR", ""):
-            cand = os.path.join(str(_paths.EXT_DATASETS_DIR), raw_str.split("/external_resized_512/", 1)[1].lstrip("/"))
-            found = _find_existing(cand)
-            if found:
-                return found
+            rel = raw_str.split("/external_resized_512/", 1)[1].lstrip("/")
+            candidates.append(os.path.join(str(_paths.EXT_DATASETS_DIR), rel))
+            if rel.startswith("images/"):
+                candidates.append(os.path.join(str(_paths.EXT_DATASETS_DIR), rel[7:]))
+            if "/images/" in rel:
+                candidates.append(os.path.join(str(_paths.EXT_DATASETS_DIR), rel.replace("/images/", "/", 1)))
+            candidates.append(os.path.join(str(_paths.EXT_DATASETS_DIR), "images", rel))
+
         if "/resized_512/" in raw_str and getattr(_paths, "PM_IMG_DIR", ""):
-            cand = os.path.join(str(_paths.PM_IMG_DIR), raw_str.split("/resized_512/", 1)[1].lstrip("/"))
-            found = _find_existing(cand)
-            if found:
-                return found
+            rel = raw_str.split("/resized_512/", 1)[1].lstrip("/")
+            candidates.append(os.path.join(str(_paths.PM_IMG_DIR), rel))
+            if rel.startswith("images/"):
+                candidates.append(os.path.join(str(_paths.PM_IMG_DIR), rel[7:]))
+            if "/images/" in rel:
+                candidates.append(os.path.join(str(_paths.PM_IMG_DIR), rel.replace("/images/", "/", 1)))
     except Exception:
         pass
+
+    for cand in candidates:
+        found = _find_existing(cand)
+        if found:
+            return found
+
     return raw_str
 
 
