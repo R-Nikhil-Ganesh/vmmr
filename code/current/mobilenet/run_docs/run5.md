@@ -1,14 +1,13 @@
 # MobileNetV2 Run 5 Report: Production Multitask Vehicle Recognition (Merged PlatesMania + External)
 
 **Experiment**: Run 5 — Unified production multitask model trained jointly on PlatesMania + External datasets with all 19 backbone blocks fine-tuned via layerwise learning rate decay, Generalized Mean (GeM) pooling, per-class make-gated classification head, teacher similarity matrix knowledge distillation (KD) label smoothing, and strong data augmentations.  
-**Directory**: [`code/current/mobilenet/run5/`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/) (outputs in [`run5/output_run5/`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/))  
 **Date**: Training Nov 2, 2026 19:53 IST to Nov 3, 2026 04:15 IST; diagnostics and open-set evaluations completed Nov 3, 2026 14:11 IST  
 **Hardware / Stack**: NVIDIA GeForce RTX 4090 (24GB VRAM), Ubuntu Linux, `pt-env` (`python 3.10.12`, `torch 2.14.1+cu130`, `onnxruntime 1.23.2`)  
 
 > [!NOTE]
-> **Single-Model Architecture**: Run 4 and Run 5 each train and produce **only one single model** (`mobilenet_v2_best.onnx`) trained jointly across both PlatesMania and External datasets. The historical labels "Model A" (PlatesMania-only specialist) and "Model B" (External-only specialist) originate strictly from [Run 3](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/run_3.md), where two separate single-domain models were trained to benchmark cross-domain transfer failure. In [Run 4](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/run_4.md), the merged model was informally dubbed "Model C" to contrast with Run 3's Models A and B. In Run 5, this single unified model represents the sole production architecture.
+> **Single-Model Architecture**: Run 4 and Run 5 each train and produce **only one single model** (`mobilenet_v2_best.onnx`) trained jointly across both PlatesMania and External datasets. The historical labels "Model A" (PlatesMania-only specialist) and "Model B" (External-only specialist) originate strictly from [Run 3](run_3.md), where two separate single-domain models were trained to benchmark cross-domain transfer failure. In [Run 4](run_4.md), the merged model was informally dubbed "Model C" to contrast with Run 3's Models A and B. In Run 5, this single unified model represents the sole production architecture.
 
-**Training Configuration & Hyperparameters** (persisted in [`run_config.json`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/run_config.json)):
+**Training Configuration & Hyperparameters** (persisted in `run_config.json`):
 ```json
 {
   "taxonomy": "base",
@@ -24,7 +23,7 @@
   "pool": "gem",
   "make_gating": "per_class",
   "make_loss_weight": 0.3,
-  "kd_ls_matrix": "run5/kd_matrix_run5.npy",
+  "kd_ls_matrix": "kd_matrix_run5.npy",
   "kd_ls_alpha": 0.1,
   "label_smoothing": 0.1,
   "aug_strength": "strong",
@@ -42,7 +41,7 @@
 
 ## 1. Executive Summary
 
-Run 5 establishes a new state-of-the-art across all benchmarks, surpassing [Run 4](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/run_4.md) as well as the historical single-dataset specialist models (Model A and Model B from [Run 3](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run_docs/run_3.md)):
+Run 5 establishes a new state-of-the-art across all benchmarks, surpassing [Run 4](run_4.md) as well as the historical single-dataset specialist models (Model A and Model B from [Run 3](run_3.md)):
 
 1. **New SOTA on PlatesMania**: Top-1 model accuracy reaches **`92.19%`** (**`+0.73 pp`** over Run 4 `91.46%`, and **`+0.24 pp`** over Run 3 Model A specialist `91.95%`). Top-5 accuracy improves to **`98.65%`** (**`+0.22 pp`**). Marginalized make accuracy advances to **`98.62%`** (**`+0.47 pp`** over Run 4 `98.15%`, and **`+0.72 pp`** over Model A `97.90%`).
 2. **Substantial Gains on External Data**: Top-1 model accuracy reaches **`94.12%`** (**`+1.12 pp`** over Run 4 `93.00%`, and **`+1.06 pp`** over Model B `93.06%`). External model macro F1 surges to **`90.58%`** (**`+2.64 pp`** over Run 4 `87.94%`), and top-5 accuracy climbs to **`99.14%`**.
@@ -67,7 +66,7 @@ Run 5 establishes a new state-of-the-art across all benchmarks, surpassing [Run 
 
 ## 2. Benchmark Comparison & Cross-Domain Representation
 
-### 5,000-Image Mixed Benchmark ([`benchmark/mixed_benchmark_summary.csv`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/benchmark/mixed_benchmark_summary.csv))
+### 5,000-Image Mixed Benchmark (`benchmark/mixed_benchmark_summary.csv`)
 
 The standard mixed benchmark evaluates 5,000 randomly sampled PlatesMania images and 5,000 External images (10,000 total across the 1,235 base classes):
 
@@ -80,9 +79,9 @@ The standard mixed benchmark evaluates 5,000 randomly sampled PlatesMania images
 | **Run 5 (Single Model)** | **Mixed (Combined)** | Mixed | **`93.29%`** | **`98.68%`** | **`86.24%`** | **`98.66%`** | **`93.14%`** |
 | Run 4 (Single Model) | Mixed (Combined) | Mixed | 92.38% | 98.18% | 85.52% | 97.96% | 92.27% |
 
-### Shared-Class Representation Analysis ([`benchmark/shared_class_summary.csv`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/benchmark/shared_class_summary.csv))
+### Shared-Class Representation Analysis (`benchmark/shared_class_summary.csv`)
 
-Across the 1,235 classes, exactly **290 classes** possess training data in both PlatesMania and External datasets ([`benchmark/class_coverage.csv`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/benchmark/class_coverage.csv)). In the 5,000-image PlatesMania test sample, 1,898 images (37.96%) belong to these 290 shared classes.
+Across the 1,235 classes, exactly **290 classes** possess training data in both PlatesMania and External datasets (`benchmark/class_coverage.csv`). In the 5,000-image PlatesMania test sample, 1,898 images (37.96%) belong to these 290 shared classes.
 
 | Evaluation Metric | Run 3: Model A (PlatesMania Specialist) | Run 4 (Single Merged Model) | Run 5 (Single Merged Model) | Run 5 Gain vs Run 4 | Run 5 Gain vs Run 3 Specialist A |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -111,7 +110,7 @@ Run 5 completely resolves cross-domain vulnerability while delivering higher in-
 
 ## 3. Training Dynamics & Checkpoint Selection
 
-Training completed across 15 epochs (~26 minutes per epoch, totaling ~6.5 hours on an RTX 4090). Checkpoint evaluation logged validation loss on both PlatesMania and External validation sets independently ([`reports/training_history.csv`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/reports/training_history.csv)):
+Training completed across 15 epochs (~26 minutes per epoch, totaling ~6.5 hours on an RTX 4090). Checkpoint evaluation logged validation loss on both PlatesMania and External validation sets independently (`reports/training_history.csv`):
 
 | Epoch | Train Loss* | Train Acc | Val Loss PM | Val Acc PM | Val Loss Ext | Val Acc Ext | Mean Val Loss | Checkpoint Status |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -199,7 +198,7 @@ The training targets are blended with teacher similarity priors ($\alpha=0.1$), 
 
 A production vehicle recognition model must identify known models with high accuracy while reliably flagging unknown makes, aftermarket bodies, or foreign models not in the 1,235-class taxonomy.
 
-Using [`evaluate_open_set.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/evaluate_open_set.py), Run 5 was benchmarked on 1,000 known base-class test samples against 500 out-of-distribution unknown test samples (drawn from the 181 external-only classes, labels 1235–1415, totaling 4,740 unseen images never seen during `--taxonomy base` training):
+Using `evaluate_open_set.py`, Run 5 was benchmarked on 1,000 known base-class test samples against 500 out-of-distribution unknown test samples (drawn from the 181 external-only classes, labels 1235–1415, totaling 4,740 unseen images never seen during `--taxonomy base` training):
 
 | OOD Detection Score | Run 4 AUROC | Run 5 AUROC | AUROC Change | Run 4 FPR@95TPR | Run 5 FPR@95TPR | FPR@95TPR Reduction | Run 4 OSCR | Run 5 OSCR | OSCR Change |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -219,9 +218,9 @@ Using [`evaluate_open_set.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr
 
 ## 6. Interpretability & Grad-CAM Analysis
 
-To inspect feature saliency, Grad-CAM heatmaps were generated across validation sets using [`output_analysis.py`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/output_analysis.py) and persisted to disk:
-- PlatesMania: [`run5/output_run5/diagnostics_platesmania/plots/gradcam_samples.png`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/diagnostics_platesmania/plots/gradcam_samples.png)
-- External: [`run5/output_run5/diagnostics_external/plots/gradcam_samples.png`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/diagnostics_external/plots/gradcam_samples.png)
+To inspect feature saliency, Grad-CAM heatmaps were generated across validation sets using `output_analysis.py` and saved:
+- PlatesMania: `diagnostics_platesmania/plots/gradcam_samples.png`
+- External: `diagnostics_external/plots/gradcam_samples.png`
 
 ### Saliency Patterns Observed
 1. **Frontal Views**: Saliency peaks tightly over the front grille mesh, corporate logo emblem, and headlamp housings. The model does not attend to license plates or asphalt surfaces.
@@ -230,12 +229,12 @@ To inspect feature saliency, Grad-CAM heatmaps were generated across validation 
 
 ---
 
-## 7. Artifact Inventory & Reproducibility
+## 7. Artifacts (`output_run5/`)
 
-All Run 5 model weights, logs, plots, diagnostics, and benchmark summaries reside in [`code/current/mobilenet/run5/output_run5/`](file:///home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/):
+All Run 5 model weights, logs, plots, diagnostics, and benchmark summaries reside in `output_run5/`:
 
 ```
-vmmr/code/current/mobilenet/run5/output_run5/
+output_run5/
 ├── models/
 │   ├── mobilenet_v2_best.onnx           # Exported ONNX graph (21 MB, batch size dynamic, fully folded)
 │   ├── mobilenet_v2_best.pt             # PyTorch state dict + model_cfg (16 MB)
@@ -283,16 +282,8 @@ vmmr/code/current/mobilenet/run5/output_run5/
 └── training.log                         # Complete stdout/stderr training log
 ```
 
-### Reproduction Commands
-
-To replicate Run 5 training and evaluation in `pt-env`:
-
+Produced with:
 ```bash
-# 1. Activate environment
-source /home/researchadmin/Econ-n/repo-clone/pt-env/bin/activate
-cd /home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet
-
-# 2. Run merged training
 RUN_NAME=run5 bash bash_scripts/run_train_merged.sh \
   --taxonomy base \
   --unfreeze-layers 19 \
@@ -300,7 +291,7 @@ RUN_NAME=run5 bash bash_scripts/run_train_merged.sh \
   --pool gem \
   --make-gating per_class \
   --make-loss-weight 0.3 \
-  --kd-ls-matrix run5/kd_matrix_run5.npy \
+  --kd-ls-matrix kd_matrix_run5.npy \
   --kd-ls-alpha 0.1 \
   --label-smoothing 0.1 \
   --aug-strength strong \
@@ -308,23 +299,5 @@ RUN_NAME=run5 bash bash_scripts/run_train_merged.sh \
   --ema-decay 0.999 \
   --save-pt
 
-# 3. Run full diagnostics
 RUN_NAME=run5 bash bash_scripts/run_diagnostics.sh
-
-# 4. Run mixed cross-domain benchmark
-python evaluate_mixed.py \
-  --onnx run5/output_run5/models/mobilenet_v2_best.onnx \
-  --pm-test-csv /home/researchadmin/Econ/archive/models/dataset_manifests/dataset_1235models_splits.csv \
-  --pm-img-dir /home/researchadmin/Econ/resized_512 \
-  --ext-test-csv run5/splits_1235models/test_split.csv \
-  --label-map run5/output_run5/models/label_map.json \
-  --output-dir run5/output_run5/benchmark \
-  --n-samples 5000
-
-# 5. Run open-set OOD evaluation
-python evaluate_open_set.py \
-  --onnx run5/output_run5/models/mobilenet_v2_best.onnx \
-  --label-map run5/output_run5/models/label_map.json \
-  --output-dir run5/output_run5/open_set \
-  --taxonomy base
 ```
