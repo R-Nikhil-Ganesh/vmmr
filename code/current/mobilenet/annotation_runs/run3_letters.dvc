@@ -1,6 +1,6 @@
 outs:
-- md5: 7043942360afaa7bf5db9dc4130edc51.dir
-  size: 3803051642
+- md5: 3407fd85cfafb17a30dfef5390bd2b48.dir
+  size: 3803051614
   nfiles: 6
   hash: md5
   path: run3_letters
