@@ -1,28 +1,28 @@
 {
-  "onnx": "/home/researchadmin/Econ-n/repo-clone/vmmr/code/current/mobilenet/run5/output_run5/models/mobilenet_v2_best.onnx",
-  "n_known": 1000,
-  "n_unknown": 500,
-  "closed_set_acc": 0.926,
+  "onnx": "run5/output_run5/models/mobilenet_v2_best.onnx",
+  "n_known": 114545,
+  "n_unknown": 4740,
+  "closed_set_acc": 0.9227988999956349,
   "scores": {
     "MSP": {
-      "AUROC": 0.939832,
-      "FPR@95TPR": 0.268,
-      "OSCR": 0.8866080000000001
+      "AUROC": 0.9313403517457532,
+      "FPR@95TPR": 0.2936708860759494,
+      "OSCR": 0.8767453544412465
     },
     "MLS": {
-      "AUROC": 0.6783159999999999,
-      "FPR@95TPR": 0.75,
-      "OSCR": 0.6364619999999999
+      "AUROC": 0.6061274096208573,
+      "FPR@95TPR": 0.679535864978903,
+      "OSCR": 0.566076785550167
     },
     "Energy": {
-      "AUROC": 0.635572,
-      "FPR@95TPR": 0.77,
-      "OSCR": 0.595432
+      "AUROC": 0.5597039561957943,
+      "FPR@95TPR": 0.6928270042194092,
+      "OSCR": 0.5213426098084275
     },
     "Cosine": {
-      "AUROC": 0.49260200000000004,
-      "FPR@95TPR": 1.0,
-      "OSCR": 0.461992
+      "AUROC": 0.1713998238858459,
+      "FPR@95TPR": 0.9955696202531645,
+      "OSCR": 0.15965855734843767
     }
   }
 }
