@@ -69,12 +69,15 @@ def parse_args():
     p.add_argument("--num-workers", type=int, default=8, help="image-loading threads")
     # Head options (defaults = Annotation Runs 1/2)
     p.add_argument("--color-head", default="qwen3vl")
-    p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-8B-Instruct")
+    p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-32B-Instruct")
     p.add_argument("--max-side", type=int, default=336)
     p.add_argument("--no-4bit", action="store_true", help="bfloat16 instead of 4-bit NF4")
     p.add_argument("--scoring", default="first_token", choices=["first_token", "variants", "letters"])
     p.add_argument("--prompt-style", default="short", choices=sorted(PROMPTS))
     p.add_argument("--center-crop", type=float, default=0.0, help="fraction trimmed off, split over both sides")
+    p.add_argument("--vllm-url", default=None, help="vLLM OpenAI server URL (default: http://localhost:8000/v1)")
+    p.add_argument("--vllm-quantization", default=None, help="quantization for vLLM offline ('fp8', 'awq')")
+    p.add_argument("--vllm-concurrency", type=int, default=16, help="concurrent requests for vLLM server")
     p.add_argument("--tta", default="none", choices=["none", "flip"])
     return p.parse_args()
 
@@ -190,7 +193,9 @@ def main():
 
     head = build_head(args.color_head, model_id=args.qwen_model, max_side=args.max_side,
                       load_in_4bit=not args.no_4bit, scoring=args.scoring, prompt_style=args.prompt_style,
-                      center_crop=args.center_crop, tta=args.tta)
+                      center_crop=args.center_crop, tta=args.tta,
+                      vllm_url=args.vllm_url, vllm_quantization=args.vllm_quantization,
+                      vllm_concurrency=args.vllm_concurrency)
 
     def load(r):
         try:

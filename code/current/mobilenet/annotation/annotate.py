@@ -48,7 +48,7 @@ def parse_args():
     p.add_argument("--coords-max", type=int, default=30000, help="rows that get 2-D coordinates (half per domain)")
     p.add_argument("--skip-color", action="store_true")
     p.add_argument("--color-head", default="qwen3vl")
-    p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-8B-Instruct")
+    p.add_argument("--qwen-model", default=paths.QWEN_MODEL_DIR or "Qwen/Qwen3-VL-32B-Instruct")
     p.add_argument("--color-batch-size", type=int, default=16)
     p.add_argument("--qwen-max-side", type=int, default=336, help="Max image dimension for Qwen (default: 336 for fast inference)")
     p.add_argument("--no-4bit", action="store_true", help="Disable 4-bit quantization and use bfloat16")
@@ -57,6 +57,9 @@ def parse_args():
     p.add_argument("--qwen-prompt", default="short", help="color_heads.PROMPTS key ('short' = Runs 1/2, 'defined')")
     p.add_argument("--qwen-center-crop", type=float, default=0.0, help="fraction trimmed off around the center")
     p.add_argument("--qwen-tta", default="none", choices=["none", "flip"])
+    p.add_argument("--vllm-url", default=None, help="vLLM OpenAI server URL (default: http://localhost:8000/v1)")
+    p.add_argument("--vllm-quantization", default=None, help="quantization for vLLM offline ('fp8', 'awq')")
+    p.add_argument("--vllm-concurrency", type=int, default=16, help="concurrent requests for vLLM server")
     p.add_argument("--fresh-color", action="store_true",
                    help="do not copy color_cache.csv from --cache-from (use when the color settings changed)")
     p.add_argument("--review-conf", type=float, default=0.70, help="model confidence below this -> needs_review")
@@ -282,7 +285,9 @@ def stage_color(df, out_dir, args):
     if len(todo):
         head = build_head(args.color_head, model_id=args.qwen_model, max_side=args.qwen_max_side,
                           load_in_4bit=not args.no_4bit, scoring=args.qwen_scoring, prompt_style=args.qwen_prompt,
-                          center_crop=args.qwen_center_crop, tta=args.qwen_tta)
+                          center_crop=args.qwen_center_crop, tta=args.qwen_tta,
+                          vllm_url=args.vllm_url, vllm_quantization=args.vllm_quantization,
+                          vllm_concurrency=args.vllm_concurrency)
         new, t0 = [], time.time()
         recs = todo.to_dict("records")
         for i in range(0, len(recs), args.color_batch_size):

@@ -60,6 +60,8 @@ LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:len(COLORS)]
 
 
 @register("qwen3vl")
+@register("qwen")
+@register("qwenvl")
 class Qwen3VLHead(ColorHead):
     """
     Options (defaults reproduce Annotation Runs 1/2):
@@ -72,15 +74,22 @@ class Qwen3VLHead(ColorHead):
     """
     PROMPT = PROMPTS["short"]
 
-    def __init__(self, model_id: str = "Qwen/Qwen3-VL-8B-Instruct", device: str = "cuda", max_side: int = 336,
+    def __init__(self, model_id: str = "Qwen/Qwen3-VL-32B-Instruct", device: str = "cuda", max_side: int = 336,
                  load_in_4bit: bool = True, scoring: str = "first_token", prompt_style: str = "short",
                  center_crop: float = 0.0, tta: str = "none", **_):
         import torch
         from transformers import AutoProcessor
-        try:
-            from transformers import Qwen3VLForConditionalGeneration as ModelCls
-        except ImportError as e:
-            raise ImportError("Qwen3-VL needs a recent transformers with Qwen3VL support: pip install -U 'transformers>=4.57' accelerate") from e
+        ModelCls = None
+        for cls_name in ("AutoModelForImageTextToText", "Qwen3VLForConditionalGeneration", "AutoModelForVision2Seq"):
+            try:
+                mod = __import__("transformers", fromlist=[cls_name])
+                if hasattr(mod, cls_name):
+                    ModelCls = getattr(mod, cls_name)
+                    break
+            except ImportError:
+                continue
+        if ModelCls is None:
+            raise ImportError("Qwen3-VL requires a recent transformers: pip install -U 'transformers>=4.57' accelerate")
 
         if scoring not in ("first_token", "variants", "letters"):
             raise ValueError(f"scoring must be first_token, variants or letters, got {scoring!r}")
@@ -99,6 +108,15 @@ class Qwen3VLHead(ColorHead):
                            + "Options:\n" + options + "\nAnswer with the letter only.")
         self.processor = AutoProcessor.from_pretrained(model_id)
         self.processor.tokenizer.padding_side = "left"
+
+        # Check if model has pre-existing quantization (AWQ, GPTQ, FP8)
+        try:
+            from transformers import AutoConfig
+            cfg = AutoConfig.from_pretrained(model_id)
+            if getattr(cfg, "quantization_config", None):
+                load_in_4bit = False
+        except Exception:
+            pass
 
         load_kw = {"torch_dtype": torch.bfloat16, "attn_implementation": "sdpa"}
         if load_in_4bit and device == "cuda" and torch.cuda.is_available():
@@ -162,7 +180,8 @@ class Qwen3VLHead(ColorHead):
                                               {"type": "text", "text": self.prompt}]}] for im in images]
         inputs = self.processor.apply_chat_template(msgs, tokenize=True, add_generation_prompt=True,
                                                     return_dict=True, return_tensors="pt", padding=True)
-        inputs = {k: (v.to(self.device) if hasattr(v, "to") else v) for k, v in inputs.items()}
+        target_device = getattr(self.model, "device", self.device)
+        inputs = {k: (v.to(target_device) if hasattr(v, "to") else v) for k, v in inputs.items()}
         with torch.no_grad():
             logits = self.model(**inputs).logits[:, -1, :].float()
         full = torch.softmax(logits, dim=-1)
@@ -183,5 +202,257 @@ class Qwen3VLHead(ColorHead):
         return probs, mass
 
     def predict(self, images):
+        probs, _ = self.predict_proba(images)
+        return [(COLORS[int(p.argmax())], float(p.max())) for p in probs]
+
+
+@register("vllm")
+@register("vllm_server")
+class VLLMServerHead(ColorHead):
+    """
+    Color classification via a running vLLM OpenAI-compatible server.
+    Ideal for high-throughput batching on unified-memory GPUs (e.g. NVIDIA DGX Spark GB10).
+
+    Start server in a background/tmux session, e.g.:
+        vllm serve Qwen/Qwen3-VL-32B-Instruct-FP8 \\
+            --host 0.0.0.0 --port 8000 --limit-mm-per-prompt image=1 --max-model-len 4096
+
+    Then run annotate.py with:
+        --color-head vllm --vllm-url http://localhost:8000/v1
+    """
+    def __init__(self, model_id: str = "Qwen/Qwen3-VL-32B-Instruct", vllm_url: str = "http://localhost:8000/v1",
+                 max_side: int = 336, scoring: str = "letters", prompt_style: str = "short",
+                 center_crop: float = 0.0, tta: str = "none", vllm_concurrency: int = 16, **_):
+        self.url = (vllm_url or "http://localhost:8000/v1").rstrip("/")
+        self.model_id = model_id
+        self.max_side = max_side
+        self.scoring = scoring
+        self.center_crop = center_crop
+        self.tta = tta
+        self.concurrency = max(1, int(vllm_concurrency or 16))
+        self.prompt = PROMPTS[prompt_style]
+        if scoring == "letters":
+            options = "\n".join(f"{l}) {c}" for l, c in zip(LETTERS, COLORS))
+            self.prompt = (self.prompt.rsplit("Answer with", 1)[0]
+                           + "Options:\n" + options + "\nAnswer with the letter only.")
+
+        # Discover served model from endpoint if available
+        self.served_model = model_id
+        try:
+            import requests
+            resp = requests.get(f"{self.url}/models", timeout=5)
+            if resp.status_code == 200:
+                data = resp.json().get("data", [])
+                if data and "id" in data[0]:
+                    self.served_model = data[0]["id"]
+                    print(f"[vllm] Connected to {self.url}, served model: {self.served_model}")
+        except Exception as e:
+            print(f"[vllm] Note: Could not query {self.url}/models ({e}). Using requested model ID: {model_id}")
+
+    def _prep(self, im):
+        if self.center_crop:
+            dx, dy = round(im.width * self.center_crop / 2), round(im.height * self.center_crop / 2)
+            im = im.crop((dx, dy, im.width - dx, im.height - dy))
+        if max(im.size) > self.max_side:
+            s = self.max_side / max(im.size)
+            im = im.resize((max(28, round(im.width * s)), max(28, round(im.height * s))), Image.BILINEAR)
+        return im
+
+    def _query_single(self, im: Image.Image) -> Tuple[np.ndarray, float]:
+        import base64
+        import io
+        import requests
+
+        buf = io.BytesIO()
+        im.save(buf, format="JPEG", quality=90)
+        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        image_url = f"data:image/jpeg;base64,{b64}"
+
+        payload = {
+            "model": self.served_model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image_url", "image_url": {"url": image_url}},
+                        {"type": "text", "text": self.prompt}
+                    ]
+                }
+            ],
+            "temperature": 0.0,
+            "max_tokens": 2,
+            "logprobs": True,
+            "top_logprobs": 20,
+        }
+
+        resp = requests.post(f"{self.url}/chat/completions", json=payload, timeout=60)
+        if resp.status_code != 200:
+            raise RuntimeError(f"vLLM server error {resp.status_code}: {resp.text}")
+
+        res = resp.json()
+        choice = res["choices"][0]
+        text = choice.get("message", {}).get("content", "").strip()
+
+        probs = np.zeros(len(COLORS), dtype=np.float32)
+        mass = 0.0
+
+        logprobs_info = choice.get("logprobs")
+        has_logprobs = False
+        if logprobs_info and logprobs_info.get("content"):
+            first_tok_info = logprobs_info["content"][0]
+            top_lp = first_tok_info.get("top_logprobs", [])
+            if top_lp:
+                lp_map = {item["token"].strip(): item["logprob"] for item in top_lp}
+                raw_masses = []
+                for idx, c in enumerate(COLORS):
+                    keys = [LETTERS[idx], LETTERS[idx].lower()] if self.scoring == "letters" else [c, c.capitalize()]
+                    best_lp = max([lp_map[k] for k in keys if k in lp_map], default=-999.0)
+                    if best_lp > -900.0:
+                        m = float(np.exp(best_lp))
+                        raw_masses.append(m)
+                        probs[idx] = m
+                    else:
+                        raw_masses.append(0.0)
+                mass = float(sum(raw_masses))
+                if mass > 1e-12:
+                    probs = probs / mass
+                    has_logprobs = True
+
+        if not has_logprobs:
+            matched_idx = None
+            if self.scoring == "letters":
+                for idx, l in enumerate(LETTERS):
+                    if text.startswith(l) or text.startswith(l.lower()):
+                        matched_idx = idx
+                        break
+            if matched_idx is None:
+                for idx, c in enumerate(COLORS):
+                    if c in text.lower():
+                        matched_idx = idx
+                        break
+            if matched_idx is None:
+                matched_idx = len(COLORS) - 1
+            probs[matched_idx] = 1.0
+            mass = 1.0
+
+        return probs, mass
+
+    def predict_proba(self, images: List[Image.Image]) -> Tuple[np.ndarray, np.ndarray]:
+        from concurrent.futures import ThreadPoolExecutor
+        prepped = [self._prep(im) for im in images]
+        with ThreadPoolExecutor(max_workers=min(self.concurrency, len(prepped))) as ex:
+            results = list(ex.map(self._query_single, prepped))
+        probs = np.stack([r[0] for r in results], axis=0)
+        mass = np.array([r[1] for r in results], dtype=np.float32)
+        return probs, mass
+
+    def predict(self, images: List[Image.Image]) -> List[Tuple[str, float]]:
+        probs, _ = self.predict_proba(images)
+        return [(COLORS[int(p.argmax())], float(p.max())) for p in probs]
+
+
+@register("vllm_offline")
+class VLLMOfflineHead(ColorHead):
+    """
+    Direct in-process vLLM engine for batch inference.
+    Requires: pip install vllm qwen-vl-utils
+    """
+    def __init__(self, model_id: str = "Qwen/Qwen3-VL-32B-Instruct", vllm_quantization: str = None,
+                 max_side: int = 336, scoring: str = "letters", prompt_style: str = "short",
+                 center_crop: float = 0.0, tta: str = "none", **_):
+        try:
+            from vllm import LLM, SamplingParams
+        except ImportError as e:
+            raise ImportError("vLLM offline head requires vllm: pip install vllm qwen-vl-utils") from e
+
+        self.max_side = max_side
+        self.scoring = scoring
+        self.center_crop = center_crop
+        self.prompt = PROMPTS[prompt_style]
+        if scoring == "letters":
+            options = "\n".join(f"{l}) {c}" for l, c in zip(LETTERS, COLORS))
+            self.prompt = (self.prompt.rsplit("Answer with", 1)[0]
+                           + "Options:\n" + options + "\nAnswer with the letter only.")
+
+        llm_kw = {
+            "model": model_id,
+            "limit_mm_per_prompt": {"image": 1},
+            "trust_remote_code": True,
+            "max_model_len": 4096,
+            "gpu_memory_utilization": 0.88,
+        }
+        if vllm_quantization:
+            llm_kw["quantization"] = vllm_quantization
+
+        print(f"[vllm_offline] Initializing LLM with {model_id} (quant={vllm_quantization})...")
+        self.llm = LLM(**llm_kw)
+        self.SamplingParams = SamplingParams
+
+    def _prep(self, im):
+        if self.center_crop:
+            dx, dy = round(im.width * self.center_crop / 2), round(im.height * self.center_crop / 2)
+            im = im.crop((dx, dy, im.width - dx, im.height - dy))
+        if max(im.size) > self.max_side:
+            s = self.max_side / max(im.size)
+            im = im.resize((max(28, round(im.width * s)), max(28, round(im.height * s))), Image.BILINEAR)
+        return im
+
+    def predict_proba(self, images: List[Image.Image]) -> Tuple[np.ndarray, np.ndarray]:
+        prepped = [self._prep(im) for im in images]
+        inputs = []
+        for im in prepped:
+            inputs.append({
+                "prompt": f"<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>{self.prompt}<|im_end|>\n<|im_start|>assistant\n",
+                "multi_modal_data": {"image": im}
+            })
+        sampling = self.SamplingParams(temperature=0.0, max_tokens=2, logprobs=20)
+        outputs = self.llm.generate(inputs, sampling_params=sampling)
+
+        all_probs, all_mass = [], []
+        for out in outputs:
+            text = out.outputs[0].text.strip()
+            probs = np.zeros(len(COLORS), dtype=np.float32)
+            mass = 0.0
+            logprobs_list = out.outputs[0].logprobs
+            has_logprobs = False
+            if logprobs_list:
+                first_tok_lp = logprobs_list[0]
+                lp_map = {lp_obj.decoded_token.strip(): lp_obj.logprob for lp_obj in first_tok_lp.values() if lp_obj.decoded_token}
+                raw_masses = []
+                for idx, c in enumerate(COLORS):
+                    keys = [LETTERS[idx], LETTERS[idx].lower()] if self.scoring == "letters" else [c, c.capitalize()]
+                    best_lp = max([lp_map[k] for k in keys if k in lp_map], default=-999.0)
+                    if best_lp > -900.0:
+                        m = float(np.exp(best_lp))
+                        raw_masses.append(m)
+                        probs[idx] = m
+                    else:
+                        raw_masses.append(0.0)
+                mass = float(sum(raw_masses))
+                if mass > 1e-12:
+                    probs = probs / mass
+                    has_logprobs = True
+            if not has_logprobs:
+                matched_idx = None
+                if self.scoring == "letters":
+                    for idx, l in enumerate(LETTERS):
+                        if text.startswith(l) or text.startswith(l.lower()):
+                            matched_idx = idx
+                            break
+                if matched_idx is None:
+                    for idx, c in enumerate(COLORS):
+                        if c in text.lower():
+                            matched_idx = idx
+                            break
+                if matched_idx is None:
+                    matched_idx = len(COLORS) - 1
+                probs[matched_idx] = 1.0
+                mass = 1.0
+            all_probs.append(probs)
+            all_mass.append(mass)
+
+        return np.stack(all_probs, axis=0), np.array(all_mass, dtype=np.float32)
+
+    def predict(self, images: List[Image.Image]) -> List[Tuple[str, float]]:
         probs, _ = self.predict_proba(images)
         return [(COLORS[int(p.argmax())], float(p.max())) for p in probs]

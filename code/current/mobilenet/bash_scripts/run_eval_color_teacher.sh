@@ -19,7 +19,7 @@ run_one() {
     local tag="$1"; shift
     echo; echo "=== ${tag}: $*   $(date '+%Y-%m-%d %H:%M:%S')"
     "${PYTHON_BIN}" -u "${MOBILENET_DIR}/annotation/eval_color_teacher.py" \
-        --tag "${tag}" --qwen-model "${QWEN_MODEL_DIR:-Qwen/Qwen3-VL-8B-Instruct}" "$@"
+        --tag "${tag}" --qwen-model "${QWEN_MODEL_DIR:-Qwen/Qwen3-VL-32B-Instruct}" "$@"
 }
 
 if [ "${SWEEP:-0}" = "1" ]; then
