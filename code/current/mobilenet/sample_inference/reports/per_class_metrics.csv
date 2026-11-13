@@ -1,0 +1,1236 @@
+class_name,make,model,support,true_positives,false_positives,false_negatives,precision,recall,f1_score
+Acura/CL,Acura,CL,15,15,1,0,0.9375,1.0,0.9677
+Acura/CSX,Acura,CSX,8,7,0,1,1.0,0.875,0.9333
+Acura/EL,Acura,EL,8,8,0,0,1.0,1.0,1.0
+Acura/ILX,Acura,ILX,12,12,1,0,0.9231,1.0,0.96
+Acura/Integra,Acura,Integra,15,10,0,5,1.0,0.6667,0.8
+Acura/NSX,Acura,NSX,10,8,0,2,1.0,0.8,0.8889
+Acura/RDX,Acura,RDX,35,35,0,0,1.0,1.0,1.0
+Acura/RL,Acura,RL,27,26,0,1,1.0,0.963,0.9811
+Acura/RLX,Acura,RLX,2,2,0,0,1.0,1.0,1.0
+Acura/RSX,Acura,RSX,6,6,0,0,1.0,1.0,1.0
+Acura/TL,Acura,TL,59,55,0,4,1.0,0.9322,0.9649
+Acura/TLX,Acura,TLX,10,9,1,1,0.9,0.9,0.9
+Acura/TSX,Acura,TSX,18,12,1,6,0.9231,0.6667,0.7742
+Acura/ZDX,Acura,ZDX,24,23,0,1,1.0,0.9583,0.9787
+Alfa Romeo/145,Alfa Romeo,145,79,76,2,3,0.9744,0.962,0.9682
+Alfa Romeo/146,Alfa Romeo,146,13,11,3,2,0.7857,0.8462,0.8148
+Alfa Romeo/147,Alfa Romeo,147,44,44,1,0,0.9778,1.0,0.9888
+Alfa Romeo/155,Alfa Romeo,155,93,93,0,0,1.0,1.0,1.0
+Alfa Romeo/156,Alfa Romeo,156,61,61,1,0,0.9839,1.0,0.9919
+Alfa Romeo/159,Alfa Romeo,159,48,47,2,1,0.9592,0.9792,0.9691
+Alfa Romeo/164,Alfa Romeo,164,31,30,0,1,1.0,0.9677,0.9836
+Alfa Romeo/166,Alfa Romeo,166,26,24,0,2,1.0,0.9231,0.96
+Alfa Romeo/1750,Alfa Romeo,1750,12,7,8,5,0.4667,0.5833,0.5185
+Alfa Romeo/1900,Alfa Romeo,1900,5,5,1,0,0.8333,1.0,0.9091
+Alfa Romeo/2000,Alfa Romeo,2000,23,15,6,8,0.7143,0.6522,0.6818
+Alfa Romeo/2600,Alfa Romeo,2600,10,8,3,2,0.7273,0.8,0.7619
+Alfa Romeo/33,Alfa Romeo,33,23,23,0,0,1.0,1.0,1.0
+Alfa Romeo/4C,Alfa Romeo,4C,57,56,1,1,0.9825,0.9825,0.9825
+Alfa Romeo/6C,Alfa Romeo,6C,10,5,3,5,0.625,0.5,0.5556
+Alfa Romeo/75,Alfa Romeo,75,22,22,0,0,1.0,1.0,1.0
+Alfa Romeo/8C,Alfa Romeo,8C,24,20,0,4,1.0,0.8333,0.9091
+Alfa Romeo/90,Alfa Romeo,90,6,6,0,0,1.0,1.0,1.0
+Alfa Romeo/Alfasud,Alfa Romeo,Alfasud,19,19,0,0,1.0,1.0,1.0
+Alfa Romeo/Alfetta,Alfa Romeo,Alfetta,59,55,5,4,0.9167,0.9322,0.9244
+Alfa Romeo/Brera,Alfa Romeo,Brera,35,33,0,2,1.0,0.9429,0.9706
+Alfa Romeo/Crosswagon Q4,Alfa Romeo,Crosswagon Q4,7,5,0,2,1.0,0.7143,0.8333
+Alfa Romeo/GT,Alfa Romeo,GT,26,26,0,0,1.0,1.0,1.0
+Alfa Romeo/GTV,Alfa Romeo,GTV,36,31,4,5,0.8857,0.8611,0.8732
+Alfa Romeo/Giulia,Alfa Romeo,Giulia,62,54,2,8,0.9643,0.871,0.9153
+Alfa Romeo/Giulietta,Alfa Romeo,Giulietta,70,67,2,3,0.971,0.9571,0.964
+Alfa Romeo/Junior,Alfa Romeo,Junior,33,27,4,6,0.871,0.8182,0.8438
+Alfa Romeo/Junior Zagato,Alfa Romeo,Junior Zagato,9,9,0,0,1.0,1.0,1.0
+Alfa Romeo/MiTo,Alfa Romeo,MiTo,62,62,0,0,1.0,1.0,1.0
+Alfa Romeo/Montreal,Alfa Romeo,Montreal,13,13,0,0,1.0,1.0,1.0
+Alfa Romeo/S.Z,Alfa Romeo,S.Z,9,9,0,0,1.0,1.0,1.0
+Alfa Romeo/Spider,Alfa Romeo,Spider,46,43,7,3,0.86,0.9348,0.8958
+Alfa Romeo/Sprint,Alfa Romeo,Sprint,12,11,0,1,1.0,0.9167,0.9565
+Alfa Romeo/Stelvio,Alfa Romeo,Stelvio,218,218,0,0,1.0,1.0,1.0
+Alfa Romeo/TZ,Alfa Romeo,TZ,8,7,0,1,1.0,0.875,0.9333
+Alfa Romeo/Tonale,Alfa Romeo,Tonale,36,36,0,0,1.0,1.0,1.0
+Audi/200,Audi,200,24,17,2,7,0.8947,0.7083,0.7907
+Audi/50,Audi,50,3,3,2,0,0.6,1.0,0.75
+Audi/5000,Audi,5000,4,2,2,2,0.5,0.5,0.5
+Audi/60,Audi,60,8,7,0,1,1.0,0.875,0.9333
+Audi/80,Audi,80,51,40,11,11,0.7843,0.7843,0.7843
+Audi/90,Audi,90,27,20,7,7,0.7407,0.7407,0.7407
+Audi/A1,Audi,A1,58,56,1,2,0.9825,0.9655,0.9739
+Audi/A2,Audi,A2,43,43,0,0,1.0,1.0,1.0
+Audi/A3,Audi,A3,65,54,6,11,0.9,0.8308,0.864
+Audi/A4,Audi,A4,210,191,22,19,0.8967,0.9095,0.9031
+Audi/A5,Audi,A5,69,62,12,7,0.8378,0.8986,0.8671
+Audi/A6,Audi,A6,244,232,25,12,0.9027,0.9508,0.9261
+Audi/A7,Audi,A7,70,67,2,3,0.971,0.9571,0.964
+Audi/A8,Audi,A8,68,61,0,7,1.0,0.8971,0.9457
+Audi/Cabriolet,Audi,Cabriolet,36,33,4,3,0.8919,0.9167,0.9041
+Audi/Coupé,Audi,Coupé,40,30,6,10,0.8333,0.75,0.7895
+Audi/Q2,Audi,Q2,50,50,1,0,0.9804,1.0,0.9901
+Audi/Q3,Audi,Q3,79,76,4,3,0.95,0.962,0.956
+Audi/Q4 e-tron,Audi,Q4 e-tron,45,42,1,3,0.9767,0.9333,0.9545
+Audi/Q5,Audi,Q5,139,131,4,8,0.9704,0.9424,0.9562
+Audi/Q6_SQ6,Audi,Q6_SQ6,25,21,2,4,0.913,0.84,0.875
+Audi/Q7,Audi,Q7,90,89,2,1,0.978,0.9889,0.9834
+Audi/Q8,Audi,Q8,66,59,5,7,0.9219,0.8939,0.9077
+Audi/Quattro,Audi,Quattro,35,31,5,4,0.8611,0.8857,0.8732
+Audi/R8,Audi,R8,53,51,1,2,0.9808,0.9623,0.9714
+Audi/RS Q3,Audi,RS Q3,25,23,0,2,1.0,0.92,0.9583
+Audi/RS Q8,Audi,RS Q8,42,39,3,3,0.9286,0.9286,0.9286
+Audi/RS2,Audi,RS2,13,12,0,1,1.0,0.9231,0.96
+Audi/RS3,Audi,RS3,58,54,6,4,0.9,0.931,0.9153
+Audi/RS4,Audi,RS4,62,51,10,11,0.8361,0.8226,0.8293
+Audi/RS5,Audi,RS5,53,47,8,6,0.8545,0.8868,0.8704
+Audi/RS6,Audi,RS6,59,53,1,6,0.9815,0.8983,0.9381
+Audi/e-tron,Audi,e-tron,39,37,7,2,0.8409,0.9487,0.8916
+Audi/e-tron GT,Audi,e-tron GT,42,41,0,1,1.0,0.9762,0.988
+BMW/02 Series,BMW,02 Series,116,116,0,0,1.0,1.0,1.0
+BMW/1 Series,BMW,1 Series,83,80,4,3,0.9524,0.9639,0.9581
+BMW/2 Series,BMW,2 Series,61,57,4,4,0.9344,0.9344,0.9344
+BMW/3 Series,BMW,3 Series,187,167,26,20,0.8653,0.893,0.8789
+BMW/320_321,BMW,320_321,10,5,0,5,1.0,0.5,0.6667
+BMW/326,BMW,326,2,1,2,1,0.3333,0.5,0.4
+BMW/327,BMW,327,11,11,2,0,0.8462,1.0,0.9167
+BMW/328,BMW,328,9,8,1,1,0.8889,0.8889,0.8889
+BMW/4 Series,BMW,4 Series,64,55,7,9,0.8871,0.8594,0.873
+BMW/5 Series,BMW,5 Series,253,217,38,36,0.851,0.8577,0.8543
+BMW/501_502,BMW,501_502,11,11,0,0,1.0,1.0,1.0
+BMW/6 Series,BMW,6 Series,82,62,13,20,0.8267,0.7561,0.7898
+BMW/7 Series,BMW,7 Series,104,85,15,19,0.85,0.8173,0.8333
+BMW/700,BMW,700,6,6,0,0,1.0,1.0,1.0
+BMW/8 Series,BMW,8 Series,61,56,2,5,0.9655,0.918,0.9412
+BMW/C Series,BMW,C Series,20,15,2,5,0.8824,0.75,0.8108
+BMW/E3,BMW,E3,16,15,1,1,0.9375,0.9375,0.9375
+BMW/E9,BMW,E9,16,15,2,1,0.8824,0.9375,0.9091
+BMW/EMW 340,BMW,EMW 340,6,4,0,2,1.0,0.6667,0.8
+BMW/F Series,BMW,F Series,56,40,15,16,0.7273,0.7143,0.7207
+BMW/G Series,BMW,G Series,17,8,1,9,0.8889,0.4706,0.6154
+BMW/Isetta,BMW,Isetta,20,20,0,0,1.0,1.0,1.0
+BMW/K Series,BMW,K Series,48,42,6,6,0.875,0.875,0.875
+BMW/M1,BMW,M1,7,7,0,0,1.0,1.0,1.0
+BMW/M2,BMW,M2,59,57,1,2,0.9828,0.9661,0.9744
+BMW/M3,BMW,M3,75,61,6,14,0.9104,0.8133,0.8592
+BMW/M4,BMW,M4,71,69,5,2,0.9324,0.9718,0.9517
+BMW/M5,BMW,M5,60,47,10,13,0.8246,0.7833,0.8034
+BMW/M6,BMW,M6,54,46,13,8,0.7797,0.8519,0.8142
+BMW/M8,BMW,M8,50,48,4,2,0.9231,0.96,0.9412
+BMW/Neue Klasse,BMW,Neue Klasse,18,17,0,1,1.0,0.9444,0.9714
+BMW/R Series,BMW,R Series,59,45,14,14,0.7627,0.7627,0.7627
+BMW/S Series,BMW,S Series,41,36,8,5,0.8182,0.878,0.8471
+BMW/X1,BMW,X1,114,112,3,2,0.9739,0.9825,0.9782
+BMW/X2,BMW,X2,52,49,0,3,1.0,0.9423,0.9703
+BMW/i3,BMW,i3,61,59,0,2,1.0,0.9672,0.9833
+BMW/i4,BMW,i4,47,43,5,4,0.8958,0.9149,0.9053
+BMW/i5,BMW,i5,37,34,17,3,0.6667,0.9189,0.7727
+BMW/i7,BMW,i7,38,30,12,8,0.7143,0.7895,0.75
+BMW/i8,BMW,i8,52,52,1,0,0.9811,1.0,0.9905
+BMW/iX,BMW,iX,57,55,0,2,1.0,0.9649,0.9821
+Buick/Cascada,Buick,Cascada,13,13,0,0,1.0,1.0,1.0
+Buick/Centurion,Buick,Centurion,7,5,2,2,0.7143,0.7143,0.7143
+Buick/Century,Buick,Century,24,15,4,9,0.7895,0.625,0.6977
+Buick/Eight,Buick,Eight,10,4,14,6,0.2222,0.4,0.2857
+Buick/Electra,Buick,Electra,40,21,19,19,0.525,0.525,0.525
+Buick/Enclave,Buick,Enclave,49,46,7,3,0.8679,0.9388,0.902
+Buick/Encore,Buick,Encore,23,17,3,6,0.85,0.7391,0.7907
+Buick/Envision,Buick,Envision,21,20,0,1,1.0,0.9524,0.9756
+Buick/Envista,Buick,Envista,9,9,1,0,0.9,1.0,0.9474
+Buick/GS,Buick,GS,14,10,7,4,0.5882,0.7143,0.6452
+Buick/Invicta,Buick,Invicta,4,2,5,2,0.2857,0.5,0.3636
+Buick/LaCrosse,Buick,LaCrosse,19,19,0,0,1.0,1.0,1.0
+Buick/LeSabre,Buick,LeSabre,30,17,3,13,0.85,0.5667,0.68
+Buick/Lucerne,Buick,Lucerne,13,13,0,0,1.0,1.0,1.0
+Buick/Master Six,Buick,Master Six,6,4,0,2,1.0,0.6667,0.8
+Buick/Park Avenue,Buick,Park Avenue,38,38,7,0,0.8444,1.0,0.9157
+Buick/Rainier,Buick,Rainier,18,18,0,0,1.0,1.0,1.0
+Buick/Regal,Buick,Regal,71,57,6,14,0.9048,0.8028,0.8507
+Buick/Rendezvous,Buick,Rendezvous,16,16,0,0,1.0,1.0,1.0
+Buick/Riviera,Buick,Riviera,24,18,6,6,0.75,0.75,0.75
+Buick/Roadmaster,Buick,Roadmaster,29,17,9,12,0.6538,0.5862,0.6182
+Buick/Skylark,Buick,Skylark,36,17,14,19,0.5484,0.4722,0.5075
+Buick/Special,Buick,Special,21,11,8,10,0.5789,0.5238,0.55
+Buick/Super,Buick,Super,12,1,7,11,0.125,0.0833,0.1
+Buick/Terraza,Buick,Terraza,4,4,0,0,1.0,1.0,1.0
+Buick/Verano,Buick,Verano,11,10,0,1,1.0,0.9091,0.9524
+Buick/Wildcat,Buick,Wildcat,19,15,9,4,0.625,0.7895,0.6977
+Cadillac/ATS,Cadillac,ATS,70,69,2,1,0.9718,0.9857,0.9787
+Cadillac/Allante,Cadillac,Allante,10,10,0,0,1.0,1.0,1.0
+Cadillac/BLS,Cadillac,BLS,28,28,1,0,0.9655,1.0,0.9825
+Cadillac/Brougham,Cadillac,Brougham,26,10,9,16,0.5263,0.3846,0.4444
+Cadillac/CT4,Cadillac,CT4,19,19,0,0,1.0,1.0,1.0
+Cadillac/CT5,Cadillac,CT5,15,13,0,2,1.0,0.8667,0.9286
+Cadillac/CT6,Cadillac,CT6,16,16,1,0,0.9412,1.0,0.9697
+Cadillac/CTS,Cadillac,CTS,64,59,5,5,0.9219,0.9219,0.9219
+Cadillac/Catera,Cadillac,Catera,9,9,0,0,1.0,1.0,1.0
+Cadillac/DTS,Cadillac,DTS,17,16,0,1,1.0,0.9412,0.9697
+Cadillac/DeVille,Cadillac,DeVille,64,31,12,33,0.7209,0.4844,0.5794
+Cadillac/ELR,Cadillac,ELR,4,4,0,0,1.0,1.0,1.0
+Cadillac/Eldorado,Cadillac,Eldorado,54,34,5,20,0.8718,0.6296,0.7312
+Cadillac/Escalade,Cadillac,Escalade,58,58,1,0,0.9831,1.0,0.9915
+Cadillac/Fleetwood,Cadillac,Fleetwood,41,29,34,12,0.4603,0.7073,0.5577
+Cadillac/Lyriq,Cadillac,Lyriq,23,23,0,0,1.0,1.0,1.0
+Cadillac/SRX,Cadillac,SRX,70,68,0,2,1.0,0.9714,0.9855
+Cadillac/STS,Cadillac,STS,20,18,0,2,1.0,0.9,0.9474
+Cadillac/Series 61,Cadillac,Series 61,6,1,1,5,0.5,0.1667,0.25
+Cadillac/Series 62,Cadillac,Series 62,31,22,26,9,0.4583,0.7097,0.557
+Cadillac/Series 75,Cadillac,Series 75,17,3,7,14,0.3,0.1765,0.2222
+Cadillac/Seville,Cadillac,Seville,61,60,5,1,0.9231,0.9836,0.9524
+Cadillac/Sixty Special,Cadillac,Sixty Special,16,1,12,15,0.0769,0.0625,0.069
+Cadillac/Superior,Cadillac,Superior,7,5,7,2,0.4167,0.7143,0.5263
+Cadillac/V8,Cadillac,V8,1,0,2,1,0.0,0.0,0.0
+Cadillac/XLR,Cadillac,XLR,28,27,0,1,1.0,0.9643,0.9818
+Cadillac/XT4,Cadillac,XT4,21,21,0,0,1.0,1.0,1.0
+Cadillac/XT5,Cadillac,XT5,26,24,2,2,0.9231,0.9231,0.9231
+Cadillac/XT6,Cadillac,XT6,22,22,1,0,0.9565,1.0,0.9778
+Cadillac/XTS,Cadillac,XTS,32,28,3,4,0.9032,0.875,0.8889
+Chevrolet/150,Chevrolet,150,29,25,0,4,1.0,0.8621,0.9259
+Chevrolet/210,Chevrolet,210,12,5,6,7,0.4545,0.4167,0.4348
+Chevrolet/2123 Niva,Chevrolet,2123 Niva,12,11,0,1,1.0,0.9167,0.9565
+Chevrolet/AK-Series,Chevrolet,AK-Series,6,3,0,3,1.0,0.5,0.6667
+Chevrolet/Advance-Design,Chevrolet,Advance-Design,29,28,5,1,0.8485,0.9655,0.9032
+Chevrolet/Alero,Chevrolet,Alero,13,13,0,0,1.0,1.0,1.0
+Chevrolet/Apache,Chevrolet,Apache,16,12,1,4,0.9231,0.75,0.8276
+Chevrolet/Astro,Chevrolet,Astro,35,35,0,0,1.0,1.0,1.0
+Chevrolet/Avalanche,Chevrolet,Avalanche,34,34,0,0,1.0,1.0,1.0
+Chevrolet/Aveo,Chevrolet,Aveo,84,82,2,2,0.9762,0.9762,0.9762
+Chevrolet/Bel Air,Chevrolet,Bel Air,32,24,9,8,0.7273,0.75,0.7385
+Chevrolet/Monte Carlo,Chevrolet,Monte Carlo,34,31,3,3,0.9118,0.9118,0.9118
+Chrysler/150,Chrysler,150,4,4,0,0,1.0,1.0,1.0
+Chrysler/160_180_2 Litre,Chrysler,160_180_2 Litre,18,17,0,1,1.0,0.9444,0.9714
+Chrysler/200,Chrysler,200,135,133,2,2,0.9852,0.9852,0.9852
+Chrysler/300 Letter _ Non-Letter Series,Chrysler,300 Letter _ Non-Letter Series,26,19,9,7,0.6786,0.7308,0.7037
+Chrysler/300M,Chrysler,300M,193,189,2,4,0.9895,0.9793,0.9844
+Chrysler/300_300C,Chrysler,300_300C,234,234,2,0,0.9915,1.0,0.9957
+Chrysler/Aspen,Chrysler,Aspen,32,32,0,0,1.0,1.0,1.0
+Chrysler/Cirrus,Chrysler,Cirrus,35,30,3,5,0.9091,0.8571,0.8824
+Chrysler/Concorde,Chrysler,Concorde,123,121,13,2,0.903,0.9837,0.9416
+Chrysler/Cordoba,Chrysler,Cordoba,11,11,0,0,1.0,1.0,1.0
+Chrysler/Crossfire,Chrysler,Crossfire,240,239,1,1,0.9958,0.9958,0.9958
+Chrysler/Daytona,Chrysler,Daytona,8,6,6,2,0.5,0.75,0.6
+Chrysler/Delta,Chrysler,Delta,7,7,0,0,1.0,1.0,1.0
+Chrysler/Fifth Avenue,Chrysler,Fifth Avenue,6,5,0,1,1.0,0.8333,0.9091
+Chrysler/Grand Caravan,Chrysler,Grand Caravan,8,4,2,4,0.6667,0.5,0.5714
+Chrysler/Grand Voyager,Chrysler,Grand Voyager,264,164,83,100,0.664,0.6212,0.6419
+Chrysler/Imperial,Chrysler,Imperial,19,7,2,12,0.7778,0.3684,0.5
+Chrysler/Intrepid,Chrysler,Intrepid,20,17,10,3,0.6296,0.85,0.7234
+Chrysler/LHS,Chrysler,LHS,66,45,16,21,0.7377,0.6818,0.7087
+Chrysler/LeBaron,Chrysler,LeBaron,108,94,11,14,0.8952,0.8704,0.8826
+Chrysler/Neon,Chrysler,Neon,116,115,2,1,0.9829,0.9914,0.9871
+Chrysler/New Yorker,Chrysler,New Yorker,78,41,20,37,0.6721,0.5256,0.5899
+Chrysler/Newport,Chrysler,Newport,41,35,19,6,0.6481,0.8537,0.7368
+Chrysler/PT Cruiser,Chrysler,PT Cruiser,256,256,1,0,0.9961,1.0,0.9981
+Chrysler/Pacifica,Chrysler,Pacifica,195,195,11,0,0.9466,1.0,0.9726
+Chrysler/Prowler,Chrysler,Prowler,10,10,0,0,1.0,1.0,1.0
+Chrysler/Saratoga,Chrysler,Saratoga,36,32,10,4,0.7619,0.8889,0.8205
+Chrysler/Sebring,Chrysler,Sebring,215,200,4,15,0.9804,0.9302,0.9547
+Chrysler/Series 75,Chrysler,Series 75,8,5,1,3,0.8333,0.625,0.7143
+Chrysler/Stratus,Chrysler,Stratus,117,112,19,5,0.855,0.9573,0.9032
+Chrysler/Town&Country,Chrysler,Town&Country,263,219,55,44,0.7993,0.8327,0.8156
+Chrysler/Valiant,Chrysler,Valiant,8,2,0,6,1.0,0.25,0.4
+Chrysler/Viper,Chrysler,Viper,15,15,0,0,1.0,1.0,1.0
+Chrysler/Vision,Chrysler,Vision,23,22,0,1,1.0,0.9565,0.9778
+Chrysler/Voyager,Chrysler,Voyager,258,181,100,77,0.6441,0.7016,0.6716
+Chrysler/Windsor,Chrysler,Windsor,15,10,14,5,0.4167,0.6667,0.5128
+Chrysler/Ypsilon,Chrysler,Ypsilon,16,16,0,0,1.0,1.0,1.0
+Cupra/Ateca,Cupra,Ateca,85,50,44,35,0.5319,0.5882,0.5587
+Cupra/Born,Cupra,Born,60,31,27,29,0.5345,0.5167,0.5254
+Cupra/Formentor,Cupra,Formentor,107,69,51,38,0.575,0.6449,0.6079
+Cupra/León,Cupra,León,55,20,15,35,0.5714,0.3636,0.4444
+Cupra/Tavascan,Cupra,Tavascan,31,15,6,16,0.7143,0.4839,0.5769
+Cupra/Terramar,Cupra,Terramar,57,31,35,26,0.4697,0.5439,0.5041
+Dodge/Aspen,Dodge,Aspen,6,5,0,1,1.0,0.8333,0.9091
+Dodge/Avenger,Dodge,Avenger,21,21,0,0,1.0,1.0,1.0
+Dodge/B-Series,Dodge,B-Series,8,6,0,2,1.0,0.75,0.8571
+Dodge/Caliber,Dodge,Caliber,64,64,0,0,1.0,1.0,1.0
+Dodge/Caravan,Dodge,Caravan,33,15,6,18,0.7143,0.4545,0.5556
+Dodge/Challenger,Dodge,Challenger,56,55,1,1,0.9821,0.9821,0.9821
+Dodge/Charger,Dodge,Charger,72,68,0,4,1.0,0.9444,0.9714
+Dodge/Coronet,Dodge,Coronet,31,20,8,11,0.7143,0.6452,0.678
+Dodge/Custom Series,Dodge,Custom Series,16,9,4,7,0.6923,0.5625,0.6207
+Dodge/D-Series,Dodge,D-Series,17,12,1,5,0.9231,0.7059,0.8
+Dodge/Dakota,Dodge,Dakota,41,38,3,3,0.9268,0.9268,0.9268
+Dodge/Dart,Dodge,Dart,29,25,7,4,0.7812,0.8621,0.8197
+Dodge/Daytona,Dodge,Daytona,9,2,2,7,0.5,0.2222,0.3077
+Dodge/Durango,Dodge,Durango,65,64,0,1,1.0,0.9846,0.9922
+Dodge/Grand Caravan,Dodge,Grand Caravan,40,25,1,15,0.9615,0.625,0.7576
+Dodge/Hornet,Dodge,Hornet,11,11,0,0,1.0,1.0,1.0
+Dodge/Intrepid,Dodge,Intrepid,14,4,3,10,0.5714,0.2857,0.381
+Dodge/Journey,Dodge,Journey,32,32,0,0,1.0,1.0,1.0
+Ford/A-Series,Ford,A-Series,9,0,0,9,0.0,0.0,0.0
+Ford/Aerostar,Ford,Aerostar,33,32,0,1,1.0,0.9697,0.9846
+Ford/Anglia,Ford,Anglia,31,24,3,7,0.8889,0.7742,0.8276
+Ford/Aspire,Ford,Aspire,9,8,2,1,0.8,0.8889,0.8421
+Ford/B-Max,Ford,B-Max,76,75,0,1,1.0,0.9868,0.9934
+Ford/Bronco,Ford,Bronco,250,243,19,7,0.9275,0.972,0.9492
+Ford/Bronco II,Ford,Bronco II,41,40,2,1,0.9524,0.9756,0.9639
+Ford/Bronco Sport,Ford,Bronco Sport,140,138,2,2,0.9857,0.9857,0.9857
+Ford/C-Max,Ford,C-Max,252,228,5,24,0.9785,0.9048,0.9402
+Ford/Capri,Ford,Capri,106,101,0,5,1.0,0.9528,0.9758
+Ford/Cargo,Ford,Cargo,283,279,21,4,0.93,0.9859,0.9571
+Ford/Consul,Ford,Consul,31,27,12,4,0.6923,0.871,0.7714
+Ford/Contour,Ford,Contour,38,38,0,0,1.0,1.0,1.0
+Ford/Corcel,Ford,Corcel,6,3,0,3,1.0,0.5,0.6667
+Ford/Corsair,Ford,Corsair,10,10,0,0,1.0,1.0,1.0
+Ford/Cortina,Ford,Cortina,128,107,12,21,0.8992,0.8359,0.8664
+Ford/Cougar,Ford,Cougar,91,89,0,2,1.0,0.978,0.9889
+Ford/Country Sedan,Ford,Country Sedan,6,2,2,4,0.5,0.3333,0.4
+Ford/Country Squire,Ford,Country Squire,14,1,6,13,0.1429,0.0714,0.0952
+Ford/Courier,Ford,Courier,13,1,1,12,0.5,0.0769,0.1333
+Ford/Crown Victoria,Ford,Crown Victoria,251,246,13,5,0.9498,0.9801,0.9647
+Ford/Custom,Ford,Custom,31,17,4,14,0.8095,0.5484,0.6538
+Ford/Customline,Ford,Customline,10,6,3,4,0.6667,0.6,0.6316
+Ford/Deluxe,Ford,Deluxe,36,26,27,10,0.4906,0.7222,0.5843
+Ford/E-Series,Ford,E-Series,250,245,27,5,0.9007,0.98,0.9387
+Ford/EcoSport,Ford,EcoSport,274,270,2,4,0.9926,0.9854,0.989
+Ford/Econovan,Ford,Econovan,37,36,3,1,0.9231,0.973,0.9474
+Ford/Edge,Ford,Edge,309,306,1,3,0.9967,0.9903,0.9935
+Ford/Equator,Ford,Equator,6,1,0,5,1.0,0.1667,0.2857
+Ford/Escape,Ford,Escape,104,75,13,29,0.8523,0.7212,0.7812
+Ford/Escort,Ford,Escort,186,159,19,27,0.8933,0.8548,0.8736
+Ford/Escort Express,Ford,Escort Express,37,33,2,4,0.9429,0.8919,0.9167
+Ford/Everest,Ford,Everest,24,23,0,1,1.0,0.9583,0.9787
+Ford/Excursion,Ford,Excursion,129,126,2,3,0.9844,0.9767,0.9805
+Ford/Expedition,Ford,Expedition,245,242,7,3,0.9719,0.9878,0.9798
+Ford/Explorer,Ford,Explorer,221,213,7,8,0.9682,0.9638,0.966
+Ford/F-1,Ford,F-1,31,27,6,4,0.8182,0.871,0.8438
+Ford/F-100,Ford,F-100,160,146,43,14,0.7725,0.9125,0.8367
+Ford/F-150,Ford,F-150,301,277,56,24,0.8318,0.9203,0.8738
+Ford/F-250,Ford,F-250,82,8,3,74,0.7273,0.0976,0.172
+Ford/F-350,Ford,F-350,297,259,130,38,0.6658,0.8721,0.7551
+Ford/F-450,Ford,F-450,26,4,2,22,0.6667,0.1538,0.25
+Ford/F-550,Ford,F-550,49,17,19,32,0.4722,0.3469,0.4
+Ford/F-59,Ford,F-59,3,3,1,0,0.75,1.0,0.8571
+Ford/F-600,Ford,F-600,4,0,1,4,0.0,0.0,0.0
+Ford/F-650,Ford,F-650,40,20,5,20,0.8,0.5,0.6154
+Ford/F-750,Ford,F-750,11,4,6,7,0.4,0.3636,0.381
+Ford/F-800,Ford,F-800,8,5,1,3,0.8333,0.625,0.7143
+Ford/F-Max,Ford,F-Max,123,123,0,0,1.0,1.0,1.0
+Ford/Fairlane,Ford,Fairlane,85,72,28,13,0.72,0.8471,0.7784
+Ford/Fairmont,Ford,Fairmont,11,5,1,6,0.8333,0.4545,0.5882
+Ford/Falcon,Ford,Falcon,82,71,9,11,0.8875,0.8659,0.8765
+Ford/Festiva,Ford,Festiva,21,17,0,4,1.0,0.8095,0.8947
+Ford/Festiva Mini Wagon,Ford,Festiva Mini Wagon,13,13,0,0,1.0,1.0,1.0
+Ford/Fiesta,Ford,Fiesta,327,318,13,9,0.9607,0.9725,0.9666
+Ford/Fiesta Courier,Ford,Fiesta Courier,119,117,4,2,0.9669,0.9832,0.975
+Ford/Figo,Ford,Figo,3,0,0,3,0.0,0.0,0.0
+Ford/Five Hundred,Ford,Five Hundred,16,15,0,1,1.0,0.9375,0.9677
+Ford/Flex,Ford,Flex,80,80,0,0,1.0,1.0,1.0
+Ford/Focus,Ford,Focus,295,281,23,14,0.9243,0.9525,0.9382
+Ford/Freda,Ford,Freda,32,31,0,1,1.0,0.9688,0.9841
+Ford/Freestar,Ford,Freestar,26,26,0,0,1.0,1.0,1.0
+Ford/Freestyle,Ford,Freestyle,23,23,0,0,1.0,1.0,1.0
+Ford/Fusion,Ford,Fusion,196,187,9,9,0.9541,0.9541,0.9541
+Ford/GP _ GPW,Ford,GP _ GPW,18,15,1,3,0.9375,0.8333,0.8824
+Ford/GT,Ford,GT,29,29,0,0,1.0,1.0,1.0
+Ford/GT40,Ford,GT40,20,20,1,0,0.9524,1.0,0.9756
+Ford/Galaxie,Ford,Galaxie,87,75,26,12,0.7426,0.8621,0.7979
+Ford/Galaxy,Ford,Galaxy,317,309,9,8,0.9717,0.9748,0.9732
+Ford/Gran Torino,Ford,Gran Torino,17,13,6,4,0.6842,0.7647,0.7222
+Ford/Granada,Ford,Granada,75,63,15,12,0.8077,0.84,0.8235
+Ford/Grand C-Max,Ford,Grand C-Max,105,105,17,0,0.8607,1.0,0.9251
+Ford/Ka,Ford,Ka,237,234,4,3,0.9832,0.9873,0.9853
+Ford/Kuga,Ford,Kuga,191,183,24,8,0.8841,0.9581,0.9196
+Ford/L-Series,Ford,L-Series,14,8,0,6,1.0,0.5714,0.7273
+Ford/LTD,Ford,LTD,38,20,10,18,0.6667,0.5263,0.5882
+Ford/Laser,Ford,Laser,44,37,6,7,0.8605,0.8409,0.8506
+Ford/Lobo,Ford,Lobo,47,9,5,38,0.6429,0.1915,0.2951
+Ford/M151 MUTT,Ford,M151 MUTT,18,15,0,3,1.0,0.8333,0.9091
+Ford/Maverick,Ford,Maverick,94,87,12,7,0.8788,0.9255,0.9016
+Ford/Model 48,Ford,Model 48,9,4,6,5,0.4,0.4444,0.4211
+Ford/Model A,Ford,Model A,97,73,30,24,0.7087,0.7526,0.73
+Ford/Model B,Ford,Model B,52,38,37,14,0.5067,0.7308,0.5984
+Ford/Model T,Ford,Model T,88,72,18,16,0.8,0.8182,0.809
+Ford/Mondeo,Ford,Mondeo,263,249,8,14,0.9689,0.9468,0.9577
+Ford/Mustang,Ford,Mustang,308,299,8,9,0.9739,0.9708,0.9724
+Ford/Mustang Mach-E,Ford,Mustang Mach-E,279,278,1,1,0.9964,0.9964,0.9964
+Ford/OSI,Ford,OSI,6,6,0,0,1.0,1.0,1.0
+Ford/Orion,Ford,Orion,53,47,14,6,0.7705,0.8868,0.8246
+Ford/Otosan P100,Ford,Otosan P100,2,2,0,0,1.0,1.0,1.0
+Ford/Pickup Truck,Ford,Pickup Truck,14,5,5,9,0.5,0.3571,0.4167
+Ford/Pinto,Ford,Pinto,5,2,1,3,0.6667,0.4,0.5
+Ford/Police Interceptor Sedan,Ford,Police Interceptor Sedan,21,21,2,0,0.913,1.0,0.9545
+Ford/Police Interceptor Utility,Ford,Police Interceptor Utility,15,11,0,4,1.0,0.7333,0.8462
+Ford/Popular,Ford,Popular,22,15,4,7,0.7895,0.6818,0.7317
+Ford/Prefect,Ford,Prefect,15,13,3,2,0.8125,0.8667,0.8387
+Ford/Probe,Ford,Probe,87,86,3,1,0.9663,0.9885,0.9773
+Ford/Puma,Ford,Puma,256,255,1,1,0.9961,0.9961,0.9961
+Ford/RS200,Ford,RS200,7,7,0,0,1.0,1.0,1.0
+Ford/Ranchero,Ford,Ranchero,33,19,8,14,0.7037,0.5758,0.6333
+Ford/Ranger,Ford,Ranger,199,186,4,13,0.9789,0.9347,0.9563
+Ford/S-Max,Ford,S-Max,233,228,11,5,0.954,0.9785,0.9661
+Ford/Scorpio,Ford,Scorpio,265,264,9,1,0.967,0.9962,0.9814
+Ford/Sierra,Ford,Sierra,261,253,13,8,0.9511,0.9693,0.9602
+Ford/Sierra P100,Ford,Sierra P100,10,7,0,3,1.0,0.7,0.8235
+Ford/Spectron,Ford,Spectron,20,17,0,3,1.0,0.85,0.9189
+Ford/Super Deluxe,Ford,Super Deluxe,18,14,6,4,0.7,0.7778,0.7368
+Ford/Taunus,Ford,Taunus,309,293,44,16,0.8694,0.9482,0.9071
+Ford/Taunus Transit,Ford,Taunus Transit,8,7,0,1,1.0,0.875,0.9333
+Ford/Taurus,Ford,Taurus,272,262,9,10,0.9668,0.9632,0.965
+Ford/Taurus X,Ford,Taurus X,6,6,0,0,1.0,1.0,1.0
+Ford/Telstar,Ford,Telstar,8,3,0,5,1.0,0.375,0.5455
+Ford/Tempo,Ford,Tempo,17,17,0,0,1.0,1.0,1.0
+Ford/Territory,Ford,Territory,54,48,7,6,0.8727,0.8889,0.8807
+Ford/Thunderbird,Ford,Thunderbird,249,241,21,8,0.9198,0.9679,0.9432
+Ford/Torino,Ford,Torino,32,22,14,10,0.6111,0.6875,0.6471
+Ford/Tourneo,Ford,Tourneo,132,117,7,15,0.9435,0.8864,0.9141
+Ford/Tourneo Connect,Ford,Tourneo Connect,274,249,40,25,0.8616,0.9088,0.8845
+Ford/Tourneo Courier,Ford,Tourneo Courier,65,60,7,5,0.8955,0.9231,0.9091
+Ford/Tourneo Custom,Ford,Tourneo Custom,309,258,51,51,0.835,0.835,0.835
+Ford/Transit,Ford,Transit,256,240,27,16,0.8989,0.9375,0.9178
+Ford/Transit Connect,Ford,Transit Connect,189,148,27,41,0.8457,0.7831,0.8132
+Ford/Transit Courier,Ford,Transit Courier,84,74,6,10,0.925,0.881,0.9024
+Ford/Transit Custom,Ford,Transit Custom,336,283,56,53,0.8348,0.8423,0.8385
+Ford/V8,Ford,V8,39,8,20,31,0.2857,0.2051,0.2388
+Ford/Vedette,Ford,Vedette,7,7,0,0,1.0,1.0,1.0
+Ford/Windstar,Ford,Windstar,93,91,0,2,1.0,0.9785,0.9891
+Ford/Zephyr,Ford,Zephyr,15,9,1,6,0.9,0.6,0.72
+Ford/Zodiac,Ford,Zodiac,8,8,3,0,0.7273,1.0,0.8421
+GMC/Acadia,GMC,Acadia,212,208,2,4,0.9905,0.9811,0.9858
+GMC/Blue Chip Series,GMC,Blue Chip Series,4,3,0,1,1.0,0.75,0.8571
+GMC/CCKW,GMC,CCKW,9,7,1,2,0.875,0.7778,0.8235
+GMC/C_K-Series,GMC,C_K-Series,59,52,18,7,0.7429,0.8814,0.8062
+GMC/Canyon,GMC,Canyon,48,45,1,3,0.9783,0.9375,0.9574
+GMC/Chevy Van,GMC,Chevy Van,12,0,0,12,0.0,0.0,0.0
+GMC/Envoy,GMC,Envoy,69,66,1,3,0.9851,0.9565,0.9706
+GMC/Hummer EV,GMC,Hummer EV,44,44,0,0,1.0,1.0,1.0
+GMC/Jimmy,GMC,Jimmy,66,54,5,12,0.9153,0.8182,0.864
+GMC/New Design,GMC,New Design,15,13,0,2,1.0,0.8667,0.9286
+GMC/Safari,GMC,Safari,39,38,3,1,0.9268,0.9744,0.95
+GMC/Savana,GMC,Savana,279,276,10,3,0.965,0.9892,0.977
+GMC/Sierra,GMC,Sierra,172,162,10,10,0.9419,0.9419,0.9419
+GMC/Sierra EV,GMC,Sierra EV,4,4,0,0,1.0,1.0,1.0
+GMC/Sonoma,GMC,Sonoma,32,30,2,2,0.9375,0.9375,0.9375
+GMC/Suburban,GMC,Suburban,58,41,25,17,0.6212,0.7069,0.6613
+GMC/Terrain,GMC,Terrain,182,180,1,2,0.9945,0.989,0.9917
+GMC/Top Kick,GMC,Top Kick,13,10,2,3,0.8333,0.7692,0.8
+GMC/Typhoon,GMC,Typhoon,6,5,1,1,0.8333,0.8333,0.8333
+GMC/Vandura,GMC,Vandura,88,86,10,2,0.8958,0.9773,0.9348
+GMC/Yukon,GMC,Yukon,267,251,18,16,0.9331,0.9401,0.9366
+Honda/ADV,Honda,ADV,28,23,1,5,0.9583,0.8214,0.8846
+Honda/Accord,Honda,Accord,337,301,31,36,0.9066,0.8932,0.8999
+Honda/Accord Crosstour,Honda,Accord Crosstour,193,190,1,3,0.9948,0.9845,0.9896
+Honda/Activa,Honda,Activa,7,6,0,1,1.0,0.8571,0.9231
+Honda/Acty,Honda,Acty,63,61,12,2,0.8356,0.9683,0.8971
+Honda/AirBlade,Honda,AirBlade,96,82,21,14,0.7961,0.8542,0.8241
+Honda/Airwave,Honda,Airwave,18,18,0,0,1.0,1.0,1.0
+Honda/Ascot,Honda,Ascot,11,4,5,7,0.4444,0.3636,0.4
+Honda/Ascot Innova,Honda,Ascot Innova,8,8,3,0,0.7273,1.0,0.8421
+Honda/Astrea,Honda,Astrea,8,1,1,7,0.5,0.125,0.2
+Honda/Avancier,Honda,Avancier,77,74,3,3,0.961,0.961,0.961
+Honda/BR-V,Honda,BR-V,48,47,0,1,1.0,0.9792,0.9895
+Honda/Beat,Honda,Beat,45,28,4,17,0.875,0.6222,0.7273
+Honda/Blade,Honda,Blade,12,3,3,9,0.5,0.25,0.3333
+Honda/Breeze,Honda,Breeze,30,30,2,0,0.9375,1.0,0.9677
+Honda/Brio,Honda,Brio,99,99,0,0,1.0,1.0,1.0
+Honda/Bros,Honda,Bros,17,6,0,11,1.0,0.3529,0.5217
+Honda/CB Series,Honda,CB Series,230,172,142,58,0.5478,0.7478,0.6324
+Honda/CBF Series,Honda,CBF Series,95,65,10,30,0.8667,0.6842,0.7647
+Honda/CBR Series,Honda,CBR Series,251,197,93,54,0.6793,0.7849,0.7283
+Honda/CBX Series,Honda,CBX Series,10,3,5,7,0.375,0.3,0.3333
+Honda/CG Series,Honda,CG Series,14,4,4,10,0.5,0.2857,0.3636
+Honda/CL Series,Honda,CL Series,9,3,0,6,1.0,0.3333,0.5
+Honda/CM Series,Honda,CM Series,10,5,1,5,0.8333,0.5,0.625
+Honda/CMX Series (Rebel),Honda,CMX Series (Rebel),48,31,3,17,0.9118,0.6458,0.7561
+Honda/CN250 _ Fusion _ Helix _ Spazio,Honda,CN250 _ Fusion _ Helix _ Spazio,18,17,1,1,0.9444,0.9444,0.9444
+Honda/CR-V,Honda,CR-V,213,211,7,2,0.9679,0.9906,0.9791
+Honda/CR-Z,Honda,CR-Z,65,65,0,0,1.0,1.0,1.0
+Honda/CRF Series,Honda,CRF Series,100,81,26,19,0.757,0.81,0.7826
+Honda/CRX,Honda,CRX,280,275,5,5,0.9821,0.9821,0.9821
+Honda/CTX Series,Honda,CTX Series,9,5,0,4,1.0,0.5556,0.7143
+Honda/CX Series,Honda,CX Series,15,5,1,10,0.8333,0.3333,0.4762
+Honda/Capa,Honda,Capa,69,67,0,2,1.0,0.971,0.9853
+Honda/City,Honda,City,377,369,14,8,0.9634,0.9788,0.9711
+Honda/Civic,Honda,Civic,363,342,21,21,0.9421,0.9421,0.9421
+Honda/Clarity,Honda,Clarity,50,49,0,1,1.0,0.98,0.9899
+Honda/Click,Honda,Click,65,47,13,18,0.7833,0.7231,0.752
+Honda/Concerto,Honda,Concerto,34,34,1,0,0.9714,1.0,0.9855
+Honda/Crider,Honda,Crider,19,17,0,2,1.0,0.8947,0.9444
+Honda/Crossroad,Honda,Crossroad,66,66,0,0,1.0,1.0,1.0
+Honda/Cub_Super Cub,Honda,Cub_Super Cub,27,14,2,13,0.875,0.5185,0.6512
+Honda/DN-01,Honda,DN-01,14,8,0,6,1.0,0.5714,0.7273
+Honda/Dio,Honda,Dio,75,52,6,23,0.8966,0.6933,0.782
+Honda/Domani,Honda,Domani,64,64,2,0,0.9697,1.0,0.9846
+Honda/Dream,Honda,Dream,76,69,22,7,0.7582,0.9079,0.8263
+Honda/Dylan,Honda,Dylan,7,2,1,5,0.6667,0.2857,0.4
+Honda/Edix,Honda,Edix,67,58,4,9,0.9355,0.8657,0.8992
+Honda/Element,Honda,Element,193,191,0,2,1.0,0.9896,0.9948
+Honda/Elysion,Honda,Elysion,263,259,3,4,0.9885,0.9848,0.9867
+Honda/FR-V,Honda,FR-V,111,106,9,5,0.9217,0.955,0.9381
+Honda/Fit,Honda,Fit,197,162,11,35,0.9364,0.8223,0.8757
+Honda/Foresight,Honda,Foresight,9,9,0,0,1.0,1.0,1.0
+Honda/Forza,Honda,Forza,96,80,15,16,0.8421,0.8333,0.8377
+Honda/Freed,Honda,Freed,138,137,1,1,0.9928,0.9928,0.9928
+Honda/Future,Honda,Future,37,26,12,11,0.6842,0.7027,0.6933
+Honda/Giorno,Honda,Giorno,10,8,0,2,1.0,0.8,0.8889
+Honda/Gold Wing,Honda,Gold Wing,214,199,13,15,0.9387,0.9299,0.9343
+Honda/Grace,Honda,Grace,12,10,0,2,1.0,0.8333,0.9091
+Honda/Gyro,Honda,Gyro,10,7,0,3,1.0,0.7,0.8235
+Honda/HR-V,Honda,HR-V,354,336,28,18,0.9231,0.9492,0.9359
+Honda/Innova,Honda,Innova,13,10,1,3,0.9091,0.7692,0.8333
+Honda/Insight,Honda,Insight,253,250,2,3,0.9921,0.9881,0.9901
+Honda/Inspire,Honda,Inspire,23,10,0,13,1.0,0.4348,0.6061
+Honda/Integra,Honda,Integra,214,208,25,6,0.8927,0.972,0.9306
+Honda/Integra SJ,Honda,Integra SJ,6,4,0,2,1.0,0.6667,0.8
+Honda/Jade,Honda,Jade,33,33,0,0,1.0,1.0,1.0
+Honda/Jazz,Honda,Jazz,267,257,47,10,0.8454,0.9625,0.9002
+Honda/Joker _ SRX,Honda,Joker _ SRX,4,3,0,1,1.0,0.75,0.8571
+Honda/Lead,Honda,Lead,96,76,17,20,0.8172,0.7917,0.8042
+Honda/Legend,Honda,Legend,99,97,5,2,0.951,0.9798,0.9652
+Honda/Life,Honda,Life,45,39,3,6,0.9286,0.8667,0.8966
+Honda/Logo,Honda,Logo,52,51,1,1,0.9808,0.9808,0.9808
+Honda/M-NV,Honda,M-NV,67,67,0,0,1.0,1.0,1.0
+Honda/MSX,Honda,MSX,18,4,1,14,0.8,0.2222,0.3478
+Honda/Mobilio,Honda,Mobilio,23,23,0,0,1.0,1.0,1.0
+Honda/Monkey,Honda,Monkey,10,6,3,4,0.6667,0.6,0.6316
+Honda/N BOX,Honda,N BOX,104,104,1,0,0.9905,1.0,0.9952
+Honda/N-ONE,Honda,N-ONE,31,31,0,0,1.0,1.0,1.0
+Honda/N-Series,Honda,N-Series,6,5,0,1,1.0,0.8333,0.9091
+Honda/N-Van,Honda,N-Van,13,13,0,0,1.0,1.0,1.0
+Honda/N-WGN,Honda,N-WGN,109,109,0,0,1.0,1.0,1.0
+Honda/NC Series,Honda,NC Series,78,57,12,21,0.8261,0.7308,0.7755
+Honda/NSR Series,Honda,NSR Series,8,4,0,4,1.0,0.5,0.6667
+Honda/NSX,Honda,NSX,59,58,0,1,1.0,0.9831,0.9915
+Honda/NT Series,Honda,NT Series,61,48,9,13,0.8421,0.7869,0.8136
+Honda/NTV 650,Honda,NTV 650,7,4,1,3,0.8,0.5714,0.6667
+Honda/NV Series,Honda,NV Series,25,6,2,19,0.75,0.24,0.3636
+Honda/NX Series,Honda,NX Series,41,12,2,29,0.8571,0.2927,0.4364
+Honda/Odyssey,Honda,Odyssey,304,290,8,14,0.9732,0.9539,0.9635
+Honda/Orthia,Honda,Orthia,36,36,2,0,0.9474,1.0,0.973
+Honda/PCX Series,Honda,PCX Series,78,52,12,26,0.8125,0.6667,0.7324
+Honda/PS Series,Honda,PS Series,5,3,0,2,1.0,0.6,0.75
+Honda/Pacific Coast,Honda,Pacific Coast,11,10,0,1,1.0,0.9091,0.9524
+Honda/Pantheon,Honda,Pantheon,10,8,0,2,1.0,0.8,0.8889
+Honda/Passport,Honda,Passport,65,64,0,1,1.0,0.9846,0.9922
+Honda/Pilot,Honda,Pilot,284,280,2,4,0.9929,0.9859,0.9894
+Honda/Prelude,Honda,Prelude,306,300,18,6,0.9434,0.9804,0.9615
+Honda/Prologue,Honda,Prologue,12,12,0,0,1.0,1.0,1.0
+Honda/Rafaga,Honda,Rafaga,11,9,6,2,0.6,0.8182,0.6923
+Honda/Ridgeline,Honda,Ridgeline,224,224,0,0,1.0,1.0,1.0
+Honda/S-MX,Honda,S-MX,67,66,1,1,0.9851,0.9851,0.9851
+Honda/S2000,Honda,S2000,140,139,2,1,0.9858,0.9929,0.9893
+Honda/S660,Honda,S660,31,31,0,0,1.0,1.0,1.0
+Honda/S800,Honda,S800,18,18,0,0,1.0,1.0,1.0
+Honda/SH Series,Honda,SH Series,264,246,87,18,0.7387,0.9318,0.8241
+Honda/SJ Series,Honda,SJ Series,2,1,0,1,1.0,0.5,0.6667
+Honda/ST Series,Honda,ST Series,62,48,3,14,0.9412,0.7742,0.8496
+Honda/Saber,Honda,Saber,56,52,6,4,0.8966,0.9286,0.9123
+Honda/Scoopy,Honda,Scoopy,49,37,8,12,0.8222,0.7551,0.7872
+Honda/Shuttle,Honda,Shuttle,49,45,12,4,0.7895,0.9184,0.8491
+Honda/Silver Wing,Honda,Silver Wing,63,55,0,8,1.0,0.873,0.9322
+Honda/Spacy,Honda,Spacy,21,16,7,5,0.6957,0.7619,0.7273
+Honda/Steed,Honda,Steed,115,99,34,16,0.7444,0.8609,0.7984
+Honda/Stepwgn,Honda,Stepwgn,96,95,0,1,1.0,0.9896,0.9948
+Honda/Stream,Honda,Stream,182,181,1,1,0.9945,0.9945,0.9945
+Honda/Street,Honda,Street,7,3,0,4,1.0,0.4286,0.6
+Honda/Supra,Honda,Supra,7,0,0,7,0.0,0.0,0.0
+Honda/Tact,Honda,Tact,16,13,5,3,0.7222,0.8125,0.7647
+Honda/That's,Honda,That's,3,2,0,1,1.0,0.6667,0.8
+Honda/Today,Honda,Today,7,7,1,0,0.875,1.0,0.9333
+Honda/Today (AF Series),Honda,Today (AF Series),11,9,3,2,0.75,0.8182,0.7826
+Honda/Torneo,Honda,Torneo,12,12,4,0,0.75,1.0,0.8571
+Honda/UR-V,Honda,UR-V,15,15,0,0,1.0,1.0,1.0
+Honda/VF Series,Honda,VF Series,48,30,12,18,0.7143,0.625,0.6667
+Honda/VFR Series,Honda,VFR Series,201,176,55,25,0.7619,0.8756,0.8148
+Honda/VRX400 Roadster,Honda,VRX400 Roadster,14,8,1,6,0.8889,0.5714,0.6957
+Honda/VT Series,Honda,VT Series,161,126,75,35,0.6269,0.7826,0.6961
+Honda/VTR Series,Honda,VTR Series,24,6,2,18,0.75,0.25,0.375
+Honda/VTX Series,Honda,VTX Series,166,137,39,29,0.7784,0.8253,0.8012
+Honda/Valkyrie,Honda,Valkyrie,64,46,7,18,0.8679,0.7188,0.7863
+Honda/Vamos,Honda,Vamos,19,14,0,5,1.0,0.7368,0.8485
+Honda/Vario,Honda,Vario,28,11,5,17,0.6875,0.3929,0.5
+Honda/Vezel,Honda,Vezel,147,121,12,26,0.9098,0.8231,0.8643
+Honda/Vigor,Honda,Vigor,14,9,0,5,1.0,0.6429,0.7826
+Honda/Vision,Honda,Vision,31,20,5,11,0.8,0.6452,0.7143
+Honda/WR-V,Honda,WR-V,27,27,0,0,1.0,1.0,1.0
+Honda/Wave,Honda,Wave,16,7,0,9,1.0,0.4375,0.6087
+Honda/Win,Honda,Win,4,1,0,3,1.0,0.25,0.4
+Honda/Winner,Honda,Winner,10,6,2,4,0.75,0.6,0.6667
+Honda/X-ADV,Honda,X-ADV,47,41,6,6,0.8723,0.8723,0.8723
+Honda/XR-V,Honda,XR-V,16,12,0,4,1.0,0.75,0.8571
+Honda/XR_XL Series,Honda,XR_XL Series,291,249,60,42,0.8058,0.8557,0.83
+Honda/Z,Honda,Z,21,21,0,0,1.0,1.0,1.0
+Honda/ZR-V,Honda,ZR-V,69,68,9,1,0.8831,0.9855,0.9315
+Honda/Zest,Honda,Zest,22,22,0,0,1.0,1.0,1.0
+Honda/Zoomer,Honda,Zoomer,4,4,0,0,1.0,1.0,1.0
+Honda/e,Honda,e,63,63,0,0,1.0,1.0,1.0
+Honda/e_NP1,Honda,e_NP1,18,15,0,3,1.0,0.8333,0.9091
+Honda/e_NP2,Honda,e_NP2,13,13,0,0,1.0,1.0,1.0
+Honda/e_NS1,Honda,e_NS1,82,82,14,0,0.8542,1.0,0.9213
+Honda/e_Ny1,Honda,e_Ny1,20,10,0,10,1.0,0.5,0.6667
+Hyundai/Accent,Hyundai,Accent,112,96,11,16,0.8972,0.8571,0.8767
+Hyundai/Aero City,Hyundai,Aero City,8,8,1,0,0.8889,1.0,0.9412
+Hyundai/Aero Space,Hyundai,Aero Space,6,6,1,0,0.8571,1.0,0.9231
+Hyundai/Aero Town,Hyundai,Aero Town,4,3,0,1,1.0,0.75,0.8571
+Hyundai/Atos,Hyundai,Atos,40,40,1,0,0.9756,1.0,0.9877
+Hyundai/Atoz,Hyundai,Atoz,3,2,0,1,1.0,0.6667,0.8
+Hyundai/Avante,Hyundai,Avante,33,17,1,16,0.9444,0.5152,0.6667
+Hyundai/Azera,Hyundai,Azera,32,25,11,7,0.6944,0.7812,0.7353
+Hyundai/Bayon,Hyundai,Bayon,36,36,0,0,1.0,1.0,1.0
+Hyundai/County,Hyundai,County,13,13,0,0,1.0,1.0,1.0
+Hyundai/Coupé,Hyundai,Coupé,48,48,1,0,0.9796,1.0,0.9897
+Hyundai/Creta,Hyundai,Creta,18,18,0,0,1.0,1.0,1.0
+Hyundai/Elantra,Hyundai,Elantra,88,83,19,5,0.8137,0.9432,0.8737
+Hyundai/Entourage,Hyundai,Entourage,9,9,0,0,1.0,1.0,1.0
+Hyundai/Equus,Hyundai,Equus,10,8,0,2,1.0,0.8,0.8889
+Hyundai/Excel,Hyundai,Excel,15,10,0,5,1.0,0.6667,0.8
+Hyundai/Galloper,Hyundai,Galloper,33,30,2,3,0.9375,0.9091,0.9231
+Hyundai/Genesis,Hyundai,Genesis,80,80,1,0,0.9877,1.0,0.9938
+Hyundai/Genesis Coupe,Hyundai,Genesis Coupe,87,87,0,0,1.0,1.0,1.0
+Hyundai/Getz,Hyundai,Getz,52,51,0,1,1.0,0.9808,0.9903
+Hyundai/Grace,Hyundai,Grace,8,8,0,0,1.0,1.0,1.0
+Hyundai/Grand Starex,Hyundai,Grand Starex,23,12,6,11,0.6667,0.5217,0.5854
+Hyundai/Grandeur,Hyundai,Grandeur,39,26,7,13,0.7879,0.6667,0.7222
+Hyundai/H-1,Hyundai,H-1,37,29,11,8,0.725,0.7838,0.7532
+Hyundai/Santa Fe,Hyundai,Santa Fe,159,154,1,5,0.9935,0.9686,0.9809
+Hyundai/Solaris,Hyundai,Solaris,113,106,13,7,0.8908,0.9381,0.9138
+Hyundai/Tucson,Hyundai,Tucson,188,185,6,3,0.9686,0.984,0.9763
+Infiniti/I-Series,Infiniti,I-Series,83,74,3,9,0.961,0.8916,0.925
+Infiniti/J30,Infiniti,J30,9,9,1,0,0.9,1.0,0.9474
+Infiniti/Q30,Infiniti,Q30,26,25,1,1,0.9615,0.9615,0.9615
+Infiniti/Q40_Q50_Q60_G-Series,Infiniti,Q40_Q50_Q60_G-Series,284,266,17,18,0.9399,0.9366,0.9383
+Infiniti/Q45,Infiniti,Q45,36,33,3,3,0.9167,0.9167,0.9167
+Infiniti/Q70_M-Series,Infiniti,Q70_M-Series,167,161,18,6,0.8994,0.9641,0.9306
+Infiniti/QX30,Infiniti,QX30,95,93,0,2,1.0,0.9789,0.9894
+Infiniti/QX4,Infiniti,QX4,77,77,3,0,0.9625,1.0,0.9809
+Infiniti/QX50_EX-Series,Infiniti,QX50_EX-Series,119,112,2,7,0.9825,0.9412,0.9614
+Infiniti/QX55,Infiniti,QX55,33,33,1,0,0.9706,1.0,0.9851
+Infiniti/QX60_JX-Series,Infiniti,QX60_JX-Series,216,216,9,0,0.96,1.0,0.9796
+Infiniti/QX70_FX-Series,Infiniti,QX70_FX-Series,85,83,2,2,0.9765,0.9765,0.9765
+Infiniti/QX80_QX56,Infiniti,QX80_QX56,185,185,1,0,0.9946,1.0,0.9973
+Isuzu/810,Isuzu,810,102,96,4,6,0.96,0.9412,0.9505
+Isuzu/Amigo,Isuzu,Amigo,3,3,0,0,1.0,1.0,1.0
+Isuzu/Ascender,Isuzu,Ascender,11,11,0,0,1.0,1.0,1.0
+Isuzu/Axiom,Isuzu,Axiom,15,14,0,1,1.0,0.9333,0.9655
+Isuzu/Bighorn,Isuzu,Bighorn,9,8,0,1,1.0,0.8889,0.9412
+Isuzu/C_E-Series,Isuzu,C_E-Series,7,7,0,0,1.0,1.0,1.0
+Isuzu/Citibus,Isuzu,Citibus,8,6,0,2,1.0,0.75,0.8571
+Isuzu/Citiport,Isuzu,Citiport,12,12,1,0,0.9231,1.0,0.96
+Isuzu/D-Max,Isuzu,D-Max,70,65,3,5,0.9559,0.9286,0.942
+Isuzu/Elf,Isuzu,Elf,50,31,6,19,0.8378,0.62,0.7126
+Isuzu/F-Series,Isuzu,F-Series,21,12,3,9,0.8,0.5714,0.6667
+Isuzu/Forward,Isuzu,Forward,8,2,2,6,0.5,0.25,0.3333
+Isuzu/Gemini,Isuzu,Gemini,9,3,0,6,1.0,0.3333,0.5
+Isuzu/Giga,Isuzu,Giga,5,2,1,3,0.6667,0.4,0.5
+Isuzu/KB,Isuzu,KB,8,6,0,2,1.0,0.75,0.8571
+Isuzu/MU-X,Isuzu,MU-X,10,10,0,0,1.0,1.0,1.0
+Isuzu/Midi,Isuzu,Midi,9,9,0,0,1.0,1.0,1.0
+Isuzu/N-Series,Isuzu,N-Series,128,110,43,18,0.719,0.8594,0.7829
+Jeep/Avenger,Jeep,Avenger,230,228,0,2,1.0,0.9913,0.9956
+Jeep/CJ-Series,Jeep,CJ-Series,98,90,15,8,0.8571,0.9184,0.8867
+Jeep/Cherokee,Jeep,Cherokee,292,270,12,22,0.9574,0.9247,0.9408
+Jeep/Comanche,Jeep,Comanche,8,7,1,1,0.875,0.875,0.875
+Jeep/Commander,Jeep,Commander,184,177,0,7,1.0,0.962,0.9806
+Jeep/Compass,Jeep,Compass,232,231,8,1,0.9665,0.9957,0.9809
+Jeep/Gladiator,Jeep,Gladiator,161,148,15,13,0.908,0.9193,0.9136
+Jeep/Grand Cherokee,Jeep,Grand Cherokee,291,287,9,4,0.9696,0.9863,0.9779
+Jeep/Grand Wagoneer,Jeep,Grand Wagoneer,58,58,7,0,0.8923,1.0,0.9431
+Jeep/J-Series,Jeep,J-Series,5,3,2,2,0.6,0.6,0.6
+Jeep/Liberty,Jeep,Liberty,197,176,30,21,0.8544,0.8934,0.8734
+Jeep/Patriot,Jeep,Patriot,236,218,19,18,0.9198,0.9237,0.9218
+Jeep/Renegade,Jeep,Renegade,172,171,0,1,1.0,0.9942,0.9971
+Jeep/Wagoneer,Jeep,Wagoneer,85,77,1,8,0.9872,0.9059,0.9448
+Jeep/Wrangler,Jeep,Wrangler,201,179,13,22,0.9323,0.8905,0.9109
+Kia/AM818 Cosmos,Kia,AM818 Cosmos,32,27,8,5,0.7714,0.8438,0.806
+Kia/Amanti,Kia,Amanti,7,5,0,2,1.0,0.7143,0.8333
+Kia/Avella,Kia,Avella,87,86,1,1,0.9885,0.9885,0.9885
+Kia/Besta,Kia,Besta,90,88,1,2,0.9888,0.9778,0.9832
+Kia/Bongo,Kia,Bongo,37,13,7,24,0.65,0.3514,0.4561
+Kia/Borrego,Kia,Borrego,14,11,2,3,0.8462,0.7857,0.8148
+Kia/Cadenza,Kia,Cadenza,51,46,12,5,0.7931,0.902,0.844
+Kia/Capital,Kia,Capital,3,3,1,0,0.75,1.0,0.8571
+Kia/Carens,Kia,Carens,120,115,11,5,0.9127,0.9583,0.935
+Kia/Carnival,Kia,Carnival,247,233,28,14,0.8927,0.9433,0.9173
+Kia/Ceed,Kia,Ceed,149,142,7,7,0.953,0.953,0.953
+Kia/Cerato,Kia,Cerato,96,49,3,47,0.9423,0.5104,0.6622
+Kia/Cerato Koup,Kia,Cerato Koup,185,185,18,0,0.9113,1.0,0.9536
+Kia/Ceres,Kia,Ceres,5,4,1,1,0.8,0.8,0.8
+Kia/Clarus,Kia,Clarus,137,136,12,1,0.9189,0.9927,0.9544
+Kia/Combi,Kia,Combi,29,29,0,0,1.0,1.0,1.0
+Kia/Credos,Kia,Credos,8,0,0,8,0.0,0.0,0.0
+Kia/EV3,Kia,EV3,97,96,2,1,0.9796,0.9897,0.9846
+Kia/EV4,Kia,EV4,21,21,0,0,1.0,1.0,1.0
+Kia/EV5,Kia,EV5,16,16,1,0,0.9412,1.0,0.9697
+Kia/EV6,Kia,EV6,280,277,3,3,0.9893,0.9893,0.9893
+Kia/EV9,Kia,EV9,120,116,0,4,1.0,0.9667,0.9831
+Kia/Forte,Kia,Forte,299,274,57,25,0.8278,0.9164,0.8698
+Kia/Granbird,Kia,Granbird,118,118,2,0,0.9833,1.0,0.9916
+Kia/Granto,Kia,Granto,13,11,1,2,0.9167,0.8462,0.88
+Kia/Joice,Kia,Joice,39,39,0,0,1.0,1.0,1.0
+Kia/K-Series Trucks,Kia,K-Series Trucks,113,95,42,18,0.6934,0.8407,0.76
+Kia/K2,Kia,K2,18,18,0,0,1.0,1.0,1.0
+Kia/K3,Kia,K3,97,74,21,23,0.7789,0.7629,0.7708
+Kia/K4,Kia,K4,24,24,0,0,1.0,1.0,1.0
+Kia/K5,Kia,K5,94,75,7,19,0.9146,0.7979,0.8523
+Kia/K7,Kia,K7,71,58,5,13,0.9206,0.8169,0.8657
+Kia/K8,Kia,K8,34,34,0,0,1.0,1.0,1.0
+Kia/K9,Kia,K9,21,19,0,2,1.0,0.9048,0.95
+Kia/K900,Kia,K900,91,89,3,2,0.9674,0.978,0.9727
+Kia/KX1,Kia,KX1,3,3,0,0,1.0,1.0,1.0
+Kia/KX3,Kia,KX3,10,4,0,6,1.0,0.4,0.5714
+Kia/Magentis,Kia,Magentis,43,42,8,1,0.84,0.9767,0.9032
+Kia/Mohave,Kia,Mohave,16,14,3,2,0.8235,0.875,0.8485
+Kia/Morning,Kia,Morning,135,125,21,10,0.8562,0.9259,0.8897
+Kia/New Cosmos,Kia,New Cosmos,18,11,5,7,0.6875,0.6111,0.6471
+Kia/Niro,Kia,Niro,317,314,6,3,0.9812,0.9905,0.9859
+Kia/Opirus,Kia,Opirus,175,174,3,1,0.9831,0.9943,0.9886
+Kia/Optima,Kia,Optima,188,173,18,15,0.9058,0.9202,0.9129
+Kia/PV5,Kia,PV5,9,9,0,0,1.0,1.0,1.0
+Kia/Pegas,Kia,Pegas,7,5,2,2,0.7143,0.7143,0.7143
+Kia/Picanto,Kia,Picanto,146,125,11,21,0.9191,0.8562,0.8865
+Kia/Pregio,Kia,Pregio,85,84,0,1,1.0,0.9882,0.9941
+Kia/Pride,Kia,Pride,108,102,9,6,0.9189,0.9444,0.9315
+Kia/Qianlima,Kia,Qianlima,4,3,0,1,1.0,0.75,0.8571
+Kia/Quoris,Kia,Quoris,127,126,3,1,0.9767,0.9921,0.9844
+Kia/Ray,Kia,Ray,26,26,0,0,1.0,1.0,1.0
+Kia/Retona,Kia,Retona,55,55,0,0,1.0,1.0,1.0
+Kia/Rhino,Kia,Rhino,14,8,0,6,1.0,0.5714,0.7273
+Kia/Rio,Kia,Rio,131,130,7,1,0.9489,0.9924,0.9701
+Kia/Rondo,Kia,Rondo,21,11,3,10,0.7857,0.5238,0.6286
+Kia/Sedona,Kia,Sedona,140,112,15,28,0.8819,0.8,0.839
+Kia/Seltos,Kia,Seltos,67,65,6,2,0.9155,0.9701,0.942
+Kia/Sephia,Kia,Sephia,197,183,9,14,0.9531,0.9289,0.9409
+Kia/Shuma,Kia,Shuma,185,176,7,9,0.9617,0.9514,0.9565
+Kia/Soluto,Kia,Soluto,19,17,2,2,0.8947,0.8947,0.8947
+Kia/Sonet,Kia,Sonet,59,59,1,0,0.9833,1.0,0.9916
+Kia/Sorento,Kia,Sorento,247,244,2,3,0.9919,0.9879,0.9899
+Kia/Soul,Kia,Soul,273,271,1,2,0.9963,0.9927,0.9945
+Kia/Spectra,Kia,Spectra,49,43,9,6,0.8269,0.8776,0.8515
+Kia/Sportage,Kia,Sportage,176,174,4,2,0.9775,0.9886,0.9831
+Kia/Stinger,Kia,Stinger,96,95,1,1,0.9896,0.9896,0.9896
+Kia/Stonic,Kia,Stonic,121,121,0,0,1.0,1.0,1.0
+Kia/Telluride,Kia,Telluride,108,107,0,1,1.0,0.9907,0.9953
+Kia/Venga,Kia,Venga,68,67,0,1,1.0,0.9853,0.9926
+Kia/Visto,Kia,Visto,13,12,0,1,1.0,0.9231,0.96
+Land Rover/Range Rover,Land Rover,Range Rover,200,200,2,0,0.9901,1.0,0.995
+Land Rover/Range Rover Sport,Land Rover,Range Rover Sport,157,154,0,3,1.0,0.9809,0.9904
+Lexus/CT,Lexus,CT,261,261,1,0,0.9962,1.0,0.9981
+Lexus/ES,Lexus,ES,162,153,5,9,0.9684,0.9444,0.9562
+Lexus/GS,Lexus,GS,124,118,1,6,0.9916,0.9516,0.9712
+Lexus/GX,Lexus,GX,165,163,1,2,0.9939,0.9879,0.9909
+Lexus/HS,Lexus,HS,69,68,0,1,1.0,0.9855,0.9927
+Lexus/IS,Lexus,IS,171,149,5,22,0.9675,0.8713,0.9169
+Lexus/LBX,Lexus,LBX,105,105,0,0,1.0,1.0,1.0
+Lexus/LC,Lexus,LC,156,156,0,0,1.0,1.0,1.0
+Lexus/LFA,Lexus,LFA,9,9,0,0,1.0,1.0,1.0
+Lexus/LM,Lexus,LM,104,104,0,0,1.0,1.0,1.0
+Lexus/LS,Lexus,LS,245,239,5,6,0.9795,0.9755,0.9775
+Lexus/LX,Lexus,LX,161,155,7,6,0.9568,0.9627,0.9598
+Lexus/NX,Lexus,NX,193,190,7,3,0.9645,0.9845,0.9744
+Lexus/RC,Lexus,RC,184,181,2,3,0.9891,0.9837,0.9864
+Lexus/RX,Lexus,RX,234,228,8,6,0.9661,0.9744,0.9702
+Lexus/RZ,Lexus,RZ,49,49,0,0,1.0,1.0,1.0
+Lexus/SC,Lexus,SC,250,241,13,9,0.9488,0.964,0.9563
+Lexus/TX,Lexus,TX,23,23,0,0,1.0,1.0,1.0
+Lexus/UX,Lexus,UX,309,303,2,6,0.9934,0.9806,0.987
+Lincoln/Aviator,Lincoln,Aviator,120,118,0,2,1.0,0.9833,0.9916
+Lincoln/MKX,Lincoln,MKX,139,139,0,0,1.0,1.0,1.0
+Lincoln/Town Car,Lincoln,Town Car,208,204,4,4,0.9808,0.9808,0.9808
+MINI/Countryman,MINI,Countryman,235,231,10,4,0.9585,0.983,0.9706
+MINI/Hatch,MINI,Hatch,269,265,4,4,0.9851,0.9851,0.9851
+MINI/Paceman,MINI,Paceman,138,129,4,9,0.9699,0.9348,0.952
+Mazda/121,Mazda,121,135,126,10,9,0.9265,0.9333,0.9299
+Mazda/2,Mazda,2,347,340,40,7,0.8947,0.9798,0.9354
+Mazda/3,Mazda,3,244,226,17,18,0.93,0.9262,0.9281
+Mazda/323,Mazda,323,247,227,63,20,0.7828,0.919,0.8454
+Mazda/5,Mazda,5,336,332,21,4,0.9405,0.9881,0.9637
+Mazda/6,Mazda,6,220,212,21,8,0.9099,0.9636,0.936
+Mazda/626,Mazda,626,169,138,25,31,0.8466,0.8166,0.8313
+Mazda/8,Mazda,8,53,48,5,5,0.9057,0.9057,0.9057
+Mazda/818,Mazda,818,5,3,0,2,1.0,0.6,0.75
+Mazda/929,Mazda,929,126,119,29,7,0.8041,0.9444,0.8686
+Mazda/AZ-Wagon,Mazda,AZ-Wagon,11,8,0,3,1.0,0.7273,0.8421
+Mazda/Atenza,Mazda,Atenza,133,117,4,16,0.9669,0.8797,0.9213
+Mazda/Axela,Mazda,Axela,130,120,18,10,0.8696,0.9231,0.8955
+Mazda/B-Series,Mazda,B-Series,212,207,23,5,0.9,0.9764,0.9367
+Mazda/BT-50,Mazda,BT-50,114,107,1,7,0.9907,0.9386,0.964
+Mazda/Biante,Mazda,Biante,52,52,0,0,1.0,1.0,1.0
+Mazda/Bongo,Mazda,Bongo,110,88,25,22,0.7788,0.8,0.7892
+Mazda/Bongo Friendee,Mazda,Bongo Friendee,165,164,4,1,0.9762,0.9939,0.985
+Mazda/CX-3,Mazda,CX-3,308,301,1,7,0.9967,0.9773,0.9869
+Mazda/CX-30,Mazda,CX-30,299,299,3,0,0.9901,1.0,0.995
+Mazda/CX-4,Mazda,CX-4,49,48,1,1,0.9796,0.9796,0.9796
+Mazda/CX-5,Mazda,CX-5,160,159,5,1,0.9695,0.9938,0.9815
+Mazda/CX-50,Mazda,CX-50,11,11,1,0,0.9167,1.0,0.9565
+Mazda/CX-60,Mazda,CX-60,193,190,8,3,0.9596,0.9845,0.9719
+Mazda/CX-7,Mazda,CX-7,203,201,1,2,0.995,0.9901,0.9926
+Mazda/CX-8,Mazda,CX-8,44,43,3,1,0.9348,0.9773,0.9556
+Mazda/CX-80,Mazda,CX-80,18,13,2,5,0.8667,0.7222,0.7879
+Mazda/CX-9,Mazda,CX-9,241,238,0,3,1.0,0.9876,0.9937
+Mazda/CX-90,Mazda,CX-90,37,35,0,2,1.0,0.9459,0.9722
+Mazda/Capella,Mazda,Capella,132,110,23,22,0.8271,0.8333,0.8302
+Mazda/Carol,Mazda,Carol,14,13,0,1,1.0,0.9286,0.963
+Mazda/Cosmo,Mazda,Cosmo,11,5,1,6,0.8333,0.4545,0.5882
+Mazda/Cronos,Mazda,Cronos,5,1,0,4,1.0,0.2,0.3333
+Mazda/Demio,Mazda,Demio,90,54,2,36,0.9643,0.6,0.7397
+Mazda/E-Series,Mazda,E-Series,143,129,11,14,0.9214,0.9021,0.9117
+Mazda/EZ-6,Mazda,EZ-6,15,15,2,0,0.8824,1.0,0.9375
+Mazda/EZ-60,Mazda,EZ-60,5,4,0,1,1.0,0.8,0.8889
+Mazda/Familia,Mazda,Familia,149,98,24,51,0.8033,0.6577,0.7232
+Mazda/Familia Van,Mazda,Familia Van,63,39,6,24,0.8667,0.619,0.7222
+Mazda/Flair,Mazda,Flair,6,6,2,0,0.75,1.0,0.8571
+Mazda/Flair Crossover,Mazda,Flair Crossover,7,7,0,0,1.0,1.0,1.0
+Mazda/Lantis,Mazda,Lantis,8,4,0,4,1.0,0.5,0.6667
+Mazda/Luce,Mazda,Luce,19,7,2,12,0.7778,0.3684,0.5
+Mazda/MPV,Mazda,MPV,217,211,8,6,0.9635,0.9724,0.9679
+Mazda/MX-3,Mazda,MX-3,118,118,1,0,0.9916,1.0,0.9958
+Mazda/MX-30,Mazda,MX-30,130,130,0,0,1.0,1.0,1.0
+Mazda/MX-5_Miata,Mazda,MX-5_Miata,365,346,36,19,0.9058,0.9479,0.9264
+Mazda/MX-6,Mazda,MX-6,59,56,2,3,0.9655,0.9492,0.9573
+Mazda/Millenia,Mazda,Millenia,25,14,0,11,1.0,0.56,0.7179
+Mazda/Persona,Mazda,Persona,9,9,0,0,1.0,1.0,1.0
+Mazda/Premacy,Mazda,Premacy,247,227,2,20,0.9913,0.919,0.9538
+Mazda/Proceed,Mazda,Proceed,11,5,0,6,1.0,0.4545,0.625
+Mazda/Proceed Levante,Mazda,Proceed Levante,17,15,0,2,1.0,0.8824,0.9375
+Mazda/Proceed Marvie,Mazda,Proceed Marvie,31,29,1,2,0.9667,0.9355,0.9508
+Mazda/Protegé,Mazda,Protegé,29,10,1,19,0.9091,0.3448,0.5
+Mazda/RX-7,Mazda,RX-7,187,179,15,8,0.9227,0.9572,0.9396
+Mazda/RX-8,Mazda,RX-8,219,219,4,0,0.9821,1.0,0.991
+Mazda/Revue,Mazda,Revue,6,0,0,6,0.0,0.0,0.0
+Mazda/Roadster,Mazda,Roadster,83,49,19,34,0.7206,0.5904,0.649
+Mazda/Scrum,Mazda,Scrum,7,3,0,4,1.0,0.4286,0.6
+Mazda/Sentia,Mazda,Sentia,9,8,2,1,0.8,0.8889,0.8421
+Mazda/Titan,Mazda,Titan,133,127,18,6,0.8759,0.9549,0.9137
+Mazda/Tribute,Mazda,Tribute,219,217,0,2,1.0,0.9909,0.9954
+Mazda/Verisa,Mazda,Verisa,44,42,0,2,1.0,0.9545,0.9767
+Mazda/Xedos 6,Mazda,Xedos 6,129,125,1,4,0.9921,0.969,0.9804
+Mazda/Xedos 9,Mazda,Xedos 9,83,83,12,0,0.8737,1.0,0.9326
+Mitsubishi/ASX,Mitsubishi,ASX,192,192,2,0,0.9897,1.0,0.9948
+Mitsubishi/Canter,Mitsubishi,Canter,71,62,10,9,0.8611,0.8732,0.8671
+Mitsubishi/Carisma,Mitsubishi,Carisma,163,163,2,0,0.9879,1.0,0.9939
+Mitsubishi/Colt,Mitsubishi,Colt,155,151,4,4,0.9742,0.9742,0.9742
+Mitsubishi/Delica,Mitsubishi,Delica,161,154,1,7,0.9935,0.9565,0.9747
+Mitsubishi/Galant,Mitsubishi,Galant,135,123,11,12,0.9179,0.9111,0.9145
+Mitsubishi/L200,Mitsubishi,L200,111,88,16,23,0.8462,0.7928,0.8186
+Mitsubishi/Lancer,Mitsubishi,Lancer,161,145,14,16,0.9119,0.9006,0.9062
+Mitsubishi/Lancer Evolution,Mitsubishi,Lancer Evolution,184,173,9,11,0.9505,0.9402,0.9454
+Mitsubishi/Legnum,Mitsubishi,Legnum,16,15,6,1,0.7143,0.9375,0.8108
+Mitsubishi/Mirage Dingo,Mitsubishi,Mirage Dingo,113,111,0,2,1.0,0.9823,0.9911
+Mitsubishi/Outlander,Mitsubishi,Outlander,218,215,1,3,0.9954,0.9862,0.9908
+Mitsubishi/Pajero,Mitsubishi,Pajero,229,227,8,2,0.966,0.9913,0.9784
+Mitsubishi/Pajero Sport,Mitsubishi,Pajero Sport,175,173,4,2,0.9774,0.9886,0.983
+Mitsubishi/Space Runner,Mitsubishi,Space Runner,142,141,2,1,0.986,0.993,0.9895
+Mitsubishi/Space Star,Mitsubishi,Space Star,231,229,2,2,0.9913,0.9913,0.9913
+Mitsubishi/Triton,Mitsubishi,Triton,111,97,16,14,0.8584,0.8739,0.8661
+Nissan/100NX,Nissan,100NX,74,73,18,1,0.8022,0.9865,0.8848
+Nissan/180SX,Nissan,180SX,30,13,10,17,0.5652,0.4333,0.4906
+Nissan/200SX,Nissan,200SX,280,246,50,34,0.8311,0.8786,0.8542
+Nissan/240SX,Nissan,240SX,58,38,13,20,0.7451,0.6552,0.6972
+Nissan/300ZX,Nissan,300ZX,66,61,11,5,0.8472,0.9242,0.8841
+Nissan/350Z,Nissan,350Z,298,291,18,7,0.9417,0.9765,0.9588
+Nissan/370Z,Nissan,370Z,247,243,3,4,0.9878,0.9838,0.9858
+Nissan/AD,Nissan,AD,113,101,26,12,0.7953,0.8938,0.8417
+Nissan/Almera,Nissan,Almera,156,145,4,11,0.9732,0.9295,0.9508
+Nissan/Almera Tino,Nissan,Almera Tino,94,90,2,4,0.9783,0.9574,0.9677
+Nissan/Altima,Nissan,Altima,237,231,10,6,0.9585,0.9747,0.9665
+Nissan/Ariya,Nissan,Ariya,75,75,0,0,1.0,1.0,1.0
+Nissan/Armada,Nissan,Armada,54,40,0,14,1.0,0.7407,0.8511
+Nissan/Atlas,Nissan,Atlas,110,96,35,14,0.7328,0.8727,0.7967
+Nissan/Atleon,Nissan,Atleon,36,27,2,9,0.931,0.75,0.8308
+Nissan/Auster,Nissan,Auster,5,1,0,4,1.0,0.2,0.3333
+Nissan/Avenir,Nissan,Avenir,10,1,0,9,1.0,0.1,0.1818
+Nissan/Bassara,Nissan,Bassara,87,84,0,3,1.0,0.9655,0.9825
+Nissan/Bluebird,Nissan,Bluebird,231,216,49,15,0.8151,0.9351,0.871
+Nissan/Bluebird Sylphy,Nissan,Bluebird Sylphy,120,118,11,2,0.9147,0.9833,0.9478
+Nissan/Cabstar,Nissan,Cabstar,88,67,23,21,0.7444,0.7614,0.7528
+Nissan/Caravan,Nissan,Caravan,74,33,12,41,0.7333,0.4459,0.5546
+Nissan/Cedric,Nissan,Cedric,38,16,7,22,0.6957,0.4211,0.5246
+Nissan/Cefiro,Nissan,Cefiro,135,125,35,10,0.7812,0.9259,0.8475
+Nissan/Cherry,Nissan,Cherry,38,29,13,9,0.6905,0.7632,0.725
+Nissan/Cherry Vanette,Nissan,Cherry Vanette,9,2,0,7,1.0,0.2222,0.3636
+Nissan/Cima,Nissan,Cima,38,27,4,11,0.871,0.7105,0.7826
+Nissan/Civilian,Nissan,Civilian,43,43,0,0,1.0,1.0,1.0
+Nissan/Clipper,Nissan,Clipper,15,12,1,3,0.9231,0.8,0.8571
+Nissan/Cube,Nissan,Cube,53,53,0,0,1.0,1.0,1.0
+Nissan/DAYZ,Nissan,DAYZ,71,70,0,1,1.0,0.9859,0.9929
+Nissan/DAYZ Roox,Nissan,DAYZ Roox,21,20,0,1,1.0,0.9524,0.9756
+Nissan/Datsun,Nissan,Datsun,15,3,6,12,0.3333,0.2,0.25
+Nissan/Datsun Vanette,Nissan,Datsun Vanette,10,0,1,10,0.0,0.0,0.0
+Nissan/Diesel Big Thumb,Nissan,Diesel Big Thumb,10,7,0,3,1.0,0.7,0.8235
+Nissan/Diesel C-Series,Nissan,Diesel C-Series,6,5,0,1,1.0,0.8333,0.9091
+Nissan/Diesel Condor,Nissan,Diesel Condor,130,110,49,20,0.6918,0.8462,0.7612
+Nissan/Dualis,Nissan,Dualis,57,56,0,1,1.0,0.9825,0.9912
+Nissan/Eco,Nissan,Eco,55,45,2,10,0.9574,0.8182,0.8824
+Nissan/Elgrand,Nissan,Elgrand,52,52,1,0,0.9811,1.0,0.9905
+Nissan/Evalia,Nissan,Evalia,8,1,0,7,1.0,0.125,0.2222
+Nissan/Expert,Nissan,Expert,107,105,7,2,0.9375,0.9813,0.9589
+Nissan/Fairlady Z,Nissan,Fairlady Z,37,5,1,32,0.8333,0.1351,0.2326
+Nissan/Figaro,Nissan,Figaro,90,90,0,0,1.0,1.0,1.0
+Nissan/Frontier,Nissan,Frontier,154,122,7,32,0.9457,0.7922,0.8622
+Nissan/Fuga,Nissan,Fuga,156,138,6,18,0.9583,0.8846,0.92
+Nissan/GT-R,Nissan,GT-R,315,313,3,2,0.9905,0.9937,0.9921
+Nissan/Gloria,Nissan,Gloria,117,104,29,13,0.782,0.8889,0.832
+Nissan/Homy,Nissan,Homy,30,20,12,10,0.625,0.6667,0.6452
+Nissan/Interstar,Nissan,Interstar,86,68,7,18,0.9067,0.7907,0.8447
+Nissan/Juke,Nissan,Juke,214,213,1,1,0.9953,0.9953,0.9953
+Nissan/Kicks,Nissan,Kicks,188,187,0,1,1.0,0.9947,0.9973
+Nissan/Kix,Nissan,Kix,15,14,0,1,1.0,0.9333,0.9655
+Nissan/Kubistar,Nissan,Kubistar,45,44,0,1,1.0,0.9778,0.9888
+Nissan/Lafesta,Nissan,Lafesta,45,44,0,1,1.0,0.9778,0.9888
+Nissan/Langley,Nissan,Langley,16,13,1,3,0.9286,0.8125,0.8667
+Nissan/Lannia,Nissan,Lannia,5,5,0,0,1.0,1.0,1.0
+Nissan/Largo,Nissan,Largo,65,60,0,5,1.0,0.9231,0.96
+Nissan/Latio,Nissan,Latio,14,9,1,5,0.9,0.6429,0.75
+Nissan/Laurel,Nissan,Laurel,161,154,24,7,0.8652,0.9565,0.9086
+Nissan/Laurel Altima,Nissan,Laurel Altima,4,4,2,0,0.6667,1.0,0.8
+Nissan/Laurel Spirit,Nissan,Laurel Spirit,6,3,2,3,0.6,0.5,0.5455
+Nissan/Leaf,Nissan,Leaf,173,169,2,4,0.9883,0.9769,0.9826
+Nissan/Leopard,Nissan,Leopard,20,14,0,6,1.0,0.7,0.8235
+Nissan/Liberta Villa,Nissan,Liberta Villa,9,6,3,3,0.6667,0.6667,0.6667
+Nissan/Liberty,Nissan,Liberty,4,4,0,0,1.0,1.0,1.0
+Nissan/Livina,Nissan,Livina,67,66,1,1,0.9851,0.9851,0.9851
+Nissan/Lucino,Nissan,Lucino,11,5,3,6,0.625,0.4545,0.5263
+Nissan/Magnite,Nissan,Magnite,9,9,0,0,1.0,1.0,1.0
+Nissan/March,Nissan,March,141,109,10,32,0.916,0.773,0.8385
+Nissan/Maxima,Nissan,Maxima,108,77,5,31,0.939,0.713,0.8105
+Nissan/Micra,Nissan,Micra,222,206,36,16,0.8512,0.9279,0.8879
+Nissan/Mistral,Nissan,Mistral,50,37,5,13,0.881,0.74,0.8043
+Nissan/Moco,Nissan,Moco,38,37,2,1,0.9487,0.9737,0.961
+Nissan/Murano,Nissan,Murano,72,71,0,1,1.0,0.9861,0.993
+Nissan/NP300,Nissan,NP300,85,66,53,19,0.5546,0.7765,0.6471
+Nissan/NT300_400,Nissan,NT300_400,40,29,8,11,0.7838,0.725,0.7532
+Nissan/NV,Nissan,NV,2,2,0,0,1.0,1.0,1.0
+Nissan/NV Cargo,Nissan,NV Cargo,23,22,2,1,0.9167,0.9565,0.9362
+Nissan/NV Passenger,Nissan,NV Passenger,10,8,1,2,0.8889,0.8,0.8421
+Nissan/NV100 Clipper,Nissan,NV100 Clipper,38,37,3,1,0.925,0.9737,0.9487
+Nissan/NV200,Nissan,NV200,353,350,14,3,0.9615,0.9915,0.9763
+Nissan/NV250,Nissan,NV250,6,5,0,1,1.0,0.8333,0.9091
+Nissan/NV300,Nissan,NV300,42,35,10,7,0.7778,0.8333,0.8046
+Nissan/NV400,Nissan,NV400,91,80,23,11,0.7767,0.8791,0.8247
+Nissan/NX Coupé,Nissan,NX Coupé,17,0,0,17,0.0,0.0,0.0
+Nissan/Navara,Nissan,Navara,262,219,37,43,0.8555,0.8359,0.8456
+Nissan/Note,Nissan,Note,161,155,14,6,0.9172,0.9627,0.9394
+Nissan/Otti,Nissan,Otti,19,18,0,1,1.0,0.9474,0.973
+Nissan/Pao,Nissan,Pao,18,18,0,0,1.0,1.0,1.0
+Nissan/Pathfinder,Nissan,Pathfinder,158,141,9,17,0.94,0.8924,0.9156
+Nissan/Patrol,Nissan,Patrol,93,90,24,3,0.7895,0.9677,0.8696
+Nissan/Pickup,Nissan,Pickup,107,70,38,37,0.6481,0.6542,0.6512
+Nissan/Pino,Nissan,Pino,6,6,1,0,0.8571,1.0,0.9231
+Nissan/Pixo,Nissan,Pixo,82,82,0,0,1.0,1.0,1.0
+Nissan/Platina,Nissan,Platina,9,9,0,0,1.0,1.0,1.0
+Nissan/Prairie,Nissan,Prairie,23,19,0,4,1.0,0.8261,0.9048
+Nissan/Presage,Nissan,Presage,107,105,1,2,0.9906,0.9813,0.9859
+Nissan/Presea,Nissan,Presea,55,53,0,2,1.0,0.9636,0.9815
+Nissan/President,Nissan,President,22,20,1,2,0.9524,0.9091,0.9302
+Nissan/Primastar,Nissan,Primastar,108,97,7,11,0.9327,0.8981,0.9151
+Nissan/Primera,Nissan,Primera,188,173,6,15,0.9665,0.9202,0.9428
+Nissan/Primera Camino,Nissan,Primera Camino,29,26,9,3,0.7429,0.8966,0.8125
+Nissan/Pulsar,Nissan,Pulsar,286,252,30,34,0.8936,0.8811,0.8873
+Nissan/Qashqai,Nissan,Qashqai,244,242,3,2,0.9878,0.9918,0.9898
+Nissan/Quest,Nissan,Quest,130,128,0,2,1.0,0.9846,0.9922
+Nissan/R'nessa,Nissan,R'nessa,8,8,0,0,1.0,1.0,1.0
+Nissan/Rasheen,Nissan,Rasheen,25,25,0,0,1.0,1.0,1.0
+Nissan/Rogue,Nissan,Rogue,261,261,3,0,0.9886,1.0,0.9943
+Nissan/Rogue Sport,Nissan,Rogue Sport,86,85,2,1,0.977,0.9884,0.9827
+Nissan/Roox,Nissan,Roox,7,7,1,0,0.875,1.0,0.9333
+Nissan/S-Cargo,Nissan,S-Cargo,12,11,0,1,1.0,0.9167,0.9565
+Nissan/Safari,Nissan,Safari,14,5,2,9,0.7143,0.3571,0.4762
+Nissan/Sentra,Nissan,Sentra,261,249,23,12,0.9154,0.954,0.9343
+Nissan/Serena,Nissan,Serena,90,85,11,5,0.8854,0.9444,0.914
+Nissan/Silvia,Nissan,Silvia,62,41,25,21,0.6212,0.6613,0.6406
+Nissan/Skyline,Nissan,Skyline,194,169,18,25,0.9037,0.8711,0.8871
+Nissan/Skystar,Nissan,Skystar,5,0,0,5,0.0,0.0,0.0
+Nissan/Stagea,Nissan,Stagea,110,109,0,1,1.0,0.9909,0.9954
+Nissan/Stanza,Nissan,Stanza,17,11,1,6,0.9167,0.6471,0.7586
+Nissan/Sunny,Nissan,Sunny,170,133,50,37,0.7268,0.7824,0.7535
+Nissan/Sunny California,Nissan,Sunny California,13,7,6,6,0.5385,0.5385,0.5385
+Nissan/Sunny Truck,Nissan,Sunny Truck,13,11,1,2,0.9167,0.8462,0.88
+Nissan/Sunny Van,Nissan,Sunny Van,13,13,1,0,0.9286,1.0,0.963
+Nissan/Sunny Vanette,Nissan,Sunny Vanette,16,8,15,8,0.3478,0.5,0.4103
+Nissan/Sylphy,Nissan,Sylphy,72,51,3,21,0.9444,0.7083,0.8095
+Nissan/Teana,Nissan,Teana,215,214,3,1,0.9862,0.9953,0.9907
+Nissan/Terra,Nissan,Terra,26,24,2,2,0.9231,0.9231,0.9231
+Nissan/Terrano,Nissan,Terrano,103,96,13,7,0.8807,0.932,0.9057
+Nissan/Terrano II,Nissan,Terrano II,298,295,16,3,0.9486,0.9899,0.9688
+Nissan/Tiida,Nissan,Tiida,197,191,27,6,0.8761,0.9695,0.9205
+Nissan/Tino,Nissan,Tino,91,88,2,3,0.9778,0.967,0.9724
+Nissan/Titan,Nissan,Titan,106,104,6,2,0.9455,0.9811,0.963
+Nissan/Townstar,Nissan,Townstar,53,53,0,0,1.0,1.0,1.0
+Nissan/Trade,Nissan,Trade,79,71,6,8,0.9221,0.8987,0.9103
+Nissan/Tsuru,Nissan,Tsuru,11,5,2,6,0.7143,0.4545,0.5556
+Nissan/Urvan,Nissan,Urvan,89,73,41,16,0.6404,0.8202,0.7192
+Nissan/Vanette,Nissan,Vanette,218,178,28,40,0.8641,0.8165,0.8396
+Nissan/Vanette Largo,Nissan,Vanette Largo,84,78,11,6,0.8764,0.9286,0.9017
+Nissan/Vanette Serena,Nissan,Vanette Serena,32,28,1,4,0.9655,0.875,0.918
+Nissan/Versa,Nissan,Versa,68,32,12,36,0.7273,0.4706,0.5714
+Nissan/Wingroad,Nissan,Wingroad,107,102,3,5,0.9714,0.9533,0.9623
+Nissan/X-Trail,Nissan,X-Trail,188,185,1,3,0.9946,0.984,0.9893
+Nissan/Xterra,Nissan,Xterra,165,162,3,3,0.9818,0.9818,0.9818
+Nissan/Z,Nissan,Z,20,20,2,0,0.9091,1.0,0.9524
+Opel/Astra,Opel,Astra,263,258,9,5,0.9663,0.981,0.9736
+Peugeot/308,Peugeot,308,271,269,4,2,0.9853,0.9926,0.989
+Porsche/911,Porsche,911,310,308,5,2,0.984,0.9935,0.9888
+Porsche/Cayenne,Porsche,Cayenne,278,277,3,1,0.9893,0.9964,0.9928
+Renault/Clio,Renault,Clio,257,252,10,5,0.9618,0.9805,0.9711
+Renault/Duster,Renault,Duster,25,25,0,0,1.0,1.0,1.0
+Renault/Logan,Renault,Logan,142,141,1,1,0.993,0.993,0.993
+Renault/Mégane,Renault,Mégane,359,355,7,4,0.9807,0.9889,0.9847
+Skoda/Octavia,Skoda,Octavia,106,104,6,2,0.9455,0.9811,0.963
+Subaru/Alcyone,Subaru,Alcyone,6,1,1,5,0.5,0.1667,0.25
+Subaru/Ascent,Subaru,Ascent,95,95,1,0,0.9896,1.0,0.9948
+Subaru/BRAT _ 284 _ Brumby,Subaru,BRAT _ 284 _ Brumby,13,11,1,2,0.9167,0.8462,0.88
+Subaru/BRZ,Subaru,BRZ,227,226,3,1,0.9869,0.9956,0.9912
+Subaru/Baja,Subaru,Baja,59,58,0,1,1.0,0.9831,0.9915
+Subaru/Crosstrek,Subaru,Crosstrek,215,197,22,18,0.8995,0.9163,0.9078
+Subaru/Domingo,Subaru,Domingo,15,11,11,4,0.5,0.7333,0.5946
+Subaru/E10_E12,Subaru,E10_E12,20,3,3,17,0.5,0.15,0.2308
+Subaru/Exiga,Subaru,Exiga,24,21,0,3,1.0,0.875,0.9333
+Subaru/Forester,Subaru,Forester,224,218,3,6,0.9864,0.9732,0.9798
+Subaru/Impreza,Subaru,Impreza,232,209,18,23,0.9207,0.9009,0.9107
+Subaru/Impreza Outback,Subaru,Impreza Outback,40,25,1,15,0.9615,0.625,0.7576
+Subaru/Impreza XV,Subaru,Impreza XV,5,5,0,0,1.0,1.0,1.0
+Subaru/Justy,Subaru,Justy,163,154,2,9,0.9872,0.9448,0.9655
+Subaru/Legacy,Subaru,Legacy,299,290,21,9,0.9325,0.9699,0.9508
+Subaru/Leone,Subaru,Leone,160,154,20,6,0.8851,0.9625,0.9222
+Subaru/Levorg,Subaru,Levorg,158,156,7,2,0.9571,0.9873,0.972
+Subaru/Libero,Subaru,Libero,48,37,20,11,0.6491,0.7708,0.7048
+Subaru/Outback,Subaru,Outback,250,242,8,8,0.968,0.968,0.968
+Subaru/Pleo,Subaru,Pleo,30,30,0,0,1.0,1.0,1.0
+Subaru/R1,Subaru,R1,10,10,0,0,1.0,1.0,1.0
+Subaru/R2,Subaru,R2,87,87,0,0,1.0,1.0,1.0
+Subaru/Rex,Subaru,Rex,8,5,0,3,1.0,0.625,0.7692
+Subaru/SVX,Subaru,SVX,26,26,1,0,0.963,1.0,0.9811
+Subaru/Sambar,Subaru,Sambar,68,60,5,8,0.9231,0.8824,0.9023
+Subaru/Solterra,Subaru,Solterra,28,28,0,0,1.0,1.0,1.0
+Subaru/Stella,Subaru,Stella,26,25,0,1,1.0,0.9615,0.9804
+Subaru/Traviq,Subaru,Traviq,14,14,0,0,1.0,1.0,1.0
+Subaru/Trezia,Subaru,Trezia,47,46,0,1,1.0,0.9787,0.9892
+Subaru/Tribeca,Subaru,Tribeca,233,231,0,2,1.0,0.9914,0.9957
+Subaru/Vivio,Subaru,Vivio,38,38,0,0,1.0,1.0,1.0
+Subaru/WRX,Subaru,WRX,295,288,1,7,0.9965,0.9763,0.9863
+Subaru/XT,Subaru,XT,11,9,3,2,0.75,0.8182,0.7826
+Subaru/XV,Subaru,XV,255,238,26,17,0.9015,0.9333,0.9171
+Suzuki/Celerio,Suzuki,Celerio,99,98,0,1,1.0,0.9899,0.9949
+Suzuki/Ertiga,Suzuki,Ertiga,142,141,0,1,1.0,0.993,0.9965
+Suzuki/Every,Suzuki,Every,106,105,3,1,0.9722,0.9906,0.9813
+Suzuki/Grand Vitara,Suzuki,Grand Vitara,127,123,3,4,0.9762,0.9685,0.9723
+Suzuki/Ignis,Suzuki,Ignis,258,256,9,2,0.966,0.9922,0.979
+Suzuki/Jimny,Suzuki,Jimny,263,244,31,19,0.8873,0.9278,0.9071
+Suzuki/Jimny Sierra,Suzuki,Jimny Sierra,93,65,16,28,0.8025,0.6989,0.7471
+Suzuki/Kizashi,Suzuki,Kizashi,120,120,0,0,1.0,1.0,1.0
+Suzuki/SV Series,Suzuki,SV Series,103,92,10,11,0.902,0.8932,0.8976
+Suzuki/SX4_S-Cross,Suzuki,SX4_S-Cross,262,260,1,2,0.9962,0.9924,0.9943
+Suzuki/Swace,Suzuki,Swace,94,93,2,1,0.9789,0.9894,0.9841
+Suzuki/Swift,Suzuki,Swift,268,257,5,11,0.9809,0.959,0.9698
+Suzuki/Vitara,Suzuki,Vitara,215,210,2,5,0.9906,0.9767,0.9836
+Suzuki/XL7,Suzuki,XL7,114,110,1,4,0.991,0.9649,0.9778
+Toyota/4Runner,Toyota,4Runner,138,121,17,17,0.8768,0.8768,0.8768
+Toyota/86,Toyota,86,264,263,2,1,0.9925,0.9962,0.9943
+Toyota/Allex,Toyota,Allex,10,9,1,1,0.9,0.9,0.9
+Toyota/Allion,Toyota,Allion,103,99,0,4,1.0,0.9612,0.9802
+Toyota/Alphard,Toyota,Alphard,236,234,5,2,0.9791,0.9915,0.9853
+Toyota/Altezza,Toyota,Altezza,163,158,17,5,0.9029,0.9693,0.9349
+Toyota/Aqua,Toyota,Aqua,127,124,5,3,0.9612,0.9764,0.9688
+Toyota/Aristo,Toyota,Aristo,150,147,7,3,0.9545,0.98,0.9671
+Toyota/Auris,Toyota,Auris,290,287,8,3,0.9729,0.9897,0.9812
+Toyota/Avalon,Toyota,Avalon,77,75,0,2,1.0,0.974,0.9868
+Toyota/Avanza,Toyota,Avanza,21,21,0,0,1.0,1.0,1.0
+Toyota/Avensis,Toyota,Avensis,231,229,2,2,0.9913,0.9913,0.9913
+Toyota/Avensis Verso,Toyota,Avensis Verso,91,84,9,7,0.9032,0.9231,0.913
+Toyota/Aygo,Toyota,Aygo,304,300,2,4,0.9934,0.9868,0.9901
+Toyota/Belta,Toyota,Belta,87,79,8,8,0.908,0.908,0.908
+Toyota/C-HR,Toyota,C-HR,171,171,1,0,0.9942,1.0,0.9971
+Toyota/Caldina,Toyota,Caldina,133,124,7,9,0.9466,0.9323,0.9394
+Toyota/Cami,Toyota,Cami,71,70,0,1,1.0,0.9859,0.9929
+Toyota/Camry,Toyota,Camry,241,230,5,11,0.9787,0.9544,0.9664
+Toyota/Camry Gracia,Toyota,Camry Gracia,22,22,3,0,0.88,1.0,0.9362
+Toyota/Camry Solara,Toyota,Camry Solara,43,43,1,0,0.9773,1.0,0.9885
+Toyota/Carina,Toyota,Carina,60,53,7,7,0.8833,0.8833,0.8833
+Toyota/Carina E,Toyota,Carina E,253,249,15,4,0.9432,0.9842,0.9632
+Toyota/Carina ED,Toyota,Carina ED,122,116,5,6,0.9587,0.9508,0.9547
+Toyota/Carina II,Toyota,Carina II,91,89,9,2,0.9082,0.978,0.9418
+Toyota/Celica,Toyota,Celica,148,147,12,1,0.9245,0.9932,0.9577
+Toyota/Chaser,Toyota,Chaser,133,123,6,10,0.9535,0.9248,0.9389
+Toyota/Coaster,Toyota,Coaster,99,95,2,4,0.9794,0.9596,0.9694
+Toyota/Commuter,Toyota,Commuter,3,0,0,3,0.0,0.0,0.0
+Toyota/Corolla,Toyota,Corolla,301,262,13,39,0.9527,0.8704,0.9097
+Toyota/Corolla Axio,Toyota,Corolla Axio,82,81,4,1,0.9529,0.9878,0.9701
+Toyota/Corolla Ceres,Toyota,Corolla Ceres,97,92,10,5,0.902,0.9485,0.9246
+Toyota/Corolla Cross,Toyota,Corolla Cross,313,310,3,3,0.9904,0.9904,0.9904
+Toyota/Corolla Fielder,Toyota,Corolla Fielder,72,70,4,2,0.9459,0.9722,0.9589
+Toyota/Corolla II,Toyota,Corolla II,123,100,49,23,0.6711,0.813,0.7353
+Toyota/Corolla Levin,Toyota,Corolla Levin,39,21,7,18,0.75,0.5385,0.6269
+Toyota/Corolla Spacio,Toyota,Corolla Spacio,97,97,6,0,0.9417,1.0,0.97
+Toyota/Corolla Verso,Toyota,Corolla Verso,239,229,1,10,0.9957,0.9582,0.9765
+Toyota/Corona,Toyota,Corona,76,55,16,21,0.7746,0.7237,0.7483
+Toyota/Corona EXiV,Toyota,Corona EXiV,72,70,0,2,1.0,0.9722,0.9859
+Toyota/Corona Mark II,Toyota,Corona Mark II,63,58,15,5,0.7945,0.9206,0.8529
+Toyota/Corsa,Toyota,Corsa,133,83,28,50,0.7477,0.6241,0.6803
+Toyota/Cresta,Toyota,Cresta,114,113,19,1,0.8561,0.9912,0.9187
+Toyota/Crown,Toyota,Crown,131,113,11,18,0.9113,0.8626,0.8863
+Toyota/Crown Majesta,Toyota,Crown Majesta,29,28,1,1,0.9655,0.9655,0.9655
+Toyota/Cynos,Toyota,Cynos,54,54,0,0,1.0,1.0,1.0
+Toyota/Duet,Toyota,Duet,76,76,0,0,1.0,1.0,1.0
+Toyota/Dyna,Toyota,Dyna,203,166,82,37,0.6694,0.8177,0.7361
+Toyota/Echo,Toyota,Echo,154,151,13,3,0.9207,0.9805,0.9497
+Toyota/Esquire,Toyota,Esquire,109,108,2,1,0.9818,0.9908,0.9863
+Toyota/Estima,Toyota,Estima,135,115,10,20,0.92,0.8519,0.8846
+Toyota/FJ Cruiser,Toyota,FJ Cruiser,297,296,2,1,0.9933,0.9966,0.995
+Toyota/Fortuner,Toyota,Fortuner,241,240,0,1,1.0,0.9959,0.9979
+Toyota/FunCargo,Toyota,FunCargo,16,4,0,12,1.0,0.25,0.4
+Toyota/Gaia,Toyota,Gaia,24,24,1,0,0.96,1.0,0.9796
+Toyota/Granvia,Toyota,Granvia,73,64,11,9,0.8533,0.8767,0.8649
+Toyota/Harrier,Toyota,Harrier,133,123,4,10,0.9685,0.9248,0.9462
+Toyota/HiAce,Toyota,HiAce,174,151,15,23,0.9096,0.8678,0.8882
+Toyota/Highlander,Toyota,Highlander,228,223,11,5,0.953,0.9781,0.9654
+Toyota/Hilux,Toyota,Hilux,188,178,14,10,0.9271,0.9468,0.9368
+Toyota/Hilux Surf,Toyota,Hilux Surf,45,33,13,12,0.7174,0.7333,0.7253
+Toyota/Innova,Toyota,Innova,239,238,0,1,1.0,0.9958,0.9979
+Toyota/Ipsum,Toyota,Ipsum,152,133,8,19,0.9433,0.875,0.9078
+Toyota/Isis,Toyota,Isis,27,27,0,0,1.0,1.0,1.0
+Toyota/Ist,Toyota,Ist,28,25,0,3,1.0,0.8929,0.9434
+Toyota/Kluger,Toyota,Kluger,13,3,2,10,0.6,0.2308,0.3333
+Toyota/Land Cruiser,Toyota,Land Cruiser,144,133,8,11,0.9433,0.9236,0.9333
+Toyota/Land Cruiser Cygnus,Toyota,Land Cruiser Cygnus,75,70,9,5,0.8861,0.9333,0.9091
+Toyota/Land Cruiser Prado,Toyota,Land Cruiser Prado,199,193,2,6,0.9897,0.9698,0.9797
+Toyota/LiteAce,Toyota,LiteAce,112,97,30,15,0.7638,0.8661,0.8117
+Toyota/MR-S,Toyota,MR-S,57,50,9,7,0.8475,0.8772,0.8621
+Toyota/MR2,Toyota,MR2,121,109,7,12,0.9397,0.9008,0.9198
+Toyota/Mark II,Toyota,Mark II,94,78,2,16,0.975,0.8298,0.8966
+Toyota/Mark X,Toyota,Mark X,77,77,1,0,0.9872,1.0,0.9935
+Toyota/Matrix,Toyota,Matrix,56,56,1,0,0.9825,1.0,0.9912
+Toyota/Nadia,Toyota,Nadia,52,51,0,1,1.0,0.9808,0.9903
+Toyota/Noah,Toyota,Noah,86,82,3,4,0.9647,0.9535,0.9591
+Toyota/Opa,Toyota,Opa,7,7,0,0,1.0,1.0,1.0
+Toyota/Passo,Toyota,Passo,110,107,1,3,0.9907,0.9727,0.9817
+Toyota/Picnic,Toyota,Picnic,96,93,13,3,0.8774,0.9688,0.9208
+Toyota/Platz,Toyota,Platz,12,1,0,11,1.0,0.0833,0.1538
+Toyota/Porte,Toyota,Porte,118,117,0,1,1.0,0.9915,0.9957
+Toyota/Premio,Toyota,Premio,104,103,1,1,0.9904,0.9904,0.9904
+Toyota/Previa,Toyota,Previa,276,266,20,10,0.9301,0.9638,0.9466
+Toyota/Prius,Toyota,Prius,197,193,3,4,0.9847,0.9797,0.9822
+Toyota/ProAce,Toyota,ProAce,294,282,4,12,0.986,0.9592,0.9724
+Toyota/ProAce City,Toyota,ProAce City,272,269,9,3,0.9676,0.989,0.9782
+Toyota/Probox,Toyota,Probox,104,92,31,12,0.748,0.8846,0.8106
+Toyota/Progres,Toyota,Progres,6,6,0,0,1.0,1.0,1.0
+Toyota/RAV4,Toyota,RAV4,255,250,3,5,0.9881,0.9804,0.9843
+Toyota/Ractis,Toyota,Ractis,105,104,2,1,0.9811,0.9905,0.9858
+Toyota/Raize,Toyota,Raize,37,37,0,0,1.0,1.0,1.0
+Toyota/Raum,Toyota,Raum,35,32,0,3,1.0,0.9143,0.9552
+Toyota/Roomy,Toyota,Roomy,55,51,3,4,0.9444,0.9273,0.9358
+Toyota/Rush,Toyota,Rush,209,209,1,0,0.9952,1.0,0.9976
+Toyota/Sequoia,Toyota,Sequoia,138,133,0,5,1.0,0.9638,0.9815
+Toyota/Sienna,Toyota,Sienna,264,260,5,4,0.9811,0.9848,0.983
+Toyota/Sienta,Toyota,Sienta,147,143,2,4,0.9862,0.9728,0.9795
+Toyota/Soarer,Toyota,Soarer,55,36,10,19,0.7826,0.6545,0.7129
+Toyota/Sprinter,Toyota,Sprinter,99,89,24,10,0.7876,0.899,0.8396
+Toyota/Sprinter Carib,Toyota,Sprinter Carib,119,111,2,8,0.9823,0.9328,0.9569
+Toyota/Sprinter Marino,Toyota,Sprinter Marino,96,86,3,10,0.9663,0.8958,0.9297
+Toyota/Sprinter Trueno,Toyota,Sprinter Trueno,132,121,34,11,0.7806,0.9167,0.8432
+Toyota/Starlet,Toyota,Starlet,311,306,20,5,0.9387,0.9839,0.9608
+Toyota/Succeed,Toyota,Succeed,107,77,11,30,0.875,0.7196,0.7897
+Toyota/Supra,Toyota,Supra,204,201,2,3,0.9901,0.9853,0.9877
+Toyota/Tacoma,Toyota,Tacoma,233,227,7,6,0.9701,0.9742,0.9722
+Toyota/Tank,Toyota,Tank,73,70,5,3,0.9333,0.9589,0.9459
+Toyota/Tercel,Toyota,Tercel,47,30,8,17,0.7895,0.6383,0.7059
+Toyota/TownAce,Toyota,TownAce,47,22,11,25,0.6667,0.4681,0.55
+Toyota/ToyoAce,Toyota,ToyoAce,114,49,32,65,0.6049,0.4298,0.5026
+Toyota/Tundra,Toyota,Tundra,147,140,5,7,0.9655,0.9524,0.9589
+Toyota/Urban Cruiser,Toyota,Urban Cruiser,94,93,3,1,0.9688,0.9894,0.9789
+Toyota/Vellfire,Toyota,Vellfire,317,311,2,6,0.9936,0.9811,0.9873
+Toyota/Veloz,Toyota,Veloz,93,93,0,0,1.0,1.0,1.0
+Toyota/Venza,Toyota,Venza,234,232,6,2,0.9748,0.9915,0.9831
+Toyota/Verossa,Toyota,Verossa,122,120,0,2,1.0,0.9836,0.9917
+Toyota/Verso,Toyota,Verso,196,192,4,4,0.9796,0.9796,0.9796
+Toyota/Vios,Toyota,Vios,219,215,13,4,0.943,0.9817,0.962
+Toyota/Vista,Toyota,Vista,78,71,3,7,0.9595,0.9103,0.9342
+Toyota/Vitz,Toyota,Vitz,133,112,14,21,0.8889,0.8421,0.8649
+Toyota/Voxy,Toyota,Voxy,175,172,6,3,0.9663,0.9829,0.9745
+Toyota/Will Cypha,Toyota,Will Cypha,57,56,0,1,1.0,0.9825,0.9912
+Toyota/Will VS,Toyota,Will VS,122,121,0,1,1.0,0.9918,0.9959
+Toyota/Windom,Toyota,Windom,163,160,7,3,0.9581,0.9816,0.9697
+Toyota/Wish,Toyota,Wish,132,131,1,1,0.9924,0.9924,0.9924
+Toyota/Yaris,Toyota,Yaris,295,265,24,30,0.917,0.8983,0.9075
+Toyota/Yaris Cross,Toyota,Yaris Cross,230,228,1,2,0.9956,0.9913,0.9935
+Toyota/Yaris Verso,Toyota,Yaris Verso,98,98,11,0,0.8991,1.0,0.9469
+Toyota/bB,Toyota,bB,33,32,1,1,0.9697,0.9697,0.9697
+Toyota/bZ4X,Toyota,bZ4X,219,219,1,0,0.9955,1.0,0.9977
+Toyota/iQ,Toyota,iQ,95,94,0,1,1.0,0.9895,0.9947
+Volkswagen/Amarok,Volkswagen,Amarok,224,224,4,0,0.9825,1.0,0.9912
+Volkswagen/Arteon,Volkswagen,Arteon,317,316,9,1,0.9723,0.9968,0.9844
+Volkswagen/Atlas,Volkswagen,Atlas,262,243,12,19,0.9529,0.9275,0.94
+Volkswagen/Beetle,Volkswagen,Beetle,203,202,6,1,0.9712,0.9951,0.983
+Volkswagen/Bora,Volkswagen,Bora,144,135,14,9,0.906,0.9375,0.9215
+Volkswagen/Brasília,Volkswagen,Brasília,9,9,3,0,0.75,1.0,0.8571
+Volkswagen/Buggy,Volkswagen,Buggy,114,114,7,0,0.9421,1.0,0.9702
+Volkswagen/Bus,Volkswagen,Bus,126,33,26,93,0.5593,0.2619,0.3568
+Volkswagen/CC,Volkswagen,CC,284,246,35,38,0.8754,0.8662,0.8708
+Volkswagen/Caddy,Volkswagen,Caddy,233,226,12,7,0.9496,0.97,0.9597
+Volkswagen/California,Volkswagen,California,249,219,50,30,0.8141,0.8795,0.8456
+Volkswagen/Caravelle,Volkswagen,Caravelle,199,85,105,114,0.4474,0.4271,0.437
+Volkswagen/Clasico,Volkswagen,Clasico,2,2,0,0,1.0,1.0,1.0
+Volkswagen/Constellation,Volkswagen,Constellation,7,5,0,2,1.0,0.7143,0.8333
+Volkswagen/Corrado,Volkswagen,Corrado,180,180,2,0,0.989,1.0,0.9945
+Volkswagen/Crafter,Volkswagen,Crafter,249,243,18,6,0.931,0.9759,0.9529
+Volkswagen/CrossCaddy,Volkswagen,CrossCaddy,7,2,0,5,1.0,0.2857,0.4444
+Volkswagen/CrossGolf,Volkswagen,CrossGolf,26,24,2,2,0.9231,0.9231,0.9231
+Volkswagen/Delivery,Volkswagen,Delivery,6,2,0,4,1.0,0.3333,0.5
+Volkswagen/Derby,Volkswagen,Derby,32,25,3,7,0.8929,0.7812,0.8333
+Volkswagen/Eos,Volkswagen,Eos,299,298,5,1,0.9835,0.9967,0.99
+Volkswagen/EuroVan,Volkswagen,EuroVan,23,14,4,9,0.7778,0.6087,0.6829
+Volkswagen/Fox,Volkswagen,Fox,287,282,3,5,0.9895,0.9826,0.986
+Volkswagen/Gol,Volkswagen,Gol,96,68,14,28,0.8293,0.7083,0.764
+Volkswagen/Golf,Volkswagen,Golf,317,305,26,12,0.9215,0.9621,0.9414
+Volkswagen/Golf Plus,Volkswagen,Golf Plus,265,261,3,4,0.9886,0.9849,0.9868
+Volkswagen/Golf Sportsvan,Volkswagen,Golf Sportsvan,290,280,2,10,0.9929,0.9655,0.979
+Volkswagen/Golf Touran,Volkswagen,Golf Touran,8,1,1,7,0.5,0.125,0.2
+Volkswagen/Grand California,Volkswagen,Grand California,109,102,3,7,0.9714,0.9358,0.9533
+Volkswagen/ID.3,Volkswagen,ID.3,288,287,0,1,1.0,0.9965,0.9983
+Volkswagen/ID.4,Volkswagen,ID.4,151,144,11,7,0.929,0.9536,0.9412
+Volkswagen/ID.5,Volkswagen,ID.5,109,99,6,10,0.9429,0.9083,0.9252
+Volkswagen/ID.6,Volkswagen,ID.6,139,137,0,2,1.0,0.9856,0.9928
+Volkswagen/ID.7,Volkswagen,ID.7,185,185,0,0,1.0,1.0,1.0
+Volkswagen/ID.Buzz,Volkswagen,ID.Buzz,262,262,3,0,0.9887,1.0,0.9943
+Volkswagen/ID.Unyx 06,Volkswagen,ID.Unyx 06,35,34,0,1,1.0,0.9714,0.9855
+Volkswagen/Iltis,Volkswagen,Iltis,14,14,0,0,1.0,1.0,1.0
+Volkswagen/Jetta,Volkswagen,Jetta,275,258,19,17,0.9314,0.9382,0.9348
+Volkswagen/K70,Volkswagen,K70,14,14,0,0,1.0,1.0,1.0
+Volkswagen/Karmann-Ghia,Volkswagen,Karmann-Ghia,203,202,2,1,0.9902,0.9951,0.9926
+Volkswagen/Kombi,Volkswagen,Kombi,275,251,115,24,0.6858,0.9127,0.7832
+Volkswagen/L80,Volkswagen,L80,7,2,1,5,0.6667,0.2857,0.4
+Volkswagen/LT,Volkswagen,LT,271,262,15,9,0.9458,0.9668,0.9562
+Volkswagen/Lamando,Volkswagen,Lamando,21,18,0,3,1.0,0.8571,0.9231
+Volkswagen/Lavida,Volkswagen,Lavida,80,76,4,4,0.95,0.95,0.95
+Volkswagen/Lupo,Volkswagen,Lupo,315,313,2,2,0.9937,0.9937,0.9937
+Volkswagen/Magotan,Volkswagen,Magotan,68,59,8,9,0.8806,0.8676,0.8741
+Volkswagen/Multivan,Volkswagen,Multivan,162,84,52,78,0.6176,0.5185,0.5638
+Volkswagen/Nivus,Volkswagen,Nivus,11,3,0,8,1.0,0.2727,0.4286
+Volkswagen/Parati,Volkswagen,Parati,4,0,2,4,0.0,0.0,0.0
+Volkswagen/Passat,Volkswagen,Passat,271,247,10,24,0.9611,0.9114,0.9356
+Volkswagen/Passat CC,Volkswagen,Passat CC,136,102,28,34,0.7846,0.75,0.7669
+Volkswagen/Phaeton,Volkswagen,Phaeton,278,274,1,4,0.9964,0.9856,0.991
+Volkswagen/Pointer,Volkswagen,Pointer,125,120,18,5,0.8696,0.96,0.9125
+Volkswagen/Polo,Volkswagen,Polo,194,184,17,10,0.9154,0.9485,0.9316
+Volkswagen/R36,Volkswagen,R36,10,10,0,0,1.0,1.0,1.0
+Volkswagen/Rabbit,Volkswagen,Rabbit,54,50,2,4,0.9615,0.9259,0.9434
+Volkswagen/Routan,Volkswagen,Routan,39,39,0,0,1.0,1.0,1.0
+Volkswagen/Sagitar,Volkswagen,Sagitar,68,64,4,4,0.9412,0.9412,0.9412
+Volkswagen/Santana,Volkswagen,Santana,156,153,10,3,0.9387,0.9808,0.9592
+Volkswagen/Saveiro,Volkswagen,Saveiro,18,12,0,6,1.0,0.6667,0.8
+Volkswagen/Scirocco,Volkswagen,Scirocco,132,130,3,2,0.9774,0.9848,0.9811
+Volkswagen/Sharan,Volkswagen,Sharan,337,330,7,7,0.9792,0.9792,0.9792
+Volkswagen/Suran,Volkswagen,Suran,17,14,0,3,1.0,0.8235,0.9032
+Volkswagen/T-Cross,Volkswagen,T-Cross,308,296,11,12,0.9642,0.961,0.9626
+Volkswagen/T-Roc,Volkswagen,T-Roc,275,269,8,6,0.9711,0.9782,0.9746
+Volkswagen/Tacqua,Volkswagen,Tacqua,3,0,0,3,0.0,0.0,0.0
+Volkswagen/Taigo,Volkswagen,Taigo,278,277,10,1,0.9652,0.9964,0.9805
+Volkswagen/Talagon,Volkswagen,Talagon,25,25,0,0,1.0,1.0,1.0
+Volkswagen/Taos,Volkswagen,Taos,188,187,2,1,0.9894,0.9947,0.992
+Volkswagen/Taro,Volkswagen,Taro,32,28,3,4,0.9032,0.875,0.8889
+Volkswagen/Tavendor,Volkswagen,Tavendor,27,27,0,0,1.0,1.0,1.0
+Volkswagen/Tayron,Volkswagen,Tayron,158,158,3,0,0.9814,1.0,0.9906
+Volkswagen/Teramont,Volkswagen,Teramont,128,115,19,13,0.8582,0.8984,0.8779
+Volkswagen/Tharu,Volkswagen,Tharu,31,27,2,4,0.931,0.871,0.9
+Volkswagen/Tiguan,Volkswagen,Tiguan,255,249,11,6,0.9577,0.9765,0.967
+Volkswagen/Touareg,Volkswagen,Touareg,236,233,2,3,0.9915,0.9873,0.9894
+Volkswagen/Touran,Volkswagen,Touran,244,238,14,6,0.9444,0.9754,0.9597
+Volkswagen/Transporter,Volkswagen,Transporter,311,233,90,78,0.7214,0.7492,0.735
+Volkswagen/Typ 181,Volkswagen,Typ 181,81,81,0,0,1.0,1.0,1.0
+Volkswagen/Typ 3,Volkswagen,Typ 3,93,88,0,5,1.0,0.9462,0.9724
+Volkswagen/Typ 4,Volkswagen,Typ 4,10,10,1,0,0.9091,1.0,0.9524
+Volkswagen/Typ 82 (Kübelwagen),Volkswagen,Typ 82 (Kübelwagen),11,10,1,1,0.9091,0.9091,0.9091
+Volkswagen/Vanagon,Volkswagen,Vanagon,31,25,6,6,0.8065,0.8065,0.8065
+Volkswagen/Vento,Volkswagen,Vento,326,308,5,18,0.984,0.9448,0.964
+Volkswagen/Viloran,Volkswagen,Viloran,17,17,0,0,1.0,1.0,1.0
+Volkswagen/Virtus,Volkswagen,Virtus,15,12,0,3,1.0,0.8,0.8889
+Volkswagen/Voyage,Volkswagen,Voyage,16,7,5,9,0.5833,0.4375,0.5
+Volkswagen/XL1,Volkswagen,XL1,1,0,0,1,0.0,0.0,0.0
+Volkswagen/up!,Volkswagen,up!,147,147,0,0,1.0,1.0,1.0
+Volvo/FH,Volvo,FH,170,168,2,2,0.9882,0.9882,0.9882

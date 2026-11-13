@@ -4,10 +4,31 @@ This directory contains the mobile-first PyTorch training pipeline, diagnostic e
 
 ---
 
+## Production Deployment & Inference Suite (`sample_inference/`)
+
+A self-contained production package containing the latest champion **MobileNetV2** model:
+- **Model ONNX Checkpoint**: [`sample_inference/models/mobilenet_v2_best.onnx`](sample_inference/models/mobilenet_v2_best.onnx) (1,235 fine-grained models, 35 makes, 20.87 MB)
+- **Label Maps**: [`sample_inference/models/label_map.json`](sample_inference/models/label_map.json) and [`classes.txt`](sample_inference/models/classes.txt)
+- **Inference Engine**: [`sample_inference/infer.py`](sample_inference/infer.py) (CLI, Python API, batching, HUD visual annotations, make marginalization)
+- **One-Click Test**: [`sample_inference/test_all_samples.sh`](sample_inference/test_all_samples.sh)
+- **Accuracy & Performance Reports**:
+  - Full Report: [`sample_inference/ACCURACY_REPORT.md`](sample_inference/ACCURACY_REPORT.md)
+  - Machine Summary: [`sample_inference/reports/accuracy_report.json`](sample_inference/reports/accuracy_report.json)
+  - Per-Class Metrics: [`sample_inference/reports/per_class_metrics.csv`](sample_inference/reports/per_class_metrics.csv)
+  - Per-Make Metrics: [`sample_inference/reports/make_metrics.csv`](sample_inference/reports/make_metrics.csv)
+
+---
+
 ## Directory Overview
 
 ```text
 vmmr/code/current/mobilenet/
+├── sample_inference/                     # Self-Sufficient Production Inference Testing Suite
+│   ├── models/                           # Best ONNX weights, label maps, class lists
+│   ├── reports/                          # Comprehensive accuracy reports, per-class & make metrics
+│   ├── images/                           # Curated sample vehicle images
+│   ├── infer.py                          # Zero-dependency ONNX Runtime inference engine
+│   └── test_all_samples.sh               # One-click test runner
 ├── merged_dataset/                       # Primary Pipeline (Model C: PlatesMania + External merged)
 │   ├── train/                            # Training subsystem
 │   │   ├── train_mobilenet_v2_merged.py      # Joint PyTorch training pipeline (AMP, CosineAnnealing, ONNX export)

@@ -1,0 +1,83 @@
+{
+  "total_evaluated_samples": 114545,
+  "num_classes": 1235,
+  "num_makes": 35,
+  "model_level": {
+    "accuracy": 0.9228163603823825,
+    "true_positives": 105704,
+    "false_positives": 8841,
+    "false_negatives": 8841,
+    "micro_precision": 0.9228163603823825,
+    "micro_recall": 0.9228163603823825,
+    "micro_f1": 0.9228163603823825,
+    "external_split": {
+      "test_accuracy": 0.9412103746397694,
+      "test_top5_accuracy": 0.9913544668587896,
+      "macro_f1": 0.9057997254506704,
+      "weighted_f1": 0.9410092408049775,
+      "macro_precision": 0.908587653007976,
+      "macro_recall": 0.9084699595072276,
+      "cross_entropy_loss": 0.2589160203933716,
+      "num_evaluated_samples": 5205,
+      "num_classes": 1235,
+      "model_level": true,
+      "num_makes": 35,
+      "make_accuracy": 0.9865513928914506,
+      "make_accuracy_marginalized": 0.9865513928914506,
+      "make_macro_f1": 0.9867490636295311
+    },
+    "platesmania_split": {
+      "test_accuracy": 0.9219407353210171,
+      "test_top5_accuracy": 0.9864733857691604,
+      "macro_f1": 0.8564813125407132,
+      "weighted_f1": 0.9194457309305365,
+      "macro_precision": 0.8887946218634402,
+      "macro_recall": 0.8454981527388956,
+      "cross_entropy_loss": 0.3576165437698364,
+      "num_evaluated_samples": 109340,
+      "num_classes": 1235,
+      "model_level": true,
+      "num_makes": 35,
+      "make_accuracy": 0.9859063471739528,
+      "make_accuracy_marginalized": 0.9861990122553503,
+      "make_macro_f1": 0.9771962347012167
+    }
+  },
+  "make_level": {
+    "accuracy": 0.9859356584748352,
+    "true_positives": 112934,
+    "false_positives": 1611,
+    "false_negatives": 1611,
+    "micro_precision": 0.9859356584748352,
+    "micro_recall": 0.9859356584748352,
+    "micro_f1": 0.9859356584748352
+  },
+  "open_set_ood": {
+    "onnx": "run5/output_run5/models/mobilenet_v2_best.onnx",
+    "n_known": 114545,
+    "n_unknown": 4740,
+    "closed_set_acc": 0.9227988999956349,
+    "scores": {
+      "MSP": {
+        "AUROC": 0.9313403517457532,
+        "FPR@95TPR": 0.2936708860759494,
+        "OSCR": 0.8767453544412465
+      },
+      "MLS": {
+        "AUROC": 0.6061274096208573,
+        "FPR@95TPR": 0.679535864978903,
+        "OSCR": 0.566076785550167
+      },
+      "Energy": {
+        "AUROC": 0.5597039561957943,
+        "FPR@95TPR": 0.6928270042194092,
+        "OSCR": 0.5213426098084275
+      },
+      "Cosine": {
+        "AUROC": 0.1713998238858459,
+        "FPR@95TPR": 0.9955696202531645,
+        "OSCR": 0.15965855734843767
+      }
+    }
+  }
+}

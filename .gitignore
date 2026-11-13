@@ -8,6 +8,11 @@ code/anno_train.csv
 /archive
 *.keras
 *.h5
+*.npy
+*.tar
+*.pt
+*.pth
+.dvc/
 test_predictions.txt
 *__pycache__
 *env
