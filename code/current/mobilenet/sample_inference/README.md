@@ -42,7 +42,8 @@ Evaluated on **114,545 unseen test images** (109,340 PlatesMania + 5,205 Externa
 | **Overall Micro Precision** | **92.28%** | **94.12%** | **92.19%** |
 | **Overall Micro Recall** | **92.28%** | **94.12%** | **92.19%** |
 | **Cross-Entropy Loss** | **0.353** | **0.259** | **0.358** |
-| **Open-Set OOD AUROC (MSP)** | **93.13%** | — | **FPR@95TPR: 29.37%** |
+
+- **Open-Set Out-of-Distribution (OOD)**: **93.13% AUROC**, **29.37% FPR@95% TPR**, **0.8767 OSCR** via Maximum Softmax Probability (MSP) across 4,740 unseen vehicle classes.
 
 ---
 

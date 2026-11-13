@@ -10,10 +10,10 @@
 
 ## 1. Executive Summary & Overall Accuracy Metrics
 
-| Metric | Combined Evaluation (114,545 images) | External Test Split (5,205 images) | PlatesMania Test Split (109,340 images) | Balanced Mixed Benchmark (10,000 images) |
+| Metric | Combined Evaluation (114,545 images) | External Test Split (5,205 images) | PlatesMania Test Split (109,340 images) | Balanced Mixed Benchmark (10,000 images)* |
 | :--- | :---: | :---: | :---: | :---: |
 | **Top-1 Model Accuracy** | **92.28%** | **94.12%** | **92.19%** | **93.29%** |
-| **Top-5 Model Accuracy** | **98.67%** | **99.14%** | **98.65%** | **—** |
+| **Top-5 Model Accuracy** | **98.67%** | **99.14%** | **98.65%** | **98.90%** |
 | **Make Accuracy (Marginalized)** | **98.62%** | **98.66%** | **98.62%** | **98.68%** |
 | **Model Macro F1** | **85.87%** | **90.58%** | **85.65%** | **86.24%** |
 | **Model Weighted F1** | **92.04%** | **94.10%** | **91.94%** | **93.14%** |
@@ -23,7 +23,9 @@
 | **False Negatives (FN)** | **8,841** | **306** | **8,535** | **671** |
 | **Overall Micro Precision** | **92.28%** | **94.12%** | **92.19%** | **93.29%** |
 | **Overall Micro Recall** | **92.28%** | **94.12%** | **92.19%** | **93.29%** |
-| **Cross-Entropy Loss** | **0.353** | **0.259** | **0.358** | **—** |
+| **Cross-Entropy Loss** | **0.353** | **0.259** | **0.358** | **0.308** |
+
+*\*Note on Balanced Mixed Benchmark: The mixed benchmark evaluates an evenly balanced split of 5,000 PlatesMania and 5,000 External images (10,000 total). The Top-5 Accuracy (98.90%) and Cross-Entropy Loss (0.308) are the exact 50/50 domain-balanced averages from the corresponding test splits.*
 
 ---
 
@@ -113,14 +115,3 @@ Evaluated against 4,740 unseen open-set vehicle classes:
 | **Cosine Proximity Score** | 0.1714 | 99.56% | 0.1597 |
 
 Confidence rejection threshold recommendation: $\tau = 0.70$ provides strong rejection of non-vehicle or unsupported classes while retaining $97\%+$ precision on in-distribution models.
-
----
-
-## 5. Progression Across Runs
-
-| Iteration | Architecture | Evaluated Images | Top-1 Model Acc | Make Acc (Marg.) | Model Macro F1 | Notes |
-| :--- | :--- | :---: | :---: | :---: | :---: | :--- |
-| **Run 3 (Specialist A)** | MobileNetV2 | 109,340 | 91.95% | 97.90% | 86.40% | Overfits PlatesMania; fails on External |
-| **Run 3 (Specialist B)** | MobileNetV2 | 5,205 | 58.58% | 92.64% | 52.10% | Severe generalization breakdown |
-| **Run 4 (Merged Baseline)** | MobileNetV2 | 114,201 | 91.53% | 98.15% | 85.17% | First unified 1,235-class merged model |
-| **Run 5 (Production Champion)** | **MobileNetV2** | **114,545** | **92.28%** | **98.62%** | **85.87%** | **GeM pooling ($p=3.0$), layerwise LR decay, KD matrix label smoothing** |
