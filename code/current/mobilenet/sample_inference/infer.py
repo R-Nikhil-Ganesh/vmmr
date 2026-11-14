@@ -339,6 +339,7 @@ def parse_args():
     parser.add_argument("--save-json", type=str, default=None, help="Path to save results as JSON.")
     parser.add_argument("--save-annotated", type=str, default=None, help="Directory to save annotated images.")
     parser.add_argument("--extract-embeddings", action="store_true", help="Extract and include 1280-D feature embeddings.")
+    parser.add_argument("--self-test", action="store_true", help="Run automated self-test on a synthetic in-memory image without any external image files.")
     return parser.parse_args()
 
 
@@ -360,7 +361,24 @@ def main():
     print(f"  Provider:   {clf.active_provider}")
     print("=" * 78)
 
-    # Resolve target images
+    # 1. Self-Test Mode or Automatic Health Check (Zero dataset / Zero external files required)
+    if args.self_test or (args.image is None and args.image_dir is None and (not IMAGES_DIR.exists() or not any(IMAGES_DIR.iterdir()))):
+        print("\n[Self-Test] Running self-test with synthetic in-memory image (zero dataset required)...")
+        dummy_img = Image.new("RGB", (512, 512), color=(128, 140, 160))
+        res = clf.predict_image(dummy_img, top_k=args.top_k, return_embedding=args.extract_embeddings)
+
+        print(f"  Forward Pass:    SUCCESS")
+        print(f"  Top-1 Model:     {res['top1_model']}")
+        print(f"  Top-1 Make:      {res['top1_make']} ({res['top1_make_confidence']*100:.1f}%)")
+        print(f"  Latency:         {res['latency_ms']:.2f} ms on {clf.active_provider}")
+        print("\n[Ready] The model and inference pipeline are operational without any dataset.")
+        print("To classify your own vehicle images, run:")
+        print("  python infer.py --image /path/to/vehicle.jpg")
+        print("  python infer.py --image-dir /path/to/folder/")
+        print("  python infer.py --image /path/to/vehicle.jpg --save-annotated output/")
+        return
+
+    # 2. Resolve target images
     if args.image:
         image_paths = [Path(args.image)]
     else:
@@ -370,7 +388,7 @@ def main():
 
     if not image_paths:
         print(f"[Error] No image files found in {args.image or target_dir}.")
-        print("Please provide --image <path> or --image-dir <path>.")
+        print("Please provide --image <path> or --image-dir <path>, or run with --self-test.")
         sys.exit(1)
 
     print(f"\nProcessing {len(image_paths)} image(s)...\n")
