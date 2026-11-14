@@ -17,6 +17,12 @@ code/current/mobilenet/sample_inference/
 │   ├── accuracy_report.json     # Machine-readable summary metrics
 │   ├── per_class_metrics.csv    # 1,235 rows: class, support, TP, FP, FN, precision, recall, F1
 │   └── make_metrics.csv         # 35 makes: make, support, TP, FP, FN, precision, recall, F1
+├── images/                      # Curated sample vehicle images (Audi, BMW, Ford, Honda, Toyota)
+│   ├── 01_audi.jpg
+│   ├── 02_bmw.jpg
+│   ├── 03_ford.jpg
+│   ├── 04_honda.jpg
+│   └── 05_toyota.jpg
 ├── infer.py                     # Self-sufficient standalone inference script (CLI + Python API)
 ├── ACCURACY_REPORT.md           # Root symlink / duplicate of evaluation report
 └── README.md                    # Package documentation
