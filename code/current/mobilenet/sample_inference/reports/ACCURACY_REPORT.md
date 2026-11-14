@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary & Overall Accuracy Metrics
 
-| Metric | Combined Evaluation (114,545 images) | External Test Split (5,205 images) | PlatesMania Test Split (109,340 images) | Balanced Mixed Benchmark (9,870 images)* |
+| Metric | Combined Evaluation (114,545 images) | External Test Split (5,205 images) | PlatesMania Test Split (109,340 images) | Balanced Mixed Benchmark (9,870 images) |
 | :--- | :---: | :---: | :---: | :---: |
 | **Top-1 Model Accuracy** | **92.28%** | **94.12%** | **92.19%** | **92.80%** |
 | **Top-5 Model Accuracy** | **98.67%** | **99.14%** | **98.65%** | **98.74%** |
@@ -24,8 +24,6 @@
 | **Overall Micro Precision** | **92.28%** | **94.12%** | **92.19%** | **92.80%** |
 | **Overall Micro Recall** | **92.28%** | **94.12%** | **92.19%** | **92.80%** |
 | **Cross-Entropy Loss** | **0.353** | **0.259** | **0.358** | **0.333** |
-
-*\*Note on Balanced Mixed Benchmark: The mixed benchmark evaluates an empirical cross-domain split (5,000 PlatesMania + 4,870 External test images; 9,870 total) executed directly by `evaluate_mixed.py` on the RTX 4090 GPU, measuring exact empirical Top-1, Top-5, marginalized make metrics, and Cross-Entropy loss.*
 
 ---
 
