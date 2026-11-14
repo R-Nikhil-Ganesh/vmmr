@@ -60,16 +60,16 @@ MAKE_TO_IDX = {m: i for i, m in enumerate(TARGET_MAKES)}
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate MobileNetV2 Models on In-Domain, Out-of-Domain, and Mixed Benchmarks (Make + Model).")
     parser.add_argument("--pm-model-path", type=str,
-        default=str(CURRENT_DIR / "merged_dataset" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"),
+        default=str(CURRENT_DIR / "sample_inference" / "models" / "mobilenet_v2_best.onnx"),
         help="Path to PlatesMania / Merged model (.onnx)")
     parser.add_argument("--pm-label-map", type=str,
-        default=str(CURRENT_DIR / "merged_dataset" / "output_merged_run4" / "models" / "label_map.json"),
+        default=str(CURRENT_DIR / "sample_inference" / "models" / "label_map.json"),
         help="Path to PlatesMania / Merged label map")
     parser.add_argument("--ext-model-path", type=str,
-        default=str(CURRENT_DIR / "merged_dataset" / "output_merged_run4" / "models" / "mobilenet_v2_best.onnx"),
+        default=str(CURRENT_DIR / "sample_inference" / "models" / "mobilenet_v2_best.onnx"),
         help="Path to External / Merged model (.onnx)")
     parser.add_argument("--ext-label-map", type=str,
-        default=str(CURRENT_DIR / "merged_dataset" / "splits_1235models" / "label_map.json"),
+        default=str(CURRENT_DIR / "sample_inference" / "models" / "label_map.json"),
         help="Path to External label map")
     parser.add_argument("--pm-test-csv", type=str,
         default=paths.PM_MANIFEST_CSV,
@@ -143,6 +143,10 @@ class MixedBenchmarkDataset(Dataset):
 def compute_split_metrics(all_pred_makes: List[int], all_true_makes: List[int],
                           all_pred_models: List[int], all_true_models: List[int],
                           all_pred_restricted: List[int],
+                          all_model_top5_hits: Optional[List[bool]] = None,
+                          all_model_losses: Optional[List[float]] = None,
+                          all_make_top5_hits: Optional[List[bool]] = None,
+                          all_make_losses: Optional[List[float]] = None,
                           shared_classes: Optional[List[int]] = None) -> Dict[str, Any]:
     shared_arr = np.array(shared_classes, dtype=int) if shared_classes else None
     y_pred_make = np.array(all_pred_makes)
@@ -157,6 +161,10 @@ def compute_split_metrics(all_pred_makes: List[int], all_true_makes: List[int],
         "make_macro_f1": float(make_macro_f1),
         "make_weighted_f1": float(make_weighted_f1)
     }
+    if all_make_top5_hits is not None and len(all_make_top5_hits) > 0:
+        res["make_top5_accuracy"] = float(np.mean(all_make_top5_hits))
+    if all_make_losses is not None and len(all_make_losses) > 0:
+        res["make_cross_entropy_loss"] = float(np.mean(all_make_losses))
 
     if all_true_models:
         y_pred_model = np.array(all_pred_models)
@@ -167,10 +175,16 @@ def compute_split_metrics(all_pred_makes: List[int], all_true_makes: List[int],
         res["model_accuracy"] = model_acc
         res["model_macro_f1"] = float(model_macro_f1)
         res["model_weighted_f1"] = float(model_weighted_f1)
+        if all_model_top5_hits is not None and len(all_model_top5_hits) > 0:
+            res["model_top5_accuracy"] = float(np.mean(all_model_top5_hits))
+        if all_model_losses is not None and len(all_model_losses) > 0:
+            res["cross_entropy_loss"] = float(np.mean(all_model_losses))
     else:
         res["model_accuracy"] = None
         res["model_macro_f1"] = None
         res["model_weighted_f1"] = None
+        res["model_top5_accuracy"] = None
+        res["cross_entropy_loss"] = None
 
     if shared_arr is not None and all_true_models:
         in_shared = np.isin(y_true_model, shared_arr)
@@ -192,7 +206,7 @@ def compute_split_metrics(all_pred_makes: List[int], all_true_makes: List[int],
     return res
 
 
-def combine_split_metrics(raw_a: Dict[str, List[int]], raw_b: Dict[str, List[int]],
+def combine_split_metrics(raw_a: Dict[str, Any], raw_b: Dict[str, Any],
                           shared_classes: Optional[List[int]] = None) -> Dict[str, Any]:
     return compute_split_metrics(
         raw_a["pred_makes"] + raw_b["pred_makes"],
@@ -200,6 +214,10 @@ def combine_split_metrics(raw_a: Dict[str, List[int]], raw_b: Dict[str, List[int
         raw_a["pred_models"] + raw_b["pred_models"],
         raw_a["true_models"] + raw_b["true_models"],
         raw_a["pred_restricted"] + raw_b["pred_restricted"],
+        all_model_top5_hits=raw_a.get("model_top5_hits", []) + raw_b.get("model_top5_hits", []),
+        all_model_losses=raw_a.get("model_losses", []) + raw_b.get("model_losses", []),
+        all_make_top5_hits=raw_a.get("make_top5_hits", []) + raw_b.get("make_top5_hits", []),
+        all_make_losses=raw_a.get("make_losses", []) + raw_b.get("make_losses", []),
         shared_classes=shared_classes,
     )
 
@@ -222,6 +240,10 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
     all_pred_models: List[int] = []
     all_true_models: List[int] = []
     all_pred_restricted: List[int] = []
+    all_model_top5_hits: List[bool] = []
+    all_model_losses: List[float] = []
+    all_make_top5_hits: List[bool] = []
+    all_make_losses: List[float] = []
     shared_arr = np.array(shared_classes, dtype=int) if shared_classes else None
     n_failed = 0
 
@@ -263,7 +285,17 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
             if shared_arr is not None:
                 all_pred_restricted.extend(shared_arr[np.argmax(probs[:, shared_arr], axis=1)].tolist())
             if true_model_indices is not None:
-                all_true_models.extend(b_model_labels.numpy().tolist())
+                b_md_np = b_model_labels.numpy()
+                all_true_models.extend(b_md_np.tolist())
+                # Top-5 model accuracy
+                top5_preds = np.argsort(probs, axis=1)[:, -5:]
+                top5_hits = np.any(top5_preds == b_md_np[:, None], axis=1)
+                all_model_top5_hits.extend(top5_hits.tolist())
+                # Cross-entropy loss
+                eps = 1e-15
+                probs_clamped = np.clip(probs, eps, 1.0 - eps)
+                ce_losses = -np.log(probs_clamped[np.arange(len(b_md_np)), b_md_np])
+                all_model_losses.extend(ce_losses.tolist())
 
             # 2. Make predictions (marginalized over models)
             if proj_matrix is not None:
@@ -273,13 +305,28 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
 
             pred_makes = np.argmax(make_probs, axis=1)
             all_pred_makes.extend(pred_makes.tolist())
-            all_true_makes.extend(b_make_labels.numpy().tolist())
+            b_mk_np = b_make_labels.numpy()
+            all_true_makes.extend(b_mk_np.tolist())
+            if make_probs.shape[1] >= 5:
+                make_top5_preds = np.argsort(make_probs, axis=1)[:, -5:]
+                make_top5_hits = np.any(make_top5_preds == b_mk_np[:, None], axis=1)
+                all_make_top5_hits.extend(make_top5_hits.tolist())
+            else:
+                all_make_top5_hits.extend([True] * len(b_mk_np))
+            eps = 1e-15
+            make_probs_clamped = np.clip(make_probs, eps, 1.0 - eps)
+            make_ce_losses = -np.log(make_probs_clamped[np.arange(len(b_mk_np)), b_mk_np])
+            all_make_losses.extend(make_ce_losses.tolist())
 
     if n_failed:
         print(f"[WARN] {n_failed:,} of {n_samples:,} images could not be read and were excluded.")
 
     res = compute_split_metrics(
         all_pred_makes, all_true_makes, all_pred_models, all_true_models, all_pred_restricted,
+        all_model_top5_hits=all_model_top5_hits,
+        all_model_losses=all_model_losses,
+        all_make_top5_hits=all_make_top5_hits,
+        all_make_losses=all_make_losses,
         shared_classes=shared_classes,
     )
     if return_raw:
@@ -289,6 +336,10 @@ def evaluate_model_on_split(model: nn.Module, paths: List[str], true_make_indice
             "pred_models": all_pred_models,
             "true_models": all_true_models,
             "pred_restricted": all_pred_restricted,
+            "model_top5_hits": all_model_top5_hits,
+            "model_losses": all_model_losses,
+            "make_top5_hits": all_make_top5_hits,
+            "make_losses": all_make_losses,
         }
         return res, raw
     return res
@@ -411,17 +462,23 @@ def main():
             args.img_size, crop_top=0.15, crop_bottom=0.0, batch_size=args.batch_size,
             device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
         )
-        print(f"Model C on PlatesMania:      Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
+        top5_pm = f" | Top-5={res_a_pm.get('model_top5_accuracy', 0):.2%}" if "model_top5_accuracy" in res_a_pm else ""
+        ce_pm = f" | Loss={res_a_pm.get('cross_entropy_loss', 0):.4f}" if "cross_entropy_loss" in res_a_pm else ""
+        print(f"Model C on PlatesMania:      Make Acc={res_a_pm['make_accuracy']:.2%} | Model Acc={res_a_pm['model_accuracy']:.2%}{top5_pm}{ce_pm} | Make Macro F1={res_a_pm['make_macro_f1']:.2%}")
 
         res_a_ext, raw_a_ext = evaluate_model_on_split(
             model_c, ext_paths, ext_make_indices, ext_model_indices, pm_proj, ext_bboxes,
             args.img_size, crop_top=0.0, crop_bottom=0.05, batch_size=args.batch_size,
             device=device, shared_classes=shared_cls, num_workers=args.num_workers, return_raw=True
         )
-        print(f"Model C on External:         Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
+        top5_ext = f" | Top-5={res_a_ext.get('model_top5_accuracy', 0):.2%}" if "model_top5_accuracy" in res_a_ext else ""
+        ce_ext = f" | Loss={res_a_ext.get('cross_entropy_loss', 0):.4f}" if "cross_entropy_loss" in res_a_ext else ""
+        print(f"Model C on External:         Make Acc={res_a_ext['make_accuracy']:.2%} | Model Acc={res_a_ext['model_accuracy']:.2%}{top5_ext}{ce_ext} | Make Macro F1={res_a_ext['make_macro_f1']:.2%}")
 
         res_a_mix = combine_split_metrics(raw_a_pm, raw_a_ext, shared_classes=shared_cls)
-        print(f"Model C on Mixed (Combined): Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
+        top5_mix = f" | Top-5={res_a_mix.get('model_top5_accuracy', 0):.2%}" if "model_top5_accuracy" in res_a_mix else ""
+        ce_mix = f" | Loss={res_a_mix.get('cross_entropy_loss', 0):.4f}" if "cross_entropy_loss" in res_a_mix else ""
+        print(f"Model C on Mixed (Combined): Make Acc={res_a_mix['make_accuracy']:.2%} | Model Acc={res_a_mix['model_accuracy']:.2%}{top5_mix}{ce_mix} | Make Macro F1={res_a_mix['make_macro_f1']:.2%}")
 
         results.extend([
             {"model": "Model C (Merged)", "test_split": "PlatesMania", "domain_type": "In-Domain", **res_a_pm},

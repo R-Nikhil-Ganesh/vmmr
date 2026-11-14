@@ -10,22 +10,22 @@
 
 ## 1. Executive Summary & Overall Accuracy Metrics
 
-| Metric | Combined Evaluation (114,545 images) | External Test Split (5,205 images) | PlatesMania Test Split (109,340 images) | Balanced Mixed Benchmark (10,000 images)* |
+| Metric | Combined Evaluation (114,545 images) | External Test Split (5,205 images) | PlatesMania Test Split (109,340 images) | Balanced Mixed Benchmark (9,870 images)* |
 | :--- | :---: | :---: | :---: | :---: |
-| **Top-1 Model Accuracy** | **92.28%** | **94.12%** | **92.19%** | **93.29%** |
-| **Top-5 Model Accuracy** | **98.67%** | **99.14%** | **98.65%** | **98.90%** |
-| **Make Accuracy (Marginalized)** | **98.62%** | **98.66%** | **98.62%** | **98.68%** |
-| **Model Macro F1** | **85.87%** | **90.58%** | **85.65%** | **86.24%** |
-| **Model Weighted F1** | **92.04%** | **94.10%** | **91.94%** | **93.14%** |
-| **Make Macro F1** | **97.76%** | **98.67%** | **97.72%** | **98.66%** |
-| **True Positives (TP)** | **105,704** | **4,899** | **100,805** | **9,329** |
-| **False Positives (FP)** | **8,841** | **306** | **8,535** | **671** |
-| **False Negatives (FN)** | **8,841** | **306** | **8,535** | **671** |
-| **Overall Micro Precision** | **92.28%** | **94.12%** | **92.19%** | **93.29%** |
-| **Overall Micro Recall** | **92.28%** | **94.12%** | **92.19%** | **93.29%** |
-| **Cross-Entropy Loss** | **0.353** | **0.259** | **0.358** | **0.308** |
+| **Top-1 Model Accuracy** | **92.28%** | **94.12%** | **92.19%** | **92.80%** |
+| **Top-5 Model Accuracy** | **98.67%** | **99.14%** | **98.65%** | **98.74%** |
+| **Make Accuracy (Marginalized)** | **98.62%** | **98.66%** | **98.62%** | **98.29%** |
+| **Model Macro F1** | **85.87%** | **90.58%** | **85.65%** | **85.94%** |
+| **Model Weighted F1** | **92.04%** | **94.10%** | **91.94%** | **92.80%** |
+| **Make Macro F1** | **97.76%** | **98.67%** | **97.72%** | **98.21%** |
+| **True Positives (TP)** | **105,704** | **4,899** | **100,805** | **9,159** |
+| **False Positives (FP)** | **8,841** | **306** | **8,535** | **711** |
+| **False Negatives (FN)** | **8,841** | **306** | **8,535** | **711** |
+| **Overall Micro Precision** | **92.28%** | **94.12%** | **92.19%** | **92.80%** |
+| **Overall Micro Recall** | **92.28%** | **94.12%** | **92.19%** | **92.80%** |
+| **Cross-Entropy Loss** | **0.353** | **0.259** | **0.358** | **0.333** |
 
-*\*Note on Balanced Mixed Benchmark: The mixed benchmark evaluates an evenly balanced split of 5,000 PlatesMania and 5,000 External images (10,000 total). The Top-5 Accuracy (98.90%) and Cross-Entropy Loss (0.308) are the exact 50/50 domain-balanced averages from the corresponding test splits.*
+*\*Note on Balanced Mixed Benchmark: The mixed benchmark evaluates an empirical cross-domain split (5,000 PlatesMania + 4,870 External test images; 9,870 total) executed directly by `evaluate_mixed.py` on the RTX 4090 GPU, measuring exact empirical Top-1, Top-5, marginalized make metrics, and Cross-Entropy loss.*
 
 ---
 

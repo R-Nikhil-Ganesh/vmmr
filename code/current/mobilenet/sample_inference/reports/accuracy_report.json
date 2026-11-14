@@ -41,6 +41,16 @@
       "make_accuracy": 0.9859063471739528,
       "make_accuracy_marginalized": 0.9861990122553503,
       "make_macro_f1": 0.9771962347012167
+    },
+    "mixed_benchmark": {
+      "num_evaluated_samples": 9870,
+      "test_accuracy": 0.9279635258358663,
+      "test_top5_accuracy": 0.9874366767983789,
+      "make_accuracy": 0.9828774062816616,
+      "make_macro_f1": 0.9820779433879283,
+      "model_macro_f1": 0.8594214628281223,
+      "model_weighted_f1": 0.927953726270019,
+      "cross_entropy_loss": 0.3329126607989605
     }
   },
   "make_level": {
